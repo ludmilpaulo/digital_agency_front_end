@@ -1,19 +1,18 @@
 "use client";
-
-import type { NextPage } from 'next';
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import ShareButtons from "@/components/ShareButtons"; // Adjust the import path as needed
+import ShareButtons from "../../components/ShareButtons"; // Adjust the import path as needed
 import {
   Post as PostType,
   Comment as CommentType,
   AboutUsData,
 } from "@/useAPI/types"; // Adjust import paths as needed
 import { baseAPI } from "@/useAPI/api";
-import { useState, useEffect } from "react";
+
 import { fetchAboutUsData } from "@/useAPI/information";
 import { FaChevronDown } from "react-icons/fa";
 
@@ -217,4 +216,10 @@ function PostDetails() {
   );
 }
 
-export default PostDetails;
+const SuspensePostDetails = () => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <PostDetails />
+  </Suspense>
+);
+
+export default SuspensePostDetails;

@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 
-export const baseAPI = "http://127.0.0.1:8000"; // Ensure this is correctly pointing to your Django backend
+export const baseAPI = "https://maindoagency.pythonanywhere.com"; // Ensure this is correctly pointing to your Django backend
 
 const api = axios.create({
   baseURL: baseAPI,
