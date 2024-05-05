@@ -14,6 +14,10 @@ interface ShareButtonsProps {
 }
 
 const ShareButtons: React.FC<ShareButtonsProps> = ({ url, title }) => {
+  const handleInstagramShare = () => {
+    const instagramUrl = `https://www.instagram.com/create/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+    window.open(instagramUrl, '_blank');
+  };
   return (
     <div style={{ display: "flex", justifyContent: "space-around" }}>
       <FacebookShareButton url={url} style={{ cursor: "pointer" }}>
@@ -32,6 +36,9 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({ url, title }) => {
       <LinkedinShareButton url={url} style={{ cursor: "pointer" }}>
         <SocialIcon network="linkedin" style={{ height: 35, width: 35 }} />
       </LinkedinShareButton>
+      <button onClick={handleInstagramShare}>
+        <SocialIcon network="instagram" />
+      </button>
     </div>
   );
 };
