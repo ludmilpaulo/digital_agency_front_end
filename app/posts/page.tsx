@@ -125,7 +125,7 @@ function PostDetails() {
               Share to Social Media
             </h2>
             <ShareButtons
-              url={`http://localhost:3000/posts/${postId}`}
+              url={`https://www.maindodigital.com/${postId}`}
               title={title} />
           </>
         )}
