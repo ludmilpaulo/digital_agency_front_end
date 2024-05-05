@@ -83,7 +83,7 @@ const Header = () => {
               label="Projects"
               icon={<FaProjectDiagram />}
             />
-            <NavItem href="/contact" label="Contact" icon={<FaPhone />} />
+           
             <NavItem
               href="/about-us"
               label="About Us"

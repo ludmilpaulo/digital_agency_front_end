@@ -66,17 +66,17 @@ export default function Footer() {
             <ul className="mb-3 font-bold opacity-70 text-white">
               {/* Second column */}
               <li className="text-white font-bold">
-                <Link href="/solutions">
+                <Link href="/appointment">
                   <span>Solutions</span>
                 </Link>
               </li>
               <li className="text-white font-bold">
-                <Link href="/ContactPage">
+                <Link href="/">
                   <span>News</span>
                 </Link>
               </li>
               <li className="text-white font-bold">
-                <Link href="/ContactPage">
+                <Link href="/">
                   <span>Events</span>
                 </Link>
               </li>

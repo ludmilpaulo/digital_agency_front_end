@@ -47,7 +47,7 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-56">
       <form onSubmit={handleSubmit} className="space-y-6">
         <input
           type="text"

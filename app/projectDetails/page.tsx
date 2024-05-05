@@ -15,6 +15,7 @@ const ProjectDetails = () => {
   const image = searchParams.get("image") || ""; // Provide a default value if null
   const description = searchParams.get("description") || ""; // Provide a default value if null
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
+  console.log("link data",link);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,15 +68,16 @@ const ProjectDetails = () => {
           />
         )}
         {link && (
-          <div className="px-6 pt-4 pb-2">
-            <a
-              href={link}
-              className="inline-block bg-blue-500 rounded-full px-3 py-1 text-sm font-semibold text-white mr-2 mb-2"
-            >
-              Visit Project
-            </a>
-          </div>
-        )}
+  <div className="px-6 pt-4 pb-2">
+    <a
+      href={link}
+      className="inline-block bg-blue-500 rounded-full px-3 py-1 text-sm font-semibold text-black mr-2 mb-2"
+    >
+      Visit Project
+    </a>
+  </div>
+)}
+
       </div>
     </div>
   );
