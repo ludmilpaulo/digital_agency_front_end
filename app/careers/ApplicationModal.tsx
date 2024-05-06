@@ -1,6 +1,7 @@
 // components/ApplicationModal.tsx
 import React, { useState } from "react";
 import { Dialog } from "@headlessui/react";
+import { baseAPI } from "@/useAPI/api";
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   const [resume, setResume] = useState<File | null>(null);
 
   const handleApply = async () => {
+    console.log("click")
     if (!resume) return alert("Please attach a resume.");
 
     const formData = new FormData();
@@ -28,7 +30,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
     formData.append("email", email);
     formData.append("resume", resume);
 
-    const response = await fetch("http://127.0.0.1:8000/apply-for-job/", {
+    const response = await fetch(`${baseAPI}/careers/apply-for-job/`, {
       method: "POST",
       body: formData,
     });
@@ -54,14 +56,14 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
           <h2 className="text-lg font-bold mb-4">Apply for {careerTitle}</h2>
           <input
             type="text"
-            placeholder="Full Name"
+            placeholder="Please type your Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="input input-bordered w-full mb-4"
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Please type your Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="input input-bordered w-full mb-4"

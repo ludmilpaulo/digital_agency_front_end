@@ -48,6 +48,7 @@ const Page = () => {
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
+    console.log("appy", JSON.stringify(formData))
     if (!user) {
       alert("Please log in to request service'");
       router.push("/LoginScreenUser");
@@ -128,7 +129,7 @@ const Page = () => {
           />
         </div>
         <div>
-          <label className="block mb-2">Email:</label>
+          <label className="block mb-2">please type your Email:</label>
           <input
             type="email"
             name="email"
