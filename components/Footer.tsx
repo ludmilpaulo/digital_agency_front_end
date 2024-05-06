@@ -44,56 +44,37 @@ export default function Footer() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-white justify-end">
-            <ul className="mb-3 font-bold opacity-70 text-white">
-              {/* First column */}
-              <li className="text-white font-bold">
-                <Link href="/about-us">
-                  <span>About us</span>
-                </Link>
-              </li>
-              <li className="text-white font-bold">
-                <Link href="/careers">
-                  <span>Careers</span>
-                </Link>
-              </li>
-              <li className="text-white font-bold">
-                <Link href="/blog">
-                  <span>Blog</span>
-                </Link>
-              </li>
-            </ul>
-            <ul className="mb-3 font-bold opacity-70 text-white">
-              {/* Second column */}
-              <li className="text-white font-bold">
-                <Link href="/appointment">
-                  <span>Solutions</span>
-                </Link>
-              </li>
-              <li className="text-white font-bold">
-                <Link href="/">
-                  <span>News</span>
-                </Link>
-              </li>
-              <li className="text-white font-bold">
-                <Link href="/">
-                  <span>Events</span>
-                </Link>
-              </li>
-            </ul>
-            <ul className="mb-3 font-bold opacity-70 text-white">
-              {/* Third column (empty) */}
-            </ul>
-          </div>
+          
         </div>
         <div className="mt-12 flex flex-col items-center justify-center border-t border-blue-gray-50 py-4 md:flex-row md:justify-between">
-          <div className="mb-4 text-center font-bold text-white md:mb-0">
-            &copy; {currentYear}{" "}
-            <Link href="" className="text-white">
-              <span> Maindo</span>
-            </Link>
-            . All Rights Reserved.
-          </div>
+        <div className="flex flex-col md:flex-row justify-between items-center w-full">
+    {/* Navigation Links */}
+    <ul className="mb-3 font-bold opacity-70 text-white flex gap-8">
+      <li className="text-white font-bold">
+        <Link href="/careers">
+          <span>Careers</span>
+        </Link>
+      </li>
+      <li className="text-white font-bold">
+        <Link href="/blog">
+          <span>Blog</span>
+        </Link>
+      </li>
+      <li className="text-white font-bold">
+        <Link href="/appointment">
+          <span>Solutions</span>
+        </Link>
+      </li>
+    </ul>
+
+    {/* Copyright Text */}
+    <div className="mb-4 text-center font-bold text-white md:mb-0">
+    All Rights Reserved. &copy; {currentYear}{" "}
+    
+     
+    </div>
+  </div>
+
           <div className="flex gap-4 text-white justify-center md:justify-end">
             <motion.div
               initial={{
