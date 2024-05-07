@@ -147,7 +147,7 @@ const LoginScreenUser = () => {
             </Link>
             {/* Username input */}
             <input
-              placeholder="Nome do Usuário"
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               type="text"

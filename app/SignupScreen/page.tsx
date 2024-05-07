@@ -138,7 +138,7 @@ const SignupScreen = () => {
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
               <input
                 name="username"
-                placeholder="Usuario"
+                placeholder="User Name"
                 onChange={handleInputChange}
                 className="p-2 border rounded"
               />
@@ -153,7 +153,7 @@ const SignupScreen = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Senha"
+                  placeholder="Password"
                   onChange={handleInputChange}
                   className="p-2 w-full border rounded"
                 />
