@@ -3,6 +3,7 @@
 const nextConfig = {
   images: {
     domains: ["maindoagency.pythonanywhere.com"],
+   // domains: ["127.0.0.1"],
   },
 };
 

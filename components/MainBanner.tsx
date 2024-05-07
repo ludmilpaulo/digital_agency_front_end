@@ -56,7 +56,7 @@ const MainBanner: React.FC = () => {
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
-      {carouselData.length > 0 && (
+      {carouselData?.length > 0 && (
         <div className="w-full h-full">
           <Image
             src={carouselData[currentSlideIndex].image[currentImageIndex].image}

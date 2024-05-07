@@ -74,8 +74,9 @@ const LoginScreenUser = () => {
       let resJson = await res.json();
       console.log(resJson)
       if (res.status === 200) {
-        alert("Login successful!");
         dispatch(loginUser(resJson));
+        alert("Login successful!");
+       
         router.push("/");
       } else if (resJson.is_customer === false) {
         dispatch(loginUser(resJson));

@@ -66,11 +66,22 @@ const SignupScreen = () => {
     console.log("my data", userData)
   
     try {
-      const response = await axios.post(`${baseAPI}/auth/users/`, userData);
+      const response = await axios.post(`${baseAPI}/account/custom-sign/`, userData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
       console.log('Registration successful:', response.data);
-      router.push('/'); // Redirect to login page or wherever appropriate
+      if (response.data.success) {
+        router.push('/'); // Redirect to login page
+      } else {
+        alert('Signup successful, please verify your email.');
+      }
+      
+     // router.push('/'); // Redirect to login page or wherever appropriate
     } catch (error) {
-      alert("something went wrong please try again ");
+      alert("something went wrong please check email and username try again  ");
       // Add error handling logic here
     } finally {
       setLoading(false);
