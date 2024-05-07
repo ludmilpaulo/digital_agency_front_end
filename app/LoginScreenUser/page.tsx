@@ -137,12 +137,12 @@ const LoginScreenUser = () => {
             className="w-full p-6"
           >
             <p className="text-2xl font-extrabold text-gray-800 mb-6">
-              Faça login na sua conta
+            Sign in to your account
             </p>
             {/* Sign up link */}
             <Link href={"/SignupScreen"}>
               <p className="text-sm font-medium text-gray-500 mb-4 cursor-pointer">
-                Não tem uma conta? Assine aqui
+              Don&apos;t have an account? Sign here
               </p>
             </Link>
             {/* Username input */}
@@ -176,14 +176,14 @@ const LoginScreenUser = () => {
               type="button"
               className="w-full py-3 text-sm font-semibold text-white bg-blue-500 border rounded focus:outline-none hover:bg-blue-600 mb-4"
             >
-              Entrar na Minha Conta
+              Login to My Account
             </button>
             {/* Forgot password link */}
             <button
               onClick={toggleForgotPasswordDialog}
               className="text-sm text-blue-500 font-medium hover:underline focus:outline-none"
             >
-              Esqueceu a senha?
+             fogot password 
             </button>
           </motion.div>
         </div>

@@ -105,14 +105,14 @@ const SignupScreen = () => {
             />
           </div>
           <h1 className="text-2xl font-extrabold leading-6 text-gray-800">
-            Inscreva-se Para ter uma Conta
+          Sign Up for an Account
           </h1>
 
           <Link href={"/LoginScreenUser"}>
             <p className="mt-4 text-sm font-medium leading-none text-gray-500">
-              Se você tem uma conta?{" "}
+            If you have an account?{" "}
               <span className="text-gray-800 underline cursor-pointer">
-                Entre aqui
+                Login
               </span>
             </p>
           </Link>
@@ -173,7 +173,7 @@ const SignupScreen = () => {
                   aria-label="Entrar na minha conta"
                   className="w-full py-4 text-sm font-semibold leading-none text-white bg-black border rounded focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:outline-none hover:bg-indigo-600"
                 >
-                  Inscreva-se Agora
+                 Sign Up  now
                 </button>
               </div>
             </form>
