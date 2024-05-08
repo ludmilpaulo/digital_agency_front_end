@@ -8,7 +8,7 @@ import { Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
+import { isAxiosError } from 'axios';
 import { Eye, EyeOff } from "lucide-react";
 import { fetchAboutUsData } from "@/useAPI/information";
 import { AboutUsData } from "@/useAPI/types";
@@ -66,26 +66,42 @@ const SignupScreen = () => {
     console.log("my data", userData)
   
     try {
+      // Make the POST request to your custom signup endpoint
       const response = await axios.post(`${baseAPI}/account/custom-sign/`, userData, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      
+    
+      // Log successful registration data
       console.log('Registration successful:', response.data);
-      if (response.data.success) {
+    
+      // Redirect to the login page based on the response
+      if (response.data.message) {
+        alert(response.data.message); // Show success message
         router.push('/'); // Redirect to login page
       } else {
         alert('Signup successful, please verify your email.');
       }
-      
-     // router.push('/'); // Redirect to login page or wherever appropriate
-    } catch (error) {
-      alert("something went wrong please check email and username try again  ");
-      // Add error handling logic here
+    } catch (error: unknown) {
+      // Type guard to check if the error is an Axios error
+      if (isAxiosError(error)) {
+        // Check if the error response is present and has data
+        if (error.response && error.response.data && typeof error.response.data === 'object') {
+          const errorMessage = (error.response.data as { error: string }).error;
+          alert(`Error: ${errorMessage}`);
+        } else {
+          alert('An unknown error occurred during the signup process.');
+        }
+      } else {
+        // For other non-Axios errors or unknown error structures
+        alert("Something went wrong. Please try again later.");
+      }
     } finally {
+      // Ensure that loading is set to false
       setLoading(false);
     }
+    
   };
   
 
