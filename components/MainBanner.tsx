@@ -60,6 +60,7 @@ const MainBanner: React.FC = () => {
         <div className="w-full h-full">
           <Image
             src={carouselData[currentSlideIndex].image[currentImageIndex].image}
+           // src={carouselData?.image}
             alt="Banner Image"
             layout="fill"
             objectFit="cover"
