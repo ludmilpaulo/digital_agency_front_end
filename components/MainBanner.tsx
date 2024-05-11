@@ -21,6 +21,8 @@ const MainBanner: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
+  console.log("slided",carouselData)
+
   useEffect(() => {
     const fetchCarouselData = async () => {
       try {
@@ -49,7 +51,7 @@ const MainBanner: React.FC = () => {
         setCurrentImageIndex(nextImageIndex);
         setCurrentSlideIndex(nextSlideIndex);
       }
-    }, 3000); // Change image every 3 seconds
+    },); // Change image every 3 seconds
 
     return () => clearInterval(intervalId); // Cleanup the interval on component unmount
   }, [carouselData, currentImageIndex, currentSlideIndex]);

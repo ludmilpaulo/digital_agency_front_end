@@ -14,7 +14,7 @@ export const fetchAboutUsData = async (): Promise<AboutUsData | null> => {
 export const CarouselData = async () => {
   try {
     const response = await api.get("/info/carousels/");
-    return response.data[0] || null;
+    return response.data || null;
   } catch (error) {
     console.error("Error fetching Carousel data:", error);
     return null;
