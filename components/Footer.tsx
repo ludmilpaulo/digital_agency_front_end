@@ -34,7 +34,7 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <div className="flex items-center justify-center md:justify-start">
-            {/* Using Next.js Image component for the logo */}
+            {/* Using Next.js Image component for the logo
             <div className="mb-6">
               <Image
                 src={headerData?.logo ?? "/default-logo.png"}
@@ -43,6 +43,7 @@ export default function Footer() {
                 height={50}
               />
             </div>
+             */}
           </div>
           
         </div>
