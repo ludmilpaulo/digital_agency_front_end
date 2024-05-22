@@ -24,7 +24,6 @@ const Page = () => {
 
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
   const [formData, setFormData] = useState<FormData>({
-    user: user?.user_id,
     date: "",
     time: "",
     reason: "",
@@ -47,22 +46,38 @@ const Page = () => {
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
-  
+
+    if (!formData.date || !formData.time || !formData.reason || !formData.phone || !formData.email) {
+      toast.error("All fields are required");
+      return;
+    }
+
+    const appointmentData = { ...formData };
+    if (user?.id) {
+      appointmentData.user = user.id;
+    }
+
     try {
       const response = await fetch(`${baseAPI}/appointment/appointments/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(appointmentData),
       });
+
       if (response.ok) {
         toast.success('Appointment booked successfully!');
         alert('Appointment booked successfully!');
         router.push("/");
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || "Failed to submit appointment");
+        if (errorData.error) {
+          toast.error(errorData.error);
+        } else {
+          const errorMessages = Object.values(errorData).flat().join(' ');
+          toast.error(errorMessages || "Failed to submit appointment");
+        }
       }
     } catch (error) {
       console.error("Error submitting appointment:", error);
@@ -78,64 +93,72 @@ const Page = () => {
       }}
     >
       <ToastContainer />
-      <div className="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Book an Appointment</h2>
-        <div>
-          <label className="block mb-2">Date:</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Time:</label>
-          <input
-            type="time"
-            name="time"
-            value={formData.time}
-            onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Reason:</label>
-          <input
-            type="text"
-            name="reason"
-            value={formData.reason}
-            onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Phone:</label>
-          <input
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Please type your Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-          />
-        </div>
-        <button
-          onClick={handleSubmit}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-        >
-          Submit
-        </button>
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-6">Book an Appointment</h2>
+        <form>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2" htmlFor="date">Date:</label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2" htmlFor="time">Time:</label>
+            <input
+              type="time"
+              id="time"
+              name="time"
+              value={formData.time}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2" htmlFor="reason">Reason:</label>
+            <input
+              type="text"
+              id="reason"
+              name="reason"
+              value={formData.reason}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2" htmlFor="phone">Phone:</label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2" htmlFor="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition duration-300"
+          >
+            Submit
+          </button>
+        </form>
       </div>
     </div>
   );
