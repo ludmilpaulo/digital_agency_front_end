@@ -58,6 +58,7 @@ const Page = () => {
       });
       if (response.ok) {
         toast.success('Appointment booked successfully!');
+        alert('Appointment booked successfully!');
         router.push("/");
       } else {
         const errorData = await response.json();

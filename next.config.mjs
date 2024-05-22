@@ -1,9 +1,10 @@
-// This is your Next.js configuration file
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["maindoagency.pythonanywhere.com"],
-   // domains: ["127.0.0.1"],
+    domains: ["maindoagency.pythonanywhere.com", "127.0.0.1"],
+  },
+  env: {
+    NEXT_PUBLIC_BASE_API: process.env.NEXT_PUBLIC_BASE_API,
   },
 };
 
