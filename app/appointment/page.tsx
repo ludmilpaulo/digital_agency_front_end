@@ -6,9 +6,11 @@ import { AboutUsData } from "@/useAPI/types";
 import { baseAPI } from "@/useAPI/api";
 import { selectUser } from "@/redux/slices/authSlice";
 import { useSelector } from "react-redux";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface FormData {
-  user?: number; // Optional, in case there's no logged-in user
+  user?: number;
   date: string;
   time: string;
   reason: string;
@@ -16,23 +18,20 @@ interface FormData {
   email?: string;
 }
 
-
 const Page = () => {
   const user = useSelector(selectUser);
-
   const router = useRouter();
 
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
-
   const [formData, setFormData] = useState<FormData>({
-    user: user?.user_id, // Initially set user_id from the Redux store
+    user: user?.user_id,
     date: "",
     time: "",
     reason: "",
     phone: "",
     email: "",
   });
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchAboutUsData();
@@ -48,12 +47,7 @@ const Page = () => {
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log("appy", JSON.stringify(formData))
-    if (!user) {
-      alert("Please log in to request service'");
-      router.push("/LoginScreenUser");
-      return;
-    }
+  
     try {
       const response = await fetch(`${baseAPI}/appointment/appointments/`, {
         method: "POST",
@@ -63,30 +57,27 @@ const Page = () => {
         body: JSON.stringify(formData),
       });
       if (response.ok) {
-        alert('Appointment booked successfully!');
+        toast.success('Appointment booked successfully!');
         router.push("/");
       } else {
-        const errorText = await response.text();
-        throw new Error(`Failed to submit appointment: ${errorText}`);
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to submit appointment");
       }
     } catch (error) {
       console.error("Error submitting appointment:", error);
-      alert("submitting appointment:");
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
-
   return (
     <div
-      className="flex items-center justify-center h-screen"
+      className="flex items-center justify-center h-screen bg-cover bg-center bg-no-repeat"
       style={{
         backgroundImage: `url(${headerData?.backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="bg-white rounded-lg shadow-md p-8">
+      <ToastContainer />
+      <div className="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
         <h2 className="text-2xl font-bold mb-4">Book an Appointment</h2>
         <div>
           <label className="block mb-2">Date:</label>
@@ -129,7 +120,7 @@ const Page = () => {
           />
         </div>
         <div>
-          <label className="block mb-2">please type your Email:</label>
+          <label className="block mb-2">Please type your Email:</label>
           <input
             type="email"
             name="email"
