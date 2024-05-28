@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "https://www.maindodigital.com/statics/og-image.jpg",
+        url: "https://maindoagency.pythonanywhere.com/media/carousel_images/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Maindo Digital Agency",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: "Maindo Digital Agency offers comprehensive digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions to elevate your business in the digital landscape.",
     images: [
       {
-        url: "https://www.maindodigital.com/statics/twitter-image.jpg",
+        url: "https://maindoagency.pythonanywhere.com/media/carousel_images/twitter-image.jpg",
         alt: "Maindo Digital Agency",
       },
     ],
