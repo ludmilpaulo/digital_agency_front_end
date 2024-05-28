@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   title: "Maindo Digital Agency | Innovative Digital Solutions & Services",
   description: "Maindo Digital Agency offers comprehensive digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions to elevate your business in the digital landscape.",
   keywords: "digital agency, digital marketing, web development, UX/UI design, mobile app development, e-commerce solutions, branding, SEO, PPC, social media management, data analytics",
-  author: "Maindo Digital Agency",
+  authors: [
+    { name: "Maindo Digital Agency", url: "https://www.maindodigital.com" },
+  ],
   openGraph: {
     title: "Maindo Digital Agency | Innovative Digital Solutions & Services",
     description: "Partner with Maindo Digital Agency for expert digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions. Transform your business with our innovative digital strategies.",
