@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import MainBanner from "@/components/MainBanner";
+import dynamic from "next/dynamic";
+const MainBanner = dynamic(() => import("@/components/MainBanner"), { ssr: false });
+
 
 const Home: React.FC = () => {
   return (

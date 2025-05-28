@@ -1,17 +1,17 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import authReducer from "./slices/authSlice";
-
-import storage from "redux-persist/lib/storage";
-import { persistReducer, persistStore } from "redux-persist";
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import authReducer from './slices/authSlice';
+import carouselReducer from './slices/carouselSlice';
+import storage from 'redux-persist/lib/storage';
+import { persistReducer, persistStore } from 'redux-persist';
 
 const rootPersistConfig = {
-  key: "root",
+  key: 'root',
   storage,
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  carousel: carouselReducer, // <- ADD THIS LINE
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
@@ -28,5 +28,4 @@ export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export const useAppDispatch: () => AppDispatch = useDispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+export { useDispatch, useSelector } from 'react-redux';
