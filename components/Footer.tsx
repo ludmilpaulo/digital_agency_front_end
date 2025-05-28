@@ -1,31 +1,32 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-
 import Link from "next/link";
+import Image from "next/image";
+import { useAppSelector } from "@/redux/store";
 import { SocialIcon } from "react-social-icons";
-import { motion, useAnimation } from "framer-motion";
-import { fetchAboutUsData } from "@/useAPI/information";
-import { AboutUsData } from "@/useAPI/types";
+import { motion } from "framer-motion";
 
 const currentYear = new Date().getFullYear();
 
-export default function Footer() {
-  const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
+type SocialKey = 'facebook' | 'linkedin' | 'twitter' | 'instagram';
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchAboutUsData();
-      setHeaderData(data);
-    };
-    fetchData();
-  }, []);
+const socials: { key: SocialKey; color: string }[] = [
+  { key: "facebook", color: "#3b5998" },
+  { key: "linkedin", color: "#0077b5" },
+  { key: "twitter", color: "#1da1f2" },
+  { key: "instagram", color: "#e4405f" },
+];
+
+export default function Footer() {
+  const { data: aboutUs } = useAppSelector((state) => state.aboutUs);
+
+  // Wait for Redux data to hydrate
+  if (!aboutUs) return null;
 
   return (
     <footer
       className="relative w-full bg-gray-900"
       style={{
-        backgroundImage: `url(${headerData?.backgroundImage})`,
+        backgroundImage: aboutUs.backgroundImage ? `url(${aboutUs.backgroundImage})` : undefined,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -34,78 +35,60 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <div className="flex items-center justify-center md:justify-start">
-            {/* Using Next.js Image component for the logo
-            <div className="mb-6">
-              <Image
-                src={headerData?.logo ?? "/default-logo.png"}
-                alt="Material Aki Tens"
-                width={200}
-                height={50}
-              />
-            </div>
-             */}
+            <Image
+              src={aboutUs.logo}
+              alt="Logo"
+              width={120}
+              height={40}
+              className="rounded shadow-md bg-white p-2"
+              priority
+            />
           </div>
-          
         </div>
-        <div className="mt-12 flex flex-col items-center justify-center border-t border-blue-gray-50 py-4 md:flex-row md:justify-between">
-        <div className="flex flex-col md:flex-row justify-between items-center w-full">
-    {/* Navigation Links */}
-    <ul className="mb-3 font-bold opacity-70 text-white flex gap-8">
-      <li className="text-white font-bold">
-        <Link href="/careers">
-          <span>Careers</span>
-        </Link>
-      </li>
-      <li className="text-white font-bold">
-        <Link href="/blog">
-          <span>Blog</span>
-        </Link>
-      </li>
-      <li className="text-white font-bold">
-        <Link href="/appointment">
-          <span>Solutions</span>
-        </Link>
-      </li>
-    </ul>
-
-    {/* Copyright Text */}
-    <div className="mb-4 text-center font-bold text-white md:mb-0">
-    All Rights Reserved. &copy; {currentYear}{" "}
-    
-     
-    </div>
-  </div>
-
-          <div className="flex gap-4 text-white justify-center md:justify-end">
+        <div className="mt-12 flex flex-col items-center justify-center border-t border-gray-700 py-4 md:flex-row md:justify-between w-full">
+          <div className="flex flex-col md:flex-row justify-between items-center w-full">
+            <ul className="mb-3 font-bold opacity-90 text-white flex gap-8">
+              <li>
+                <Link href="/careers" className="hover:text-blue-400 transition">Careers</Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-blue-400 transition">Blog</Link>
+              </li>
+              <li>
+                <Link href="/appointment" className="hover:text-blue-400 transition">Solutions</Link>
+              </li>
+            </ul>
             <motion.div
-              initial={{
-                x: -500,
-                opacity: 0,
-                scale: 0.5,
-              }}
-              animate={{
-                x: 0,
-                opacity: 1,
-                scale: 1,
-              }}
-              transition={{
-                duration: 2,
-              }}
-              className="flex flex-row items-center"
+              initial={{ x: 60, opacity: 0, scale: 0.8 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2 }}
+              className="flex flex-row items-center mb-4 md:mb-0 gap-2"
             >
-              <>
-                {headerData?.facebook && (
-                  <SocialIcon url={headerData.facebook} />
-                )}
-                {headerData?.linkedin && (
-                  <SocialIcon url={headerData.linkedin} />
-                )}
-                {headerData?.twitter && <SocialIcon url={headerData.twitter} />}
-                {headerData?.instagram && (
-                  <SocialIcon url={headerData.instagram} />
-                )}
-              </>
+              {socials.map(({ key, color }) => {
+                const url = aboutUs[key] as string;
+                if (!url) return null;
+                return (
+                  <SocialIcon
+                    key={key}
+                    url={url}
+                    fgColor="#fff"
+                    bgColor={color}
+                    style={{
+                      height: 32,
+                      width: 32,
+                      transition: "opacity 0.2s",
+                    }}
+                    tabIndex={0}
+                    aria-disabled={false}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                );
+              })}
             </motion.div>
+            <div className="mb-4 text-center font-bold text-white md:mb-0">
+              All Rights Reserved. &copy; {currentYear} Maindo Digital Agency
+            </div>
           </div>
         </div>
       </div>

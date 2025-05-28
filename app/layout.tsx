@@ -4,6 +4,11 @@ import "./globals.css";
 import StoreProvider from "@/redux/StoreProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchAboutUs } from "@/redux/slices/aboutUsSlice";
+import FetchAboutUsClient from "./FetchAboutUsClient";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,11 +52,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <StoreProvider>
+      <FetchAboutUsClient /> {/* <-- triggers your Redux fetch on client mount */}
       <html lang="en">
         <body className={inter.className}>
           <Header />

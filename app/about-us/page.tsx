@@ -6,7 +6,7 @@ import Head from "next/head";
 import { Transition } from "@headlessui/react";
 import { AboutUsData } from "@/useAPI/types";
 import { fetchAboutUsData } from "@/useAPI/information";
-import Team from "@/components/Team";
+
 import { baseAPI } from "@/useAPI/api";
 
 const About: NextPage = () => {
