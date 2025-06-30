@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import Script from "next/script";
+
 import { fetchAboutUs } from "@/redux/slices/aboutUsSlice";
 import FetchAboutUsClient from "./FetchAboutUsClient";
 
@@ -57,6 +59,14 @@ export default function RootLayout({
     <StoreProvider>
       <FetchAboutUsClient /> {/* <-- triggers your Redux fetch on client mount */}
       <html lang="en">
+      <head>
+          {/* Ahrefs Analytics Script */}
+          <Script
+            src="https://analytics.ahrefs.com/analytics.js"
+            data-key="ouQu5v62l4/FTsePpkTBVw"
+            strategy="afterInteractive"
+          />
+        </head>
         <body className={inter.className}>
           <Header />
           {children}
