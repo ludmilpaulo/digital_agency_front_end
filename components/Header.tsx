@@ -1,128 +1,186 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { SocialIcon } from "react-social-icons";
-import { motion } from "framer-motion";
-import { FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaProjectDiagram } from "react-icons/fa";
-import { useState } from "react";
 import { useAppSelector } from "@/redux/store";
+import { SocialIcon } from "react-social-icons";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import {
+  FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaProjectDiagram, FaWhatsapp
+} from "react-icons/fa";
+import type { RootState } from "@/redux/store";
 
-type SocialKey = 'facebook' | 'linkedin' | 'twitter' | 'instagram';
+// SocialKey includes only the string fields in your AboutUsData that are social URLs
+export type SocialKey = "facebook" | "linkedin" | "twitter" | "instagram" | "whatsapp";
 
-const socials: { key: SocialKey; color: string }[] = [
+export interface AboutUsData {
+  id: number;
+  title: string;
+  logo: string;
+  back: string;
+  backgroundApp: string;
+  backgroundImage: string;
+  about: string;
+  born_date: string;
+  address: string;
+  phone: string;
+  email: string;
+  whatsapp: string;
+  linkedin: string | null;
+  facebook: string;
+  twitter: string;
+  instagram: string;
+}
+
+const NAV: { href: string; label: string; icon: JSX.Element }[] = [
+  { href: "/", label: "Home", icon: <FaHome /> },
+  { href: "/services", label: "Services", icon: <FaServer /> },
+  { href: "/projects", label: "Projects", icon: <FaProjectDiagram /> },
+  { href: "/blog", label: "Blog", icon: <FaBook /> },
+  { href: "/about-us", label: "About Us", icon: <FaUserCircle /> },
+];
+
+const socials: { key: Exclude<SocialKey, "whatsapp">; color: string }[] = [
   { key: "facebook", color: "#3b5998" },
   { key: "linkedin", color: "#0077b5" },
   { key: "twitter", color: "#1da1f2" },
   { key: "instagram", color: "#e4405f" },
 ];
 
-const headerStyles = {
-  position: "fixed" as const,
-  top: 0, left: 0, right: 0, zIndex: 50,
-  backgroundColor: "rgba(0,0,0,0.85)",
-  backdropFilter: "blur(5px)",
-};
-
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: aboutUs } = useAppSelector((state) => state.aboutUs);
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  // Wait for Redux data to hydrate
-  if (!aboutUs) return null;
+  // Strictly AboutUsData | null
+  const aboutUs: AboutUsData | null = useAppSelector(
+    (state: RootState) => state.aboutUs.data
+  );
+
+  useEffect(() => setMounted(true), []);
+
+  // Hydration-safe: Always SSR a placeholder
+  if (!mounted || !aboutUs) {
+    return (
+      <header className="fixed w-full z-50 bg-black/70 backdrop-blur-xl shadow-lg h-20" />
+    );
+  }
 
   return (
-    <header style={headerStyles}>
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <header className="fixed w-full z-50 bg-black/70 backdrop-blur-xl shadow-lg">
+      <div className="mx-auto max-w-7xl px-4 flex items-center justify-between h-20">
         <Link href="/" className="flex items-center gap-2 group">
           <Image
             src={aboutUs.logo}
             alt="Logo"
             width={48}
             height={48}
-            className="rounded-lg shadow-md group-hover:scale-110 transition-transform"
+            className="rounded-lg bg-white shadow group-hover:scale-110 transition-transform"
             priority
           />
-          <span className="text-2xl font-bold text-white cursor-pointer tracking-tight group-hover:text-blue-400 transition">
+          <span className="text-2xl font-bold text-white tracking-tight group-hover:text-blue-400 transition">
             <span className="text-blue-400">Maindo</span> Digital
           </span>
         </Link>
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-white text-3xl"
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {isMenuOpen ? <FaTimes /> : <FaBars />}
+        <nav className="hidden md:flex gap-4 items-center">
+          {NAV.map(({ href, label, icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center px-3 py-1 rounded-xl text-white text-base gap-2 hover:bg-blue-600/20 hover:text-blue-400 font-semibold transition-all duration-200 relative group"
+            >
+              <span className="text-xl">{icon}</span>
+              <span>{label}</span>
+              <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
+            </Link>
+          ))}
+          <Link
+            href="/contact"
+            className="ml-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold shadow transition"
+          >
+            Get a Quote
+          </Link>
+          <div className="flex gap-2 ml-3">
+            {socials.map(({ key, color }) => {
+              const url = aboutUs[key];
+              if (!url) return null;
+              return (
+                <SocialIcon
+                  key={key}
+                  url={url}
+                  fgColor="#fff"
+                  bgColor={color}
+                  style={{ height: 28, width: 28 }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              );
+            })}
+          </div>
+        </nav>
+        {/* Mobile */}
+        <button onClick={() => setOpen(!open)} className="md:hidden text-white text-3xl">
+          {open ? <FaTimes /> : <FaBars />}
         </button>
-        <div className="hidden md:flex gap-4">
-          <HeaderSocialLinks aboutUs={aboutUs} />
-        </div>
       </div>
-      <nav className={`bg-black/95 transition-all ${isMenuOpen ? "block" : "hidden"} md:block`}>
-        <motion.ul
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="flex flex-col md:flex-row justify-center items-center text-white space-y-2 md:space-y-0 md:space-x-6 py-2"
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            initial={{ y: -200, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -200, opacity: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="fixed inset-0 z-40 bg-black/95 flex flex-col gap-6 items-center justify-center text-2xl"
+          >
+            {NAV.map(({ href, label, icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 text-white hover:text-blue-400 font-bold transition"
+              >
+                <span>{icon}</span> {label}
+              </Link>
+            ))}
+            <Link
+              href="/contact"
+              className="px-8 py-3 mt-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg shadow transition"
+              onClick={() => setOpen(false)}
+            >
+              Get a Quote
+            </Link>
+            <div className="flex gap-4 mt-6">
+              {socials.map(({ key, color }) => {
+                const url = aboutUs[key];
+                if (!url) return null;
+                return (
+                  <SocialIcon
+                    key={key}
+                    url={url}
+                    fgColor="#fff"
+                    bgColor={color}
+                    style={{ height: 36, width: 36 }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                );
+              })}
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+      {/* WhatsApp Floating */}
+      {aboutUs.whatsapp && (
+        <a
+          href={`https://wa.me/${aboutUs.whatsapp.replace(/\D/g, "")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-7 right-7 z-[60] bg-green-500 hover:bg-green-600 p-3 rounded-full shadow-lg transition-all animate-bounce"
         >
-          <NavItem href="/" label="Home" icon={<FaHome />} />
-          <NavItem href="/services" label="Services" icon={<FaServer />} />
-          <NavItem href="/blog" label="Blog" icon={<FaBook />} />
-          <NavItem href="/projects" label="Projects" icon={<FaProjectDiagram />} />
-          <NavItem href="/about-us" label="About Us" icon={<FaUserCircle />} />
-        </motion.ul>
-      </nav>
+          <FaWhatsapp className="text-white text-2xl" />
+        </a>
+      )}
     </header>
   );
 };
-
-const NavItem: React.FC<{ href: string; label: string; icon: JSX.Element }> = ({
-  href,
-  label,
-  icon,
-}) => (
-  <li className="my-2 md:my-0">
-    <Link
-      href={href}
-      className="flex flex-col items-center cursor-pointer hover:text-blue-400 transition-colors duration-300"
-    >
-      <div className="text-2xl mb-1">{icon}</div>
-      <div className="text-sm font-semibold">{label}</div>
-    </Link>
-  </li>
-);
-
-const HeaderSocialLinks: React.FC<{ aboutUs: any }> = ({ aboutUs }) => (
-  <div className="flex gap-2">
-    <motion.div
-      initial={{ x: -60, opacity: 0, scale: 0.85 }}
-      animate={{ x: 0, opacity: 1, scale: 1 }}
-      transition={{ duration: 1.2 }}
-      className="flex flex-row items-center"
-    >
-      {socials.map(({ key, color }) => {
-        // Handles null, undefined, or empty strings
-        const url = aboutUs[key] as string;
-        if (!url) return null;
-        return (
-          <SocialIcon
-            key={key}
-            url={url}
-            fgColor="#fff"
-            bgColor={color}
-            style={{
-              height: 32,
-              width: 32,
-              transition: "opacity 0.2s",
-            }}
-            tabIndex={0}
-            aria-disabled={false}
-            target="_blank"
-            rel="noopener noreferrer"
-          />
-        );
-      })}
-    </motion.div>
-  </div>
-);
 
 export default Header;
