@@ -18,19 +18,3 @@ export interface AboutUsData {
   instagram: string;
 }
 
-export interface Comment {
-  id: number;
-  name: string;
-  email: string;
-  content: string;
-  created_at: string; // Assuming there's a timestamp
-}
-
-export interface Post {
-  id: number;
-  title: string;
-  content: string;
-  image: string;
-  published_date: string;
-  comments: Comment[];
-}

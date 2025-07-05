@@ -15,6 +15,18 @@ const nextConfig = {
         pathname: '/api/portraits/**',
       },
       {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**', // This allows any path for Unsplash
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+        port: '',
+        pathname: '/api/**',
+      },
+      {
         protocol: 'http',
         hostname: '127.0.0.1',
         port: '',

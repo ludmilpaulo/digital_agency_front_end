@@ -1,237 +1,166 @@
 "use client";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // corrected import
-import { fetchAboutUsData } from "@/useAPI/information";
-import { AboutUsData } from "@/useAPI/types";
-import { selectUser } from "@/redux/slices/authSlice";
-import { useSelector } from "react-redux";
-import { baseAPI } from "@/useAPI/api";
-import { Transition } from "@headlessui/react";
+import { motion } from "framer-motion";
+import { FaCogs, FaRocket, FaMobileAlt, FaCode, FaCloud, FaChartLine, FaArrowRight } from "react-icons/fa";
 
-type Service = {
-  id: number;
-  title: string;
-  image: string;
-  rating: number;
-  description: string;
-};
+// --- MOCK DATA (replace with API!) ---
+const SERVICES = [
+  {
+    title: "Web Development",
+    desc: "Custom, scalable websites and portals that grow with your business. From landing pages to full e-commerce.",
+    icon: <FaCode className="text-blue-600 text-4xl mb-3" />,
+    href: "/services/web-development",
+  },
+  {
+    title: "Mobile App Development",
+    desc: "iOS & Android apps that wow your users. Fast, secure, and beautiful.",
+    icon: <FaMobileAlt className="text-green-600 text-4xl mb-3" />,
+    href: "/services/app-development",
+  },
+  {
+    title: "Digital Marketing",
+    desc: "SEO, PPC, social media & content strategies proven to drive real results.",
+    icon: <FaChartLine className="text-pink-600 text-4xl mb-3" />,
+    href: "/services/digital-marketing",
+  },
+  {
+    title: "Automation & SaaS",
+    desc: "We automate your processes or build your next SaaS product. More productivity, less stress.",
+    icon: <FaCogs className="text-yellow-600 text-4xl mb-3" />,
+    href: "/services/automation",
+  },
+  {
+    title: "Cloud Solutions",
+    desc: "Cloud migration, DevOps, managed hosting, and secure global scale.",
+    icon: <FaCloud className="text-purple-600 text-4xl mb-3" />,
+    href: "/services/cloud",
+  },
+  {
+    title: "Branding & Creative",
+    desc: "Brand strategy, logo, and all creative for a bold digital presence.",
+    icon: <FaRocket className="text-red-600 text-4xl mb-3" />,
+    href: "/services/branding",
+  },
+];
 
-type ServiceRequest = {
-  serviceId: number | undefined;
-  userId: number | undefined;
-  message: string;
-  phone: string;
-  address: string;
-  email: string;
-};
+const WHY_US = [
+  {
+    icon: "/icons/client-first.svg",
+    title: "Client-First Approach",
+    desc: "You get dedicated support, direct communication, and real results.",
+  },
+  {
+    icon: "/icons/tech.svg",
+    title: "Tech & Design Mastery",
+    desc: "Our senior team crafts modern, robust and beautiful solutions.",
+  },
+  {
+    icon: "/icons/fast.svg",
+    title: "Fast & Agile Delivery",
+    desc: "You move fast, so do we—no slow agency processes here.",
+  },
+  {
+    icon: "/icons/africa.svg",
+    title: "Built for Africa & the World",
+    desc: "We understand the unique challenges and opportunities in African markets and global scale.",
+  },
+];
 
-export default function Services() {
-  const router = useRouter();
-  const user = useSelector(selectUser);
-  const [services, setServices] = useState<Service[]>([]);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [request, setRequest] = useState<ServiceRequest>({
-    serviceId: undefined,
-    userId: user?.user_id,
-    message: "",
-    phone: "",
-    address: "",
-    email: "",
-  });
-  const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchAboutUsData();
-      setHeaderData(data);
-    };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    axios
-      .get(`${baseAPI}/service/services/`)
-      .then((response) => setServices(response.data))
-      .catch((error) => console.error("Error fetching services", error));
-  }, []);
-
-  useEffect(() => {
-    setRequest((prev) => ({
-      ...prev,
-      service: selectedService?.id, // Ensure property name is 'service'
-      user: user?.user_id,          // Ensure property name is 'user'
-    }));
-}, [selectedService, user]);
-
-const handleSubmit = async (event: React.FormEvent) => {
-    console.log("service request", request)
-    event.preventDefault();
-
-    if (!user) {
-      alert("Please log in to request service'");
-      router.push("/LoginScreenUser");
-      return;
-    }
-    setLoading(true);
-    try {
-      await axios.post(`${baseAPI}/service/service-requests/`, request);
-      alert("Request submitted successfully! We will be in touch.");
-      setRequest({
-        serviceId: undefined,
-        userId: user?.user_id,
-        message: "",
-        phone: "",
-        address: "",
-        email: "",
-      }); // Clear the form fields
-      setLoading(false);
-      router.push('/'); // Redirect to the home page or dashboard as required
-    } catch (error) {
-      console.error("Error submitting request", error);
-      setLoading(false);
-    }
-  };
-
-  const renderStars = (rating: number) =>
-    Array.from({ length: rating }, (_, i) => (
-      <svg
-        key={i}
-        className="w-5 h-5 text-yellow-400"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.813l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.539 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.573-.38-1.813.588-1.813h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-      </svg>
-    ));
-
+export default function ServicesPage() {
   return (
-    <div className="flex flex-wrap justify-center pt-56" style={{
-      backgroundImage: `url(${headerData?.backgroundImage})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    }}>
-      <Transition
-        show={loading}
-        enter="transition-opacity duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-300"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
+    <main className="min-h-screen w-full bg-gradient-to-br from-blue-900 via-blue-800 to-black pb-24">
+      {/* HERO */}
+      <section className="w-full py-14 flex flex-col items-center px-4">
+        <motion.h1
+          className="text-4xl md:text-5xl font-extrabold text-white mb-3 text-center tracking-tight drop-shadow-lg"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          Our Services
+        </motion.h1>
+        <motion.p
+          className="max-w-2xl text-blue-100 text-xl text-center mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          From idea to execution, we deliver digital growth for Africa and the world.
+        </motion.p>
+      </section>
+
+      {/* SERVICES GRID */}
+      <motion.section
+        className="w-full max-w-5xl mx-auto grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9 }}
+        viewport={{ once: true }}
       >
-        {loading && (
-          <div className="fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full">
-            <div className="w-32 h-32 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-          </div>
-        )}
-      </Transition>
-      {services.map((service) => (
-        <div
-          key={service.id}
-          className="card bg-white shadow-lg rounded-lg m-4 p-4 w-96"
-        >
-          <h3 className="text-lg font-bold">{service.title}</h3>
-          {service.image && (
-            <div className="relative w-full h-48">
-              <Image
-                src={service.image}
-                alt={service.title}
-                layout="fill"
-                objectFit="cover"
-                className="rounded"
-              />
-            </div>
-          )}
-          <p dangerouslySetInnerHTML={{ __html: service.description }} />
-          <div className="flex items-center justify-between mt-4">
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-              onClick={() => setSelectedService(service)}
+        {SERVICES.map((service, idx) => (
+          <motion.div
+            key={service.title}
+            className="bg-white/90 rounded-2xl shadow-xl p-7 flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group"
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.07 * idx }}
+          >
+            {service.icon}
+            <div className="text-2xl font-bold text-blue-900 mb-1">{service.title}</div>
+            <div className="text-gray-700 mb-5">{service.desc}</div>
+            <Link href={service.href} className="inline-flex gap-2 items-center font-semibold text-blue-600 group-hover:text-blue-800 transition underline">
+              Learn More <FaArrowRight />
+            </Link>
+          </motion.div>
+        ))}
+      </motion.section>
+
+      {/* WHY CHOOSE US */}
+      <motion.section
+        className="w-full max-w-5xl mx-auto mt-16 px-4"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9 }}
+        viewport={{ once: true }}
+      >
+        <h2 className="text-2xl md:text-3xl font-bold text-blue-200 text-center mb-8 tracking-tight">
+          Why Choose Maindo Digital?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+          {WHY_US.map((val, i) => (
+            <motion.div
+              key={val.title}
+              className="flex flex-col items-center bg-white/95 rounded-xl shadow-lg p-7"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.09 * i }}
             >
-              Request Service
-            </button>
-            <span className="flex items-center">
-              {renderStars(service.rating)}
-            </span>
-          </div>
+              <Image src={val.icon} alt={val.title} width={44} height={44} className="mb-2" />
+              <div className="font-bold text-lg text-blue-700 mb-1">{val.title}</div>
+              <div className="text-gray-600 text-center">{val.desc}</div>
+            </motion.div>
+          ))}
         </div>
-      ))}
-      {selectedService && (
-        <form
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4"
-          onSubmit={handleSubmit}
+      </motion.section>
+
+      {/* CTA */}
+      <motion.section
+        className="w-full flex justify-center mt-16"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.9 }}
+      >
+        <Link
+          href="/contact"
+          className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-900 hover:from-blue-700 hover:to-black text-white font-extrabold rounded-full shadow-2xl text-xl transition-all duration-300 animate-pulse"
         >
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <h2 className="text-lg font-bold mb-4">
-              Request {selectedService.title}
-            </h2>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Message:
-              <textarea
-                value={request.message}
-                onChange={(e) =>
-                  setRequest({ ...request, message: e.target.value })
-                }
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                placeholder="Enter your message"
-              />
-            </label>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Phone:
-              <input
-                type="text"
-                value={request.phone}
-                onChange={(e) =>
-                  setRequest({ ...request, phone: e.target.value })
-                }
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                placeholder="Enter your phone number"
-              />
-            </label>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Address:
-              <input
-                type="text"
-                value={request.address}
-                onChange={(e) =>
-                  setRequest({ ...request, address: e.target.value })
-                }
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                placeholder="Enter your address"
-              />
-            </label>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Email:
-              <input
-                type="email"
-                value={request.email}
-                onChange={(e) =>
-                  setRequest({ ...request, email: e.target.value })
-                }
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                placeholder="Enter your email"
-              />
-            </label>
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Submit
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedService(null)}
-              className="mt-4 ml-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-    </div>
+          Get a Free Consultation <FaArrowRight className="text-2xl" />
+        </Link>
+      </motion.section>
+    </main>
   );
 }
