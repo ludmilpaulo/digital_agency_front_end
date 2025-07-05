@@ -1,13 +1,14 @@
 // utils/serviceIcons.ts
 import {
-  FaCode, FaMobileAlt, FaBullhorn, FaCloud, FaCogs, FaRocket
+  FaCode, FaMobileAlt, FaBullhorn, FaCloud, FaCogs, FaRocket, FaChartLine
 } from "react-icons/fa";
 
 export const SERVICE_ICONS: Record<string, JSX.Element> = {
-  FaCode: <FaCode className="text-blue-400 text-5xl" />,
-  FaMobileAlt: <FaMobileAlt className="text-green-400 text-5xl" />,
-  FaBullhorn: <FaBullhorn className="text-pink-400 text-5xl" />,
-  FaCloud: <FaCloud className="text-yellow-400 text-5xl" />,
-  FaCogs: <FaCogs className="text-yellow-600 text-5xl" />,
-  FaRocket: <FaRocket className="text-red-500 text-5xl" />,
+  FaCode: <FaCode className="text-blue-600 text-5xl mb-3" />,
+  FaMobileAlt: <FaMobileAlt className="text-green-600 text-5xl mb-3" />,
+  FaBullhorn: <FaBullhorn className="text-pink-600 text-5xl mb-3" />,
+  FaCloud: <FaCloud className="text-purple-600 text-5xl mb-3" />,
+  FaCogs: <FaCogs className="text-yellow-600 text-5xl mb-3" />,
+  FaRocket: <FaRocket className="text-red-600 text-5xl mb-3" />,
+  FaChartLine: <FaChartLine className="text-blue-500 text-5xl mb-3" />,
 };
