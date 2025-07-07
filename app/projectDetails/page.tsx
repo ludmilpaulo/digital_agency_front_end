@@ -180,8 +180,12 @@ const ProjectDetails = () => {
           className="rounded-full border-4 border-white shadow"
         />
         <div>
-          <p className="text-white text-lg italic font-medium mb-2">"{testimonial.quote}"</p>
-          <div className="text-blue-200 font-bold text-sm">{testimonial.name} <span className="font-normal">| {testimonial.role}</span></div>
+          <p className="text-white text-lg italic font-medium mb-2">
+            &ldquo;{testimonial.quote}&rdquo;
+          </p>
+          <div className="text-blue-200 font-bold text-sm">
+            {testimonial.name} <span className="font-normal">| {testimonial.role}</span>
+          </div>
         </div>
       </motion.div>
 

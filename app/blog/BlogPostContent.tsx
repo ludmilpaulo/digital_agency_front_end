@@ -3,7 +3,8 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import AuthorBio from "./AuthorBio";
 import ShareButtons from "@/components/ShareButtons";
-import { Post, Comment} from '@/types/blog';
+import { Post } from '@/types/blog';
+
 const ReactMarkdown = dynamic(() => import('react-markdown'), { ssr: false });
 
 export default function BlogPostContent({ post }: { post: Post }) {
@@ -20,9 +21,11 @@ export default function BlogPostContent({ post }: { post: Post }) {
           <Image src={post.image} alt={post.title} fill className="object-cover rounded-xl" />
         </div>
       )}
-      <ReactMarkdown className="prose lg:prose-lg mb-7">
-        {post.content}
-      </ReactMarkdown>
+      <div className="prose lg:prose-lg mb-7">
+        <ReactMarkdown>
+          {post.content}
+        </ReactMarkdown>
+      </div>
       <ShareButtons url={typeof window !== "undefined" ? window.location.href : ""} title={post.title} />
       <AuthorBio author={post.author} />
       {/* Related posts, badges, etc */}

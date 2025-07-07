@@ -36,11 +36,11 @@ const BADGE_MAP: Record<string, { icon: JSX.Element; text: string }> = {
 
 function truncateText(html: string, max: number) {
   if (!html) return "";
-  const tmp = document.createElement("div");
-  tmp.innerHTML = html;
-  const str = tmp.textContent || "";
+  // Remove HTML tags (SSR safe)
+  const str = html.replace(/<[^>]*>/g, "");
   return str.length > max ? str.substring(0, max) + "..." : str;
 }
+
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
@@ -54,10 +54,11 @@ const ProjectsPage = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`${baseAPI}/project/projects/`)
-      .then(res => res.json())
-      .then("");
-  }, []);
+  fetch(`${baseAPI}/project/projects/`)
+    .then(res => res.json())
+    .then((data) => setProjects(data)); // <--- FIXED!
+}, []);
+
 
   // Filtering and searching
   const filteredProjects = useMemo(() => {

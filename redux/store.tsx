@@ -8,13 +8,17 @@ import { persistReducer, persistStore } from "redux-persist";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import { blogApi } from "./services/blogApi";
 import { servicesApi } from "./services/servicesApi";
+import { testimonialsApi } from './services/testimonialsApi';
+import { aboutUsApi } from "@/redux/services/aboutUsApi";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   carousel: carouselReducer,
   aboutUs: aboutUsReducer,
+  [aboutUsApi.reducerPath]: aboutUsApi.reducer,
   [servicesApi.reducerPath]: servicesApi.reducer,
   [blogApi.reducerPath]: blogApi.reducer,
+  [testimonialsApi.reducerPath]: testimonialsApi.reducer,
 });
 
 const rootPersistConfig = {
@@ -30,7 +34,10 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
     })
-      .concat(blogApi.middleware, servicesApi.middleware), // <-- ADD THIS LINE
+      .concat(blogApi.middleware,
+        testimonialsApi.middleware,
+        aboutUsApi.middleware, 
+        servicesApi.middleware), // <-- ADD THIS LINE
 });
 
 export const persistor = persistStore(store);

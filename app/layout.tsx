@@ -56,8 +56,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <StoreProvider>
-      <FetchAboutUsClient /> {/* <-- triggers your Redux fetch on client mount */}
+  
       <html lang="en">
       <head>
           {/* Ahrefs Analytics Script */}
@@ -68,11 +67,14 @@ export default function RootLayout({
           />
         </head>
         <body className={inter.className}>
+         <StoreProvider>
+          <FetchAboutUsClient />
           <Header />
           {children}
           <Footer />
+        </StoreProvider>
         </body>
       </html>
-    </StoreProvider>
+
   );
 }

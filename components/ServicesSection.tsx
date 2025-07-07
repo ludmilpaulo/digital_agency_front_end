@@ -79,7 +79,7 @@ export default function ServicesSection() {
         <div className="flex gap-8 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-blue-200">
           {(services[0]?.plans || []).map((pkg, i) => (
             <motion.div
-              key={pkg.plan}
+              key={pkg.id}
               className={`relative rounded-2xl shadow-xl p-8 min-w-[300px] bg-white border-2 ${
                 pkg.popular ? "border-blue-500 scale-105 z-10" : "border-gray-100"
               } flex flex-col items-center`}
@@ -88,7 +88,7 @@ export default function ServicesSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.10 * i }}
             >
-              <div className="text-lg font-bold uppercase text-blue-600 mb-2">{pkg.plan}</div>
+              <div className="text-lg font-bold uppercase text-blue-600 mb-2">{pkg.name}</div>
               <div className="text-3xl font-extrabold mb-4 text-blue-900">{pkg.price}</div>
               <ul className="mb-6 text-gray-600 flex-1">
                 {pkg.features.map((f: string) => (
@@ -99,7 +99,7 @@ export default function ServicesSection() {
                 ))}
               </ul>
               <Link
-                href="/contact"
+                href="/appointment"
                 className={`px-5 py-2 rounded-full font-bold text-white transition-all shadow-lg ${
                   pkg.popular
                     ? "bg-blue-600 hover:bg-blue-700"

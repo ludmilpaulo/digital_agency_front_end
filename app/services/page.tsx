@@ -2,72 +2,55 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { FaCogs, FaRocket, FaMobileAlt, FaCode, FaCloud, FaChartLine, FaArrowRight } from "react-icons/fa";
+import {
+  FaCogs,
+  FaRocket,
+  FaMobileAlt,
+  FaCode,
+  FaCloud,
+  FaChartLine,
+  FaArrowRight,
+} from "react-icons/fa";
+import { useGetServicesQuery } from "@/redux/services/servicesApi";
 
-// --- MOCK DATA (replace with API!) ---
-const SERVICES = [
-  {
-    title: "Web Development",
-    desc: "Custom, scalable websites and portals that grow with your business. From landing pages to full e-commerce.",
-    icon: <FaCode className="text-blue-600 text-4xl mb-3" />,
-    href: "/services/web-development",
-  },
-  {
-    title: "Mobile App Development",
-    desc: "iOS & Android apps that wow your users. Fast, secure, and beautiful.",
-    icon: <FaMobileAlt className="text-green-600 text-4xl mb-3" />,
-    href: "/services/app-development",
-  },
-  {
-    title: "Digital Marketing",
-    desc: "SEO, PPC, social media & content strategies proven to drive real results.",
-    icon: <FaChartLine className="text-pink-600 text-4xl mb-3" />,
-    href: "/services/digital-marketing",
-  },
-  {
-    title: "Automation & SaaS",
-    desc: "We automate your processes or build your next SaaS product. More productivity, less stress.",
-    icon: <FaCogs className="text-yellow-600 text-4xl mb-3" />,
-    href: "/services/automation",
-  },
-  {
-    title: "Cloud Solutions",
-    desc: "Cloud migration, DevOps, managed hosting, and secure global scale.",
-    icon: <FaCloud className="text-purple-600 text-4xl mb-3" />,
-    href: "/services/cloud",
-  },
-  {
-    title: "Branding & Creative",
-    desc: "Brand strategy, logo, and all creative for a bold digital presence.",
-    icon: <FaRocket className="text-red-600 text-4xl mb-3" />,
-    href: "/services/branding",
-  },
-];
+// === ICON MAP (in-house) ===
+const SERVICE_ICONS: Record<string, JSX.Element> = {
+  "fa-code": <FaCode className="text-blue-600 text-5xl mb-3" />,
+  "fa-mobile-alt": <FaMobileAlt className="text-green-600 text-5xl mb-3" />,
+  "fa-chart-line": <FaChartLine className="text-pink-600 text-5xl mb-3" />,
+  "fa-cogs": <FaCogs className="text-yellow-500 text-5xl mb-3" />,
+  "fa-cloud": <FaCloud className="text-purple-600 text-5xl mb-3" />,
+  "fa-rocket": <FaRocket className="text-red-600 text-5xl mb-3" />,
+};
+
+import { FaHandshake, FaLightbulb, FaBolt, FaGlobeAfrica } from "react-icons/fa"; // Pick icons that fit your themes
 
 const WHY_US = [
   {
-    icon: "/icons/client-first.svg",
+    icon: <FaHandshake className="text-blue-600 text-4xl mb-2" />,
     title: "Client-First Approach",
     desc: "You get dedicated support, direct communication, and real results.",
   },
   {
-    icon: "/icons/tech.svg",
+    icon: <FaLightbulb className="text-yellow-500 text-4xl mb-2" />,
     title: "Tech & Design Mastery",
     desc: "Our senior team crafts modern, robust and beautiful solutions.",
   },
   {
-    icon: "/icons/fast.svg",
+    icon: <FaBolt className="text-green-600 text-4xl mb-2" />,
     title: "Fast & Agile Delivery",
     desc: "You move fast, so do we—no slow agency processes here.",
   },
   {
-    icon: "/icons/africa.svg",
+    icon: <FaGlobeAfrica className="text-purple-600 text-4xl mb-2" />,
     title: "Built for Africa & the World",
     desc: "We understand the unique challenges and opportunities in African markets and global scale.",
   },
 ];
 
 export default function ServicesPage() {
+  const { data: services = [], isLoading } = useGetServicesQuery();
+
   return (
     <main className="min-h-screen w-full bg-gradient-to-br from-blue-900 via-blue-800 to-black pb-24">
       {/* HERO */}
@@ -98,7 +81,7 @@ export default function ServicesPage() {
         transition={{ duration: 0.9 }}
         viewport={{ once: true }}
       >
-        {SERVICES.map((service, idx) => (
+        {services.map((service, idx) => (
           <motion.div
             key={service.title}
             className="bg-white/90 rounded-2xl shadow-xl p-7 flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group"
@@ -107,10 +90,16 @@ export default function ServicesPage() {
             viewport={{ once: true }}
             transition={{ delay: 0.07 * idx }}
           >
-            {service.icon}
+            {/* Icon rendering (from the in-house map, fallback = "?") */}
+            {SERVICE_ICONS[service.icon] ?? (
+              <div className="text-4xl text-gray-300 mb-3">?</div>
+            )}
             <div className="text-2xl font-bold text-blue-900 mb-1">{service.title}</div>
-            <div className="text-gray-700 mb-5">{service.desc}</div>
-            <Link href={service.href} className="inline-flex gap-2 items-center font-semibold text-blue-600 group-hover:text-blue-800 transition underline">
+            <div className="text-gray-700 mb-5">{service.description}</div>
+            <Link
+              href={`/services/${service.slug}`}
+              className="inline-flex gap-2 items-center font-semibold text-blue-600 group-hover:text-blue-800 transition underline"
+            >
               Learn More <FaArrowRight />
             </Link>
           </motion.div>
@@ -138,12 +127,13 @@ export default function ServicesPage() {
               viewport={{ once: true }}
               transition={{ delay: 0.09 * i }}
             >
-              <Image src={val.icon} alt={val.title} width={44} height={44} className="mb-2" />
+              {val.icon}
               <div className="font-bold text-lg text-blue-700 mb-1">{val.title}</div>
               <div className="text-gray-600 text-center">{val.desc}</div>
             </motion.div>
           ))}
-        </div>
+
+          </div>
       </motion.section>
 
       {/* CTA */}
@@ -155,7 +145,7 @@ export default function ServicesPage() {
         transition={{ duration: 0.9 }}
       >
         <Link
-          href="/contact"
+          href="/appointment"
           className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-900 hover:from-blue-700 hover:to-black text-white font-extrabold rounded-full shadow-2xl text-xl transition-all duration-300 animate-pulse"
         >
           Get a Free Consultation <FaArrowRight className="text-2xl" />

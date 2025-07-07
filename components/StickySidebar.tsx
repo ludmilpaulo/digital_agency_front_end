@@ -10,7 +10,16 @@ interface StickySidebarProps {
 export default function StickySidebar({ post }: StickySidebarProps) {
   if (!post) return null;
 
-  // Example: show post info (tags, category, author, published_date)
+  // Get tags as an array, whether post.tags is a string or string[]
+  let tags: string[] = [];
+  if (post.tags) {
+    if (Array.isArray(post.tags)) {
+      tags = post.tags;
+    } else if (typeof post.tags === "string") {
+      tags = post.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    }
+  }
+
   return (
     <aside className="sticky top-24 h-fit bg-white border rounded-xl shadow p-4 flex flex-col gap-5 min-w-[260px]">
       <div>
@@ -24,16 +33,18 @@ export default function StickySidebar({ post }: StickySidebarProps) {
         <div>
           <div className="font-semibold text-blue-700 mb-1">Category</div>
           <div className="text-sm">
-            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">{(post as any).category.name || "Blog"}</span>
+            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+              {(post as any).category.name || "Blog"}
+            </span>
           </div>
         </div>
       )}
 
-      {post.tags && post.tags.length > 0 && (
+      {tags.length > 0 && (
         <div>
           <div className="font-semibold text-blue-700 mb-1">Tags</div>
           <div className="flex gap-2 flex-wrap">
-            {(post.tags as string[]).map((t) => (
+            {tags.map((t) => (
               <span key={t} className="bg-blue-100 text-blue-700 px-2 rounded">
                 {t}
               </span>
