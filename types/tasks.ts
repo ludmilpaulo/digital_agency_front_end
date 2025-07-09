@@ -4,7 +4,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  user_id: number;
+ // user_id: number;
 }
 
 export interface Card {

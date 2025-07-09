@@ -11,6 +11,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  user_id?: number;
   first_name?: string;
   last_name?: string;
   groups?: string[];
