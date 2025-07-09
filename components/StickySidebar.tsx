@@ -1,7 +1,7 @@
-// components/StickySidebar.tsx
 "use client";
 import { Post } from "@/types/blog";
 import Link from "next/link";
+import { getTagNames } from "@/utils/getTagNames";
 
 interface StickySidebarProps {
   post?: Post;
@@ -10,15 +10,7 @@ interface StickySidebarProps {
 export default function StickySidebar({ post }: StickySidebarProps) {
   if (!post) return null;
 
-  // Get tags as an array, whether post.tags is a string or string[]
-  let tags: string[] = [];
-  if (post.tags) {
-    if (Array.isArray(post.tags)) {
-      tags = post.tags;
-    } else if (typeof post.tags === "string") {
-      tags = post.tags.split(",").map((t) => t.trim()).filter(Boolean);
-    }
-  }
+  const tags = getTagNames(post.tags);
 
   return (
     <aside className="sticky top-24 h-fit bg-white border rounded-xl shadow p-4 flex flex-col gap-5 min-w-[260px]">
@@ -34,7 +26,7 @@ export default function StickySidebar({ post }: StickySidebarProps) {
           <div className="font-semibold text-blue-700 mb-1">Category</div>
           <div className="text-sm">
             <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
-              {(post as any).category.name || "Blog"}
+              {(typeof post.category === "object" && post.category?.name) || "Blog"}
             </span>
           </div>
         </div>

@@ -1,66 +1,207 @@
+"use client";
 import { useState } from "react";
 import { useAddCommentMutation } from "@/redux/services/blogApi";
-
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaSpinner, FaRegCommentDots } from "react-icons/fa";
 import aiCommentBot from "@/utils/aiCommentBot";
-import {  Comment} from '@/types/blog';
+import { Comment } from "@/types/blog";
+import { motion, AnimatePresence } from "framer-motion";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
-export default function CommentsSection({ postId, comments }: { postId: string | number; comments: Comment[] }) {
+export default function CommentsSection({
+  postId,
+  comments,
+}: {
+  postId: string | number;
+  comments: Comment[];
+}) {
   const [addComment, { isLoading }] = useAddCommentMutation();
   const [form, setForm] = useState({ name: "", email: "", content: "" });
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
     // AI check
     const aiResult = await aiCommentBot(form.content);
     if (aiResult.isSpam) {
       setError("Your comment was flagged as spam or inappropriate.");
       return;
     }
-    await addComment({ postId: Number(postId), data: form });
-    setForm({ name: "", email: "", content: "" });
-    setError(null);
+    try {
+      await addComment({ postId: Number(postId), data: form }).unwrap();
+      setForm({ name: "", email: "", content: "" });
+      setSuccess("Comment submitted! Awaiting moderation.");
+      setShowForm(false);
+    } catch (err: any) {
+      setError("Failed to submit. Please try again.");
+    }
   };
 
   return (
-    <div className="mt-12">
-      <h2 className="font-bold text-xl mb-2">Comments</h2>
-      {comments.map((c) => (
-        <div key={c.id} className="flex items-start gap-2 mb-5">
-          <FaUserCircle className="text-2xl text-blue-200" />
-          <div>
-            <div className="font-semibold">{c.name}</div>
-            <div className="text-gray-600 text-sm">{c.content}</div>
-          </div>
-        </div>
-      ))}
-      <form className="mt-6 grid gap-3" onSubmit={handleSubmit}>
-        <input
-          className="border rounded px-3 py-2"
-          placeholder="Your name"
-          value={form.name}
-          required
-          onChange={e => setForm({ ...form, name: e.target.value })}
-        />
-        <input
-          className="border rounded px-3 py-2"
-          type="email"
-          placeholder="Your email"
-          required
-          onChange={e => setForm({ ...form, email: e.target.value })}
-          value={form.email}
-        />
-        <textarea
-          className="border rounded px-3 py-2 min-h-[80px]"
-          placeholder="Comment…"
-          required
-          onChange={e => setForm({ ...form, content: e.target.value })}
-          value={form.content}
-        />
-        {error && <div className="text-red-500">{error}</div>}
-        <button type="submit" disabled={isLoading} className="bg-blue-500 text-white rounded py-2 px-4">Add Comment</button>
-      </form>
-    </div>
+    <section className="mt-16 relative">
+      <h2 className="font-extrabold text-2xl mb-6 flex items-center gap-2 text-blue-700">
+        <FaRegCommentDots /> Comments ({comments.length})
+      </h2>
+
+      {/* Comments */}
+      <div className="space-y-6 mb-14">
+        <AnimatePresence>
+          {comments.length === 0 && (
+            <motion.div
+              key="no-comments"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="bg-blue-50 border border-blue-100 text-blue-900 px-6 py-6 rounded-xl shadow text-center"
+            >
+              No comments yet — be the first to share your thoughts!
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {comments.map((c) => (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex gap-4 bg-white rounded-xl shadow p-5 border border-gray-100"
+            >
+              <div>
+                <FaUserCircle className="text-3xl text-blue-200" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-blue-900 flex items-center gap-2">
+                  {c.name}
+                  <span className="text-xs text-gray-400 font-normal">
+                    • {dayjs(c.created_date || c.created_at).fromNow()}
+                  </span>
+                </div>
+                <div className="text-gray-700 text-[1.05rem] leading-relaxed mt-1">
+                  {c.content}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Floating Add Comment Button */}
+      {!showForm && (
+        <motion.button
+          whileHover={{ scale: 1.07 }}
+          whileTap={{ scale: 0.95 }}
+          className="hidden md:flex fixed bottom-12 right-12 z-40 items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg font-bold text-lg hover:bg-blue-800 transition"
+          onClick={() => setShowForm(true)}
+        >
+          <FaRegCommentDots /> Add Comment
+        </motion.button>
+      )}
+
+      {/* Add Comment Form */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.form
+            key="form"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            onSubmit={handleSubmit}
+            className="max-w-lg mx-auto bg-white/90 backdrop-blur border border-blue-100 shadow-2xl rounded-2xl px-8 py-8 space-y-5"
+          >
+            <h3 className="text-xl font-bold text-blue-800 mb-2">Add a Comment</h3>
+            <div className="flex gap-4">
+              <input
+                className="flex-1 border-b-2 border-blue-200 focus:border-blue-600 outline-none px-3 py-2 text-base rounded-t transition"
+                placeholder="Your name"
+                value={form.name}
+                required
+                maxLength={80}
+                autoComplete="name"
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                disabled={isLoading}
+              />
+              <input
+                className="flex-1 border-b-2 border-blue-200 focus:border-blue-600 outline-none px-3 py-2 text-base rounded-t transition"
+                type="email"
+                placeholder="Your email"
+                value={form.email}
+                required
+                maxLength={120}
+                autoComplete="email"
+                onChange={e => setForm({ ...form, email: e.target.value })}
+                disabled={isLoading}
+              />
+            </div>
+            <textarea
+              className="border-b-2 border-blue-200 focus:border-blue-600 outline-none w-full px-3 py-2 text-base rounded-t min-h-[90px] resize-vertical transition"
+              placeholder="Write your comment…"
+              value={form.content}
+              required
+              minLength={6}
+              maxLength={800}
+              onChange={e => setForm({ ...form, content: e.target.value })}
+              disabled={isLoading}
+            />
+            {error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-600 font-medium"
+              >
+                {error}
+              </motion.div>
+            )}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-green-600 font-medium"
+              >
+                {success}
+              </motion.div>
+            )}
+            <div className="flex gap-4 mt-3 items-center">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`bg-blue-600 text-white px-6 py-2 rounded-lg shadow font-bold flex items-center gap-2 transition hover:bg-blue-700 active:scale-95 ${
+                  isLoading ? "opacity-60 cursor-not-allowed" : ""
+                }`}
+              >
+                {isLoading && (
+                  <FaSpinner className="animate-spin text-xl" />
+                )}
+                Post Comment
+              </button>
+              <button
+                type="button"
+                className="ml-3 text-blue-400 hover:underline font-medium"
+                onClick={() => setShowForm(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {/* Add comment inline on mobile */}
+      {!showForm && (
+        <button
+          className="md:hidden mt-2 w-full bg-blue-600 hover:bg-blue-800 transition text-white rounded-lg py-3 font-bold text-lg shadow"
+          onClick={() => setShowForm(true)}
+        >
+          <FaRegCommentDots className="inline mr-2" /> Add Comment
+        </button>
+      )}
+    </section>
   );
 }

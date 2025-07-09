@@ -1,214 +1,246 @@
 "use client";
 import React, { useEffect, useState, FormEvent } from "react";
-import { motion } from "framer-motion";
-import axios from 'axios';
+import { motion, AnimatePresence } from "framer-motion";
+import axios, { isAxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import { loginUser } from "@/redux/slices/authSlice";
 import { Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { isAxiosError } from 'axios';
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Shield, Globe } from "lucide-react";
 import { fetchAboutUsData } from "@/useAPI/information";
 import { AboutUsData } from "@/useAPI/types";
 import { baseAPI } from "@/useAPI/api";
 
-const SignupScreen = () => {
+// Gradient + Glass styles
+const gradientBg = {
+  background: "linear-gradient(120deg, #2870EA, #1B1B35 60%, #FAD961 100%)",
+  backgroundSize: "200% 200%",
+  animation: "gradientmove 7s ease-in-out infinite",
+};
+const cardStyle = {
+  background: "rgba(255,255,255,0.83)",
+  boxShadow: "0 8px 48px 0 rgba(34, 60, 80, 0.12)",
+  backdropFilter: "blur(12px)",
+  borderRadius: "2rem",
+};
+
+// SSO
+const SSO_PROVIDERS = [
+  {
+    name: "Google",
+    icon: <Globe className="w-5 h-5 mr-2" />,
+    bg: "bg-white text-gray-800 border",
+    onClick: () => window.location.href = `${baseAPI}/account/google/login/`,
+  },
+];
+
+export default function SignupScreen() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
   const [signupData, setSignupData] = useState({
     username: "",
     email: "",
     password: "",
     name: "",
-  
   });
   const [loading, setLoading] = useState(false);
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchAboutUsData();
-      setHeaderData(data);
-    };
-    fetchData();
+    fetchAboutUsData().then(setHeaderData);
   }, []);
-  
-  const togglePasswordVisibility = () => {
-    setShowPassword((prevState) => !prevState);
-  };
-
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setSignupData((prevState) => ({ ...prevState, [name]: value }));
+    setSignupData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const togglePasswordVisibility = () => setShowPassword((v) => !v);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-  
+    setError(null);
+    setSuccess(null);
+
     const userData = {
       username: signupData.username,
       email: signupData.email,
       password: signupData.password,
-      // Include other data as necessary
     };
 
-    console.log("my data", userData)
-  
     try {
-      // Make the POST request to your custom signup endpoint
       const response = await axios.post(`${baseAPI}/account/custom-sign/`, userData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
-    
-      // Log successful registration data
-      console.log('Registration successful:', response.data);
-    
-      // Redirect to the login page based on the response
+
       if (response.data.message) {
-        alert(response.data.message); // Show success message
-        router.push('/'); // Redirect to login page
+        setSuccess(response.data.message);
+        setTimeout(() => router.push("/LoginScreenUser"), 1400);
       } else {
-        alert('Signup successful, please verify your email.');
+        setSuccess("Signup successful, please verify your email.");
       }
     } catch (error: unknown) {
-      // Type guard to check if the error is an Axios error
-      if (isAxiosError(error)) {
-        // Check if the error response is present and has data
-        if (error.response && error.response.data && typeof error.response.data === 'object') {
-          const errorMessage = (error.response.data as { error: string }).error;
-          alert(`Error: ${errorMessage}`);
-        } else {
-          alert('An unknown error occurred during the signup process.');
-        }
+      if (isAxiosError(error) && error.response && typeof error.response.data === "object") {
+        const data = error.response.data as { error?: string; [key: string]: any };
+        setError(data.error || Object.values(data).join(" "));
       } else {
-        // For other non-Axios errors or unknown error structures
-        alert("Something went wrong. Please try again later.");
+        setError("An unknown error occurred during the signup process.");
       }
     } finally {
-      // Ensure that loading is set to false
       setLoading(false);
     }
-    
   };
-  
 
   return (
     <div
-    style={{
-        backgroundImage: `url(${headerData?.backgroundApp})`,
+      style={{
+        ...gradientBg,
+        backgroundImage: headerData?.backgroundApp
+          ? `linear-gradient(112deg,rgba(27,47,79,0.80),rgba(255,255,255,0.20)),url(${headerData.backgroundApp})`
+          : gradientBg.background,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
       }}
-     className="w-full min-h-screen px-4 py-16 flex items-center justify-center">
-      <div className="relative flex flex-col items-center justify-center w-full max-w-lg bg-white rounded shadow-lg">
+      className="flex items-center justify-center px-4 py-16 w-full"
+    >
+      <motion.div
+        style={cardStyle}
+        className="relative flex flex-col items-center w-full max-w-lg shadow-2xl px-7 py-11"
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.39, ease: "easeOut" }}
+      >
+        {/* Animated Logo */}
         <motion.div
-          animate={{
-            scale: [1, 1, 1, 1, 1],
-            rotate: [0, 30, 60, 240, 360],
-          }}
-          className="p-10 lg:w-2/3 md:w-2/3"
+          initial={{ scale: 0.9, rotate: 0 }}
+          animate={{ scale: 1, rotate: [0, 360, 0] }}
+          transition={{ repeat: Infinity, duration: 14, ease: "linear" }}
+          className="flex justify-center mb-4"
         >
-          <div className="flex justify-center mb-6">
-            <Image
-              src={headerData?.logo || "/default-logo.png"}
-              alt="logo"
-              width={100}
-              height={100}
-              className="w-64 h-64"
+          <Image
+            src={headerData?.logo || "/logo.png"}
+            alt="logo"
+            width={90}
+            height={90}
+            className="rounded-full bg-white shadow-lg border border-blue-200"
+            priority
+          />
+        </motion.div>
+        <h1 className="text-2xl font-extrabold text-blue-900 mb-2 text-center">
+          Sign Up for an Account
+        </h1>
+
+        <Link href="/LoginScreenUser" className="text-blue-600 hover:underline text-sm mb-6 text-center">
+          Already have an account? <span className="underline">Login</span>
+        </Link>
+
+        {/* Success/Error banners */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              className="w-full bg-red-50 text-red-600 border border-red-200 rounded mb-3 px-3 py-2 text-sm text-center"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >{error}</motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              className="w-full bg-green-50 text-green-700 border border-green-200 rounded mb-3 px-3 py-2 text-sm text-center"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >{success}</motion.div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+          {/* Username */}
+          <div className="relative">
+            <User className="absolute left-2 top-1/2 -translate-y-1/2 text-blue-200" size={18} />
+            <input
+              name="username"
+              placeholder="User Name"
+              value={signupData.username}
+              onChange={handleInputChange}
+              className="w-full py-3 pl-8 pr-3 rounded-xl bg-blue-50 border border-blue-200 text-base font-medium text-blue-900 placeholder:text-blue-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+              required
             />
           </div>
-          <h1 className="text-2xl font-extrabold leading-6 text-gray-800">
-          Sign Up for an Account
-          </h1>
-
-          <Link href={"/LoginScreenUser"}>
-            <p className="mt-4 text-sm font-medium leading-none text-gray-500">
-            If you have an account?{" "}
-              <span className="text-gray-800 underline cursor-pointer">
-                Login
-              </span>
-            </p>
-          </Link>
-
-
-          <Transition
-            show={loading}
-            enter="transition-opacity duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+          {/* Email */}
+          <div className="relative">
+            <Mail className="absolute left-2 top-1/2 -translate-y-1/2 text-blue-200" size={18} />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={signupData.email}
+              onChange={handleInputChange}
+              className="w-full py-3 pl-8 pr-3 rounded-xl bg-blue-50 border border-blue-200 text-base font-medium text-blue-900 placeholder:text-blue-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+              required
+            />
+          </div>
+          {/* Password */}
+          <div className="relative">
+            <Shield className="absolute left-2 top-1/2 -translate-y-1/2 text-blue-200" size={18} />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={signupData.password}
+              onChange={handleInputChange}
+              className="w-full py-3 pl-8 pr-10 rounded-xl bg-blue-50 border border-blue-200 text-base font-medium text-blue-900 placeholder:text-blue-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute top-0 right-0 h-full px-3 flex items-center text-blue-500 hover:text-blue-700"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+            </button>
+          </div>
+          {/* Sign up */}
+          <button
+            type="submit"
+            aria-label="Sign up"
+            className={`w-full py-3 rounded-xl text-base font-extrabold shadow-xl transition-all ${
+              loading
+                ? "bg-blue-300 text-blue-100 cursor-not-allowed"
+                : "bg-blue-700 hover:bg-blue-900 text-white"
+            }`}
+            disabled={loading}
           >
-            {loading && (
-              <div className="fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full">
-                <div className="w-32 h-32 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-              </div>
-            )}
-          </Transition>
+            {loading ? "Signing up..." : "Sign Up Now"}
+          </button>
+        </form>
 
-          {!loading && (
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-              <input
-                name="username"
-                placeholder="User Name"
-                onChange={handleInputChange}
-                className="p-2 border rounded"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                onChange={handleInputChange}
-                className="p-2 border rounded"
-              />
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  onChange={handleInputChange}
-                  className="p-2 w-full border rounded"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 flex items-center justify-center h-full px-3"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-
-          
-              <div className="mt-8">
-                <button
-                  type="submit"
-                  aria-label="Entrar na minha conta"
-                  className="w-full py-4 text-sm font-semibold leading-none text-white bg-black border rounded focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:outline-none hover:bg-indigo-600"
-                >
-                 Sign Up  now
-                </button>
-              </div>
-            </form>
-          )}
-        </motion.div>
-      </div>
+        {/* SSO Buttons */}
+        <div className="flex flex-col gap-2 mt-6 w-full">
+          <div className="text-xs text-gray-500 text-center">or sign up with</div>
+          {SSO_PROVIDERS.map(provider => (
+            <button
+              key={provider.name}
+              type="button"
+              onClick={provider.onClick}
+              className={`flex items-center justify-center py-2 w-full rounded-xl font-bold mb-1 ${provider.bg} hover:shadow-md transition`}
+            >
+              {provider.icon} Sign up with {provider.name}
+            </button>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
-};
-
-export default SignupScreen;
+}

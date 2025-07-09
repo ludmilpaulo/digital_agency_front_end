@@ -10,11 +10,26 @@ import { blogApi } from "./services/blogApi";
 import { servicesApi } from "./services/servicesApi";
 import { testimonialsApi } from './services/testimonialsApi';
 import { aboutUsApi } from "@/redux/services/aboutUsApi";
+import { boardsApi } from './services/boardsApi';
+import { listsApi } from './services/listsApi';
+import { cardsApi } from './services/cardsApi';
+import { tasksApi } from './services/tasksApi';
+import { usersApi } from "./services/usersApi";
+import { groupsApi } from "./services/groupsApi";
+import signatureReducer from './slices/signatureSlice';
+
 
 const rootReducer = combineReducers({
   auth: authReducer,
   carousel: carouselReducer,
   aboutUs: aboutUsReducer,
+  signature: signatureReducer,
+  [groupsApi.reducerPath]: groupsApi.reducer,
+  [usersApi.reducerPath]: usersApi.reducer,
+  [boardsApi.reducerPath]: boardsApi.reducer,
+  [listsApi.reducerPath]: listsApi.reducer,
+  [cardsApi.reducerPath]: cardsApi.reducer,
+  [tasksApi.reducerPath]: tasksApi.reducer,
   [aboutUsApi.reducerPath]: aboutUsApi.reducer,
   [servicesApi.reducerPath]: servicesApi.reducer,
   [blogApi.reducerPath]: blogApi.reducer,
@@ -34,6 +49,12 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
     })
+    .concat(boardsApi.middleware)
+    .concat(usersApi.middleware)
+      .concat(groupsApi.middleware)
+      .concat(listsApi.middleware)
+      .concat(cardsApi.middleware)
+      .concat(tasksApi.middleware)
       .concat(blogApi.middleware,
         testimonialsApi.middleware,
         aboutUsApi.middleware, 

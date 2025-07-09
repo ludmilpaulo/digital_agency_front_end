@@ -6,8 +6,9 @@ import { AboutUsData } from "@/useAPI/types";
 import { baseAPI } from "@/useAPI/api";
 import { selectUser } from "@/redux/slices/authSlice";
 import { useSelector } from "react-redux";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
 interface FormData {
   user?: number;
@@ -30,6 +31,7 @@ const Page = () => {
     phone: "",
     email: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,127 +41,263 @@ const Page = () => {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Input change handler
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((fd) => ({ ...fd, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.MouseEvent) => {
+  // Validation helpers
+  const isValidEmail = (email?: string) =>
+    !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidPhone = (phone?: string) =>
+    !!phone && /^\+?[\d\s\-()]{7,}$/.test(phone);
+
+  // Submit handler
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.date || !formData.time || !formData.reason || !formData.phone || !formData.email) {
-      toast.error("All fields are required");
+    if (
+      !formData.date ||
+      !formData.time ||
+      !formData.reason ||
+      !formData.phone ||
+      !formData.email
+    ) {
+      toast.error(
+        <span>
+          <FaTimesCircle className="inline mr-2 text-red-500" />
+          All fields are required.
+        </span>
+      );
       return;
     }
 
-    const appointmentData = { ...formData };
-    if (user?.id) {
-      appointmentData.user = user.id;
+    if (!isValidEmail(formData.email)) {
+      toast.error(
+        <span>
+          <FaTimesCircle className="inline mr-2 text-red-500" />
+          Please enter a valid email.
+        </span>
+      );
+      return;
     }
+    if (!isValidPhone(formData.phone)) {
+      toast.error(
+        <span>
+          <FaTimesCircle className="inline mr-2 text-red-500" />
+          Please enter a valid phone number.
+        </span>
+      );
+      return;
+    }
+
+    setLoading(true);
+    const appointmentData = { ...formData };
+    if (user?.id) appointmentData.user = user.id;
 
     try {
       const response = await fetch(`${baseAPI}/appointment/appointments/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appointmentData),
       });
 
       if (response.ok) {
-        toast.success('Appointment booked successfully!');
-        alert('Appointment booked successfully!');
-        router.push("/");
+        toast.success(
+          <span>
+            <FaCheckCircle className="inline mr-2 text-green-500" />
+            Appointment booked successfully!
+          </span>
+        );
+        setTimeout(() => router.push("/"), 2000); // Wait, then redirect
       } else {
         const errorData = await response.json();
         if (errorData.error) {
-          toast.error(errorData.error);
+          toast.error(
+            <span>
+              <FaTimesCircle className="inline mr-2 text-red-500" />
+              {errorData.error}
+            </span>
+          );
         } else {
-          const errorMessages = Object.values(errorData).flat().join(' ');
-          toast.error(errorMessages || "Failed to submit appointment");
+          const errorMessages = Object.values(errorData).flat().join(" ");
+          toast.error(
+            <span>
+              <FaTimesCircle className="inline mr-2 text-red-500" />
+              {errorMessages || "Failed to submit appointment"}
+            </span>
+          );
         }
       }
     } catch (error) {
-      console.error("Error submitting appointment:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error(
+        <span>
+          <FaTimesCircle className="inline mr-2 text-red-500" />
+          An unexpected error occurred. Please try again.
+        </span>
+      );
     }
+    setLoading(false);
   };
 
   return (
     <div
-      className="flex items-center justify-center h-screen bg-cover bg-center bg-no-repeat"
+      className="flex items-center justify-center min-h-screen px-2 py-8 bg-gradient-to-tr from-blue-100 via-white to-blue-200 dark:from-slate-900 dark:to-slate-800 transition-colors"
       style={{
-        backgroundImage: `url(${headerData?.backgroundImage})`,
+        backgroundImage: headerData?.backgroundImage
+          ? `url(${headerData.backgroundImage})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
-      <ToastContainer />
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-6">Book an Appointment</h2>
-        <form>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2" htmlFor="date">Date:</label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2" htmlFor="time">Time:</label>
-            <input
-              type="time"
-              id="time"
-              name="time"
-              value={formData.time}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2" htmlFor="reason">Reason:</label>
-            <input
-              type="text"
-              id="reason"
-              name="reason"
-              value={formData.reason}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2" htmlFor="phone">Phone:</label>
-            <input
-              type="text"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2" htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition duration-300"
-          >
-            Submit
-          </button>
-        </form>
-      </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={2500}
+        hideProgressBar
+        theme="colored"
+        closeOnClick
+      />
+      <form
+        className="w-full max-w-lg mx-auto bg-white/90 dark:bg-gray-900/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 px-8 py-10 animate-fade-in-up"
+        style={{
+          boxShadow: "0 10px 48px 0 rgba(35,60,120,.15)",
+        }}
+        onSubmit={handleSubmit}
+        autoComplete="off"
+      >
+        <h2 className="text-4xl font-bold text-center mb-8 text-blue-800 dark:text-blue-300 tracking-tight drop-shadow-sm">
+          Book an Appointment
+        </h2>
+
+        {/* Date */}
+        <div className="relative mb-6 group">
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleInputChange}
+            className="peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            required
+          />
+          <label className="absolute left-4 top-2 text-gray-400 text-xs transition-all peer-focus:-top-5 peer-focus:text-blue-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm pointer-events-none">
+            Date
+          </label>
+        </div>
+        {/* Time */}
+        <div className="relative mb-6 group">
+          <input
+            type="time"
+            name="time"
+            value={formData.time}
+            onChange={handleInputChange}
+            className="peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            required
+          />
+          <label className="absolute left-4 top-2 text-gray-400 text-xs transition-all peer-focus:-top-5 peer-focus:text-blue-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm pointer-events-none">
+            Time
+          </label>
+        </div>
+        {/* Reason */}
+        <div className="relative mb-6 group">
+          <input
+            type="text"
+            name="reason"
+            value={formData.reason}
+            onChange={handleInputChange}
+            className="peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder=" "
+            maxLength={200}
+            required
+          />
+          <label className="absolute left-4 top-2 text-gray-400 text-xs transition-all peer-focus:-top-5 peer-focus:text-blue-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm pointer-events-none">
+            Reason
+          </label>
+        </div>
+        {/* Phone */}
+        <div className="relative mb-6 group">
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            className="peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder=" "
+            maxLength={30}
+            required
+          />
+          <label className="absolute left-4 top-2 text-gray-400 text-xs transition-all peer-focus:-top-5 peer-focus:text-blue-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm pointer-events-none">
+            Phone
+          </label>
+        </div>
+        {/* Email */}
+        <div className="relative mb-8 group">
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="peer w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder=" "
+            maxLength={120}
+            required
+          />
+          <label className="absolute left-4 top-2 text-gray-400 text-xs transition-all peer-focus:-top-5 peer-focus:text-blue-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm pointer-events-none">
+            Email
+          </label>
+        </div>
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-900 text-white font-semibold text-lg py-3 rounded-xl shadow-md transition-all duration-200 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+              Submitting...
+            </>
+          ) : (
+            "Book Appointment"
+          )}
+        </button>
+      </form>
+      {/* Fade-in animation */}
+      <style>{`
+        .animate-fade-in-up {
+          animation: fadeInUp 0.75s cubic-bezier(.4,0,.2,1) both;
+        }
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
