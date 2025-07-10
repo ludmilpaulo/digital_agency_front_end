@@ -32,7 +32,7 @@ const SSO_PROVIDERS = [
     name: "Google",
     icon: <Globe className="w-5 h-5 mr-2" />,
     bg: "bg-white text-gray-800 border",
-    onClick: () => window.location.href = `${baseAPI}/account/google/login/`,
+    onClick: () => window.location.href = `${baseAPI}/accounts/google/login/`,
   },
 ];
 

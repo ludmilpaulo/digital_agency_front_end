@@ -1,13 +1,23 @@
+// utils/checkIsStaff.ts
 import { baseAPI } from "@/useAPI/api";
 
-// utils/checkIsStaff.ts
-export async function checkIsStaff(userId: number) {
-  const res = await fetch(`${baseAPI}/account/check-staff`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
-  });
-  if (!res.ok) throw new Error("Network error");
-  const data = await res.json();
-  return data.is_staff; // Should be a boolean
+export async function checkIsStaff(userId: number): Promise<{ isStaff: boolean; detail?: string }> {
+  try {
+    const res = await fetch(`${baseAPI}/account/check-staff/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Return detail from backend if available
+      return { isStaff: false, detail: data.detail || "Network error" };
+    }
+
+    return { isStaff: !!data.is_staff };
+  } catch (error) {
+    return { isStaff: false, detail: "Network error" };
+  }
 }

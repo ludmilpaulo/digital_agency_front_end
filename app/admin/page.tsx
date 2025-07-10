@@ -53,23 +53,26 @@ export default function AdminPage() {
   const loadingData =
     boardsLoading || listsLoading || cardsLoading || usersLoading;
 
-  useEffect(() => {
-    if (!user) {
+useEffect(() => {
+  if (!user) {
+    router.replace("/LoginScreenUser");
+    return;
+  }
+  // Validate staff status with backend
+  (async () => {
+    const { isStaff, detail } = await checkIsStaff(user.user_id || user.id);
+
+    if (!isStaff) {
+      // Show backend detail or fallback
+      alert(detail || "Access denied. Staff only.");
       router.replace("/LoginScreenUser");
-      return;
+    } else {
+      setAuthed(true);
+      setLoading(false);
     }
-    // Validate staff status with backend
-    (async () => {
-      const isStaff = await checkIsStaff(user.user_id || user.id);
-      if (!isStaff) {
-        alert("Access denied. Staff only.");
-        router.replace("/LoginScreenUser");
-      } else {
-        setAuthed(true);
-        setLoading(false);
-      }
-    })();
-  }, [user, router]);
+  })();
+}, [user, router]);
+
 
   // Set default tab for non-staff users (shouldn't ever happen, but keeps previous logic)
   useEffect(() => {
