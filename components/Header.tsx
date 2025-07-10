@@ -51,6 +51,7 @@ const Header = () => {
   const aboutUs: AboutUsData | null = useAppSelector(
     (state: RootState) => state.aboutUs.data
   );
+const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for mobile drawer
 
   useEffect(() => setMounted(true), []);
 
@@ -128,90 +129,93 @@ const Header = () => {
       </div>
 
       {/* Mobile Slider Nav */}
-      <AnimatePresence>
-        {open && (
-          <>
-            {/* Dimmed Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.75 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-[#111C2A]"
+<AnimatePresence>
+  {open && (
+    <>
+      {/* Overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.7 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 bg-black"
+        onClick={() => setOpen(false)}
+      />
+      {/* Side Drawer */}
+      <motion.aside
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className={`fixed top-0 right-0 w-4/5 max-w-xs h-full z-60 flex flex-col items-center pt-10 pb-8 px-8 ${NAVBAR_BG} shadow-2xl`}
+        style={{
+          // fallback if Tailwind class gets purged
+          backgroundColor: "#000",
+        }}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute top-5 right-5 text-white text-3xl z-70"
+          aria-label="Close navigation"
+        >
+          <FaTimes />
+        </button>
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src={aboutUs.logo}
+            alt="Logo"
+            width={60}
+            height={60}
+            className="rounded-2xl bg-white shadow mb-2"
+            priority
+          />
+          <span className="text-2xl font-extrabold text-white tracking-tight">
+            <span className="text-blue-400">Maindo</span> Digital
+          </span>
+        </div>
+        <nav className="flex flex-col gap-6 w-full">
+          {NAV.map(({ href, label, icon }) => (
+            <Link
+              key={href}
+              href={href}
               onClick={() => setOpen(false)}
-            />
-            {/* Side Drawer */}
-            <motion.aside
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="fixed top-0 right-0 w-4/5 max-w-xs h-full z-50 shadow-2xl flex flex-col items-center pt-10 pb-8 px-8"
-              style={{
-                background: "linear-gradient(180deg, #111C2A 80%, #202C49 100%)"
-              }}
+              className="flex items-center gap-4 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
             >
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute top-5 right-5 text-white text-3xl z-60"
-                aria-label="Close navigation"
-              >
-                <FaTimes />
-              </button>
-              <div className="flex flex-col items-center mb-8">
-                <Image
-                  src={aboutUs.logo}
-                  alt="Logo"
-                  width={60}
-                  height={60}
-                  className="rounded-2xl bg-white shadow mb-2"
-                  priority
-                />
-                <span className="text-2xl font-extrabold text-white tracking-tight">
-                  <span className="text-blue-400">Maindo</span> Digital
-                </span>
-              </div>
-              <nav className="flex flex-col gap-6 w-full">
-                {NAV.map(({ href, label, icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-4 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
-                  >
-                    <span className="text-xl">{icon}</span>
-                    {label}
-                  </Link>
-                ))}
-                <Link
-                  href="/contact"
-                  onClick={() => setOpen(false)}
-                  className="w-full mt-3 px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold text-lg shadow-lg transition"
-                >
-                  Get a Quote
-                </Link>
-              </nav>
-              <div className="flex gap-4 mt-10">
-                {socials.map(({ key, color }) => {
-                  const url = aboutUs[key as keyof AboutUsData] as string;
-                  if (!url) return null;
-                  return (
-                    <SocialIcon
-                      key={key}
-                      url={url}
-                      fgColor="#fff"
-                      bgColor={color}
-                      style={{ height: 34, width: 34 }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    />
-                  );
-                })}
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+              <span className="text-xl">{icon}</span>
+              {label}
+            </Link>
+          ))}
+          <Link
+            href="/contact"
+            onClick={() => setOpen(false)}
+            className="w-full mt-3 px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold text-lg shadow-lg transition"
+          >
+            Get a Quote
+          </Link>
+        </nav>
+        <div className="flex gap-4 mt-10">
+          {socials.map(({ key, color }) => {
+            const url = aboutUs[key as keyof AboutUsData] as string;
+            if (!url) return null;
+            return (
+              <SocialIcon
+                key={key}
+                url={url}
+                fgColor="#fff"
+                bgColor={color}
+                style={{ height: 34, width: 34 }}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            );
+          })}
+        </div>
+      </motion.aside>
+    </>
+  )}
+</AnimatePresence>
+
+
 
       {/* WhatsApp Floating */}
       {aboutUs.whatsapp && (
