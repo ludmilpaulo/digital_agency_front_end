@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { baseAPI } from "@/useAPI/api";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -59,7 +60,7 @@ export default function ServiceDetailPage() {
     async function fetchService() {
       setLoading(true);
       try {
-        const res = await fetch(`http://127.0.0.1:8000/services/services/${slug}/`);
+        const res = await fetch(`${baseAPI}/services/services/${slug}/`);
         if (!res.ok) throw new Error("Service not found");
         const data = await res.json();
         setService(data);
