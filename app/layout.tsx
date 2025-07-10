@@ -65,6 +65,7 @@ export default function RootLayout({
             data-key="ouQu5v62l4/FTsePpkTBVw"
             strategy="afterInteractive"
           />
+          <meta name="google-site-verification" content="yc2OIYFEZ0Tvyo9R7ouvUjXAd45cxQFWTVgWxGjx7xA" />
         </head>
         <body className={inter.className}>
          <StoreProvider>

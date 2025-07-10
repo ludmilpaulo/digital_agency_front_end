@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaWhatsapp, FaEnvelope, FaPhone, FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
+import { baseAPI } from '@/useAPI/api';
 
 const initialForm = {
   name: "",
@@ -26,15 +27,36 @@ export default function HaveAProjectPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+  const [error, setError] = useState<string | null>(null);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
+  setSubmitted(false);
+  try {
+    const res = await fetch(`${baseAPI}/project/submit-inquiry/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    if (res.ok) {
       setSubmitted(true);
       setForm(initialForm);
-    }, 1800);
-  };
+    } else {
+      const data = await res.json();
+      setError(
+        data.detail ||
+        data.non_field_errors?.[0] ||
+        "Something went wrong. Please try again."
+      );
+    }
+  } catch (err) {
+    setError("Network error. Please try again.");
+  }
+  setLoading(false);
+};
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-gray-950 flex flex-col items-center justify-center px-2 sm:px-4">
