@@ -108,7 +108,10 @@ const Footer = () => {
           </div>
           <div className="mt-4">
             <p className="text-white text-lg font-extrabold leading-tight">
-              Let’s build something <span className="text-blue-400">great</span>{" "}
+              Let’s build something 
+              <Link href="/LoginScreenUser" className="hover:text-blue-400 transition">
+              <span className="text-blue-400">great</span>{" "}
+              </Link>
               together!
             </p>
             <Link
