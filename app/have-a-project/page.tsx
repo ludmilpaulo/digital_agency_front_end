@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaWhatsapp, FaEnvelope, FaPhone, FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
 
-// --- Form data and options ---
 const initialForm = {
   name: "",
   email: "",
@@ -15,11 +14,11 @@ const initialForm = {
   message: "",
 };
 const budgets = [
-  "Under $2,000",
-  "$2,000 - $5,000",
-  "$5,000 - $15,000",
-  "$15,000 - $50,000",
-  "Above $50,000",
+  "Under R2,000",
+  "R2,000 - R5,000",
+  "R5,000 - R15,000",
+  "R15,000 - R50,000",
+  "Above R50,000",
 ];
 
 export default function HaveAProjectPage() {
@@ -38,7 +37,7 @@ export default function HaveAProjectPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-gray-950 flex flex-col items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-gray-950 flex flex-col items-center justify-center px-2 sm:px-4">
       {/* HERO CARD */}
       <motion.section
         initial={{ opacity: 0, y: 36 }}
@@ -46,22 +45,22 @@ export default function HaveAProjectPage() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-3xl mt-12"
       >
-        <div className="bg-white/90 rounded-2xl shadow-xl p-8 flex flex-col items-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900 drop-shadow-lg mb-4 text-center">
+        <div className="bg-white/90 rounded-2xl shadow-xl p-6 sm:p-8 flex flex-col items-center mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-blue-900 drop-shadow-lg mb-4 text-center">
             Have a Project in Mind?<br />
             <span className="text-blue-600">Let’s Build it Together!</span>
           </h1>
-          <p className="text-gray-700 text-lg md:text-xl font-medium mb-6 text-center">
+          <p className="text-gray-700 text-base sm:text-lg md:text-xl font-medium mb-6 text-center">
             Share your vision. Let our team help you plan, design, and launch a solution that transforms your business.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 mt-3">
-            <Link href="https://wa.me/27659031894" target="_blank" className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-semibold shadow transition">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 mt-3 w-full">
+            <Link href="https://wa.me/27659031894" target="_blank" className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-semibold shadow transition justify-center">
               <FaWhatsapp /> WhatsApp
             </Link>
-            <a href="mailto:support@maindodigital.com" className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow transition">
+            <a href="mailto:support@maindodigital.com" className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow transition justify-center">
               <FaEnvelope /> Email Us
             </a>
-            <a href="tel:+27659031894" className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800 hover:bg-blue-900 text-white font-semibold shadow transition">
+            <a href="tel:+27659031894" className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800 hover:bg-blue-900 text-white font-semibold shadow transition justify-center">
               <FaPhone /> +27 65 903 1894
             </a>
           </div>
@@ -73,9 +72,9 @@ export default function HaveAProjectPage() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
-        className="w-full max-w-2xl bg-white/95 rounded-2xl shadow-xl p-8"
+        className="w-full max-w-2xl bg-white/95 rounded-2xl shadow-xl p-4 sm:p-8"
       >
-        <h2 className="text-2xl font-bold mb-3 text-blue-900">Project Brief</h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 text-blue-900">Project Brief</h2>
         <AnimatePresence>
           {submitted ? (
             <motion.div
@@ -103,7 +102,8 @@ export default function HaveAProjectPage() {
               className="grid gap-4"
               onSubmit={handleSubmit}
             >
-              <div className="flex gap-4">
+              {/* Responsive: flex-col on mobile, flex-row on md+ */}
+              <div className="flex flex-col sm:flex-row gap-4">
                 <input
                   className="flex-1 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-300"
                   placeholder="Your Name"
@@ -122,7 +122,7 @@ export default function HaveAProjectPage() {
                   disabled={loading}
                 />
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <input
                   className="flex-1 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-300"
                   placeholder="Phone"
@@ -189,9 +189,9 @@ export default function HaveAProjectPage() {
         initial={{ opacity: 0, y: 70 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="mt-16 max-w-3xl w-full text-center"
+        className="mt-10 sm:mt-16 max-w-3xl w-full text-center px-2"
       >
-        <h3 className="text-xl font-bold text-blue-100 mb-6 uppercase tracking-wider">Why Choose Maindo Digital?</h3>
+        <h3 className="text-lg sm:text-xl font-bold text-blue-100 mb-6 uppercase tracking-wider">Why Choose Maindo Digital?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
           <div className="bg-white/90 rounded-lg shadow-lg p-5">
             <div className="text-4xl text-blue-400 mb-2">🚀</div>
