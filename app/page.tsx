@@ -13,9 +13,13 @@ import { useEffect } from "react";
 
 export default function Home() {
   const dispatch = useAppDispatch();
+
   useEffect(() => {
-    dispatch({ type: "RESET_APP" });
-    persistor.purge();
+    if (!sessionStorage.getItem("store_reset")) {
+      dispatch({ type: "RESET_APP" });
+      persistor.purge();
+      sessionStorage.setItem("store_reset", "true");
+    }
   }, [dispatch]);
   return (
     <main>

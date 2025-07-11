@@ -28,12 +28,14 @@ export interface TeamData {
   name: string;
   title: string;
   bio: string;
-  image?: string;
-  linkedin?: string;
-  github?: string;
-  facebook?: string;
-  twitter?: string;
-  instagram?: string;
+  image: string | null; // null if not set
+  github?: string | null;
+  linkedin?: string | null;
+  facebook?: string | null;
+  twitter?: string | null;
+  instagram?: string | null;
+  email?: string | null; // For "Contact" button, optional
+  tags?: string[];       // Skill/expertise tags
 }
 
 export interface TimelineData {

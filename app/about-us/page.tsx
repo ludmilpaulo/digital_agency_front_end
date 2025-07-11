@@ -139,60 +139,99 @@ React.useEffect(() => {
           )}
         </section>
 
-        {/* TEAM */}
-        <section className="w-full max-w-6xl mx-auto py-12 px-2 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-blue-200 text-center mb-8 tracking-tight">
-            Meet Our Team
-          </h2>
-          {teamLoading ? <div className="text-white py-10 text-center">Loading team...</div> : (
-            <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-              {team.map((person, idx) => (
-                <motion.div
-                  key={person.id}
-                  className="relative bg-white/95 rounded-2xl shadow-2xl flex flex-col items-center text-center p-7 group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden"
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.06 * idx }}
+   {/* TEAM */}
+<section className="w-full max-w-6xl mx-auto py-16 px-2 md:px-6">
+  <h2 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-200 to-white text-center mb-12 tracking-tight drop-shadow">
+    Meet Our Team
+  </h2>
+  {teamLoading ? (
+    <div className="text-white py-10 text-center">Loading team...</div>
+  ) : (
+    <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {team.map((person, idx) => (
+        <motion.div
+          key={person.id}
+          className="relative group bg-white/90 dark:bg-blue-900/80 rounded-3xl shadow-2xl pt-20 pb-8 px-7 flex flex-col items-center text-center border border-blue-100 hover:shadow-blue-200/80 dark:border-blue-800 overflow-visible transition-all duration-300"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.06 * idx }}
+        >
+          {/* Floating Avatar with animated ring */}
+          <div className="absolute left-1/2 -top-14 -translate-x-1/2 z-20">
+            <div className="relative">
+              <Image
+                src={
+                  person.image ||
+                  "https://ui-avatars.com/api/?name=" +
+                  encodeURIComponent(person.name) +
+                  "&size=256&background=2d6cdf&color=fff"
+                }
+                width={112}
+                height={112}
+                alt={person.name}
+                className="rounded-full shadow-xl border-4 border-blue-600 group-hover:scale-105 group-hover:rotate-2 transition-all duration-300 object-cover bg-white"
+              />
+              {/* LinkedIn Button */}
+              {person.linkedin && (
+                <a
+                  href={person.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute -bottom-2 -right-2 bg-blue-700 hover:bg-blue-900 text-white rounded-full p-2 border-2 border-white shadow-md transition-all"
+                  title={`Connect with ${person.name} on LinkedIn`}
                 >
-                  <div className="relative mb-3">
-                    <Image
-                      src={
-                        person.image ||
-                        "https://ui-avatars.com/api/?name=" +
-                        encodeURIComponent(person.name) +
-                        "&size=256&background=2d6cdf&color=fff"
-                      }
-                      width={92}
-                      height={92}
-                      alt={person.name}
-                      className="rounded-full shadow-md object-cover border-4 border-blue-600"
-                    />
-                    <motion.div
-                      className="absolute inset-0 bg-blue-600/80 rounded-full opacity-0 group-hover:opacity-90 flex items-center justify-center transition-opacity duration-300"
-                      initial={false}
-                      whileHover={{ opacity: 0.95 }}
-                    >
-                      {person.linkedin && (
-                        <a
-                          href={person.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-white font-bold text-lg"
-                        >
-                          <FaLinkedin className="text-2xl" /> Connect
-                        </a>
-                      )}
-                    </motion.div>
-                  </div>
-                  <div className="text-blue-700 font-bold text-lg mb-1">{person.name}</div>
-                  <div className="text-sm text-blue-400 font-semibold mb-2">{person.title}</div>
-                  <div className="text-gray-600 mb-2">{person.bio}</div>
-                </motion.div>
+                  <FaLinkedin className="text-xl" />
+                </a>
+              )}
+            </div>
+          </div>
+          {/* Glass overlay on hover */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-blue-600/60 via-blue-400/30 to-transparent opacity-0 group-hover:opacity-90 pointer-events-none transition-all duration-500 rounded-3xl"
+            initial={false}
+            whileHover={{ opacity: 0.85 }}
+          />
+          {/* Info */}
+          <div className="mt-8 mb-2">
+            <div className="text-2xl font-extrabold text-blue-800 dark:text-white mb-1 drop-shadow">
+              {person.name}
+            </div>
+            <div className="inline-block bg-blue-100/80 dark:bg-blue-800/80 text-blue-700 dark:text-blue-200 px-4 py-1 rounded-full text-xs font-bold tracking-wide shadow mb-2 uppercase">
+              {person.title}
+            </div>
+          </div>
+          <div className="text-gray-600 dark:text-blue-100 mb-4 text-sm line-clamp-4 transition-all group-hover:line-clamp-none">
+            {person.bio}
+          </div>
+          {/* Skill tags (optional) */}
+          {Array.isArray(person.tags) && person.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center mb-2">
+              {person.tags.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="bg-blue-50 dark:bg-blue-800/60 text-blue-700 dark:text-blue-200 px-3 py-1 rounded-full text-xs font-semibold shadow"
+                >
+                  {tag}
+                </span>
               ))}
             </div>
           )}
-        </section>
+          {/* Fancy Contact Button (visible on hover) */}
+          {person.email && (
+            <a
+              href={`mailto:${person.email}`}
+              className="opacity-0 group-hover:opacity-100 mt-4 inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white font-bold rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              Contact
+            </a>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  )}
+</section>
+
 
         {/* TESTIMONIAL SLIDER */}
         <section className="w-full max-w-4xl mx-auto py-12 px-2 md:px-6">
