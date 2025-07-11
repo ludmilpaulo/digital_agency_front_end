@@ -1,11 +1,16 @@
 // src/redux/store.ts
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import authReducer from "./slices/authSlice";
-import carouselReducer from "./slices/carouselSlice";
-import aboutUsReducer from "./slices/aboutUsSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
+
+// Import all your slices
+import authReducer from "./slices/authSlice";
+import carouselReducer from "./slices/carouselSlice";
+import aboutUsReducer from "./slices/aboutUsSlice";
+import signatureReducer from "./slices/signatureSlice";
+
+// Import all your RTK Query APIs
 import { blogApi } from "./services/blogApi";
 import { servicesApi } from "./services/servicesApi";
 import { testimonialsApi } from './services/testimonialsApi';
@@ -16,10 +21,9 @@ import { cardsApi } from './services/cardsApi';
 import { tasksApi } from './services/tasksApi';
 import { usersApi } from "./services/usersApi";
 import { groupsApi } from "./services/groupsApi";
-import signatureReducer from './slices/signatureSlice';
 
-
-const rootReducer = combineReducers({
+// 1. First: Standard combineReducers for all slices/APIs
+const appReducer = combineReducers({
   auth: authReducer,
   carousel: carouselReducer,
   aboutUs: aboutUsReducer,
@@ -36,34 +40,51 @@ const rootReducer = combineReducers({
   [testimonialsApi.reducerPath]: testimonialsApi.reducer,
 });
 
+// 2. Now: Root reducer that listens for RESET_APP action
+const rootReducer = (state: any, action: any) => {
+  if (action.type === "RESET_APP") {
+    // This clears ALL state in Redux (including persisted).
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
+
+// 3. Redux Persist config
 const rootPersistConfig = {
   key: "root",
   storage,
+  // Optionally, blacklist/whitelist specific reducers here:
+  // blacklist: [], whitelist: [],
 };
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
 
+// 4. Create your store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: false, // RTK Query + redux-persist friendly
     })
-    .concat(boardsApi.middleware)
-    .concat(usersApi.middleware)
+      .concat(boardsApi.middleware)
+      .concat(usersApi.middleware)
       .concat(groupsApi.middleware)
       .concat(listsApi.middleware)
       .concat(cardsApi.middleware)
       .concat(tasksApi.middleware)
-      .concat(blogApi.middleware,
+      .concat(
+        blogApi.middleware,
         testimonialsApi.middleware,
-        aboutUsApi.middleware, 
-        servicesApi.middleware), // <-- ADD THIS LINE
+        aboutUsApi.middleware,
+        servicesApi.middleware
+      ),
 });
 
+// 5. Persistor for purge/reset
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof rootReducer>;
+// 6. Typed hooks for components
+export type RootState = ReturnType<typeof appReducer>;
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

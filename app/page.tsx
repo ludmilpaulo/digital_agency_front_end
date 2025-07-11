@@ -7,8 +7,16 @@ import FeaturesSection from "@/components/FeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import BadgesRow from "@/components/BadgesRow";
 import ScrollToTop from "@/components/ScrollToTop";
+import { useAppDispatch } from "@/redux/store";
+import { persistor } from "@/redux/store";
+import { useEffect } from "react";
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch({ type: "RESET_APP" });
+    persistor.purge();
+  }, [dispatch]);
   return (
     <main>
      

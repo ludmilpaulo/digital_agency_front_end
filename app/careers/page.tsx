@@ -14,7 +14,7 @@ import {
 import { Transition, Dialog } from "@headlessui/react";
 import { baseAPI } from "@/useAPI/api";
 import Lottie from "lottie-react";
-import loaderLottie from "@/public/lottie/loader.json"; // <- Use a lottie file in /public/lottie
+import loaderLottie from "@/public/lottie/loader.json";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -65,7 +65,7 @@ export default function CareersPage() {
   useEffect(() => {
     const lang = navigator.language.toLowerCase();
     const detected = lang.startsWith("pt") ? "pt" : "en";
-    setLanguage(detected);
+    setLanguage(detected as "en" | "pt");
     setForm((prev) => ({ ...prev, language: detected }));
   }, []);
 
@@ -140,23 +140,23 @@ export default function CareersPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-100 via-sky-50 to-white pb-20">
-      <div className="absolute top-0 left-0 w-full h-60 bg-gradient-to-br from-blue-800 to-blue-500 rounded-b-3xl blur-[2px] opacity-60 pointer-events-none z-0" />
-      <div className="max-w-6xl mx-auto px-4 py-16 z-10 relative">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 drop-shadow-lg animate-fade-in">
+      <div className="absolute top-0 left-0 w-full h-40 sm:h-60 bg-gradient-to-br from-blue-800 to-blue-500 rounded-b-3xl blur-[2px] opacity-60 pointer-events-none z-0" />
+      <div className="max-w-3xl md:max-w-5xl mx-auto px-2 sm:px-4 py-10 sm:py-16 z-10 relative">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 drop-shadow-lg animate-fade-in">
             <span className="text-blue-700">Careers</span> at Maindo Digital
           </h1>
-          <p className="text-gray-600 mt-2 max-w-2xl mx-auto text-lg font-medium">
+          <p className="text-gray-600 mt-2 max-w-2xl mx-auto text-base sm:text-lg font-medium">
             We’re looking for passionate people ready to build Africa’s digital future.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
           <input
             type="text"
             placeholder="Search by title or location…"
-            className="w-full md:w-1/2 border p-3 rounded-xl shadow-sm bg-white focus:ring-2 focus:ring-blue-400"
+            className="w-full sm:w-1/2 border p-3 rounded-xl shadow-sm bg-white focus:ring-2 focus:ring-blue-400"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -164,9 +164,9 @@ export default function CareersPage() {
             }}
           />
 
-          <div className="flex gap-4">
+          <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
             <select
-              className="border p-3 rounded-xl shadow-sm bg-white"
+              className="border p-3 rounded-xl shadow-sm bg-white w-full xs:w-auto"
               value={selectedLocation}
               onChange={(e) => {
                 setSelectedLocation(e.target.value);
@@ -181,7 +181,7 @@ export default function CareersPage() {
               ))}
             </select>
             <select
-              className="border p-3 rounded-xl shadow-sm bg-white"
+              className="border p-3 rounded-xl shadow-sm bg-white w-full xs:w-auto"
               value={sortOrder}
               onChange={(e) => {
                 setSortOrder(e.target.value as "newest" | "az");
@@ -195,14 +195,14 @@ export default function CareersPage() {
         </div>
 
         {/* Job Cards */}
-        <ul className="space-y-7">
+        <ul className="space-y-5 sm:space-y-7">
           {paginatedJobs.map((job) => (
             <li
               key={job.id}
-              className="group transition-all hover:scale-[1.025] hover:shadow-2xl shadow-lg border border-blue-100 bg-white/90 rounded-2xl p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center"
+              className="group transition-all hover:scale-[1.015] hover:shadow-2xl shadow-lg border border-blue-100 bg-white/95 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center"
             >
               <div>
-                <h2 className="text-2xl font-bold text-blue-900 flex items-center gap-2 mb-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-blue-900 flex items-center gap-2 mb-1">
                   <BriefcaseIcon className="h-6 w-6 text-blue-500" />
                   {job.title}
                 </h2>
@@ -213,7 +213,7 @@ export default function CareersPage() {
               </div>
               <button
                 onClick={() => setSelectedJob(job)}
-                className="inline-flex items-center gap-2 mt-5 sm:mt-0 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-full font-semibold shadow hover:from-blue-700 hover:to-blue-500 transition"
+                className="inline-flex items-center gap-2 mt-4 sm:mt-0 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-full font-semibold shadow hover:from-blue-700 hover:to-blue-500 transition"
               >
                 {labels[language].apply}
                 <ArrowRightIcon className="h-5 w-5" />
@@ -223,21 +223,21 @@ export default function CareersPage() {
         </ul>
 
         {filteredJobs.length === 0 && (
-          <p className="text-center text-gray-500 mt-16 animate-fade-in">
+          <p className="text-center text-gray-500 mt-14 sm:mt-16 animate-fade-in">
             No jobs match your criteria.
           </p>
         )}
 
         {/* Pagination */}
         {filteredJobs.length > ITEMS_PER_PAGE && (
-          <div className="flex justify-center items-center gap-4 mt-10">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mt-8 sm:mt-10">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
               className="flex items-center gap-1 px-4 py-2 rounded border border-blue-100 bg-white hover:bg-blue-50 disabled:opacity-40"
             >
               <ChevronLeftIcon className="w-4 h-4" />
-              Previous
+              <span className="hidden xs:inline">Previous</span>
             </button>
             <span className="text-base text-gray-700">
               Page <b>{currentPage}</b> of <b>{totalPages}</b>
@@ -247,7 +247,7 @@ export default function CareersPage() {
               disabled={currentPage === totalPages}
               className="flex items-center gap-1 px-4 py-2 rounded border border-blue-100 bg-white hover:bg-blue-50 disabled:opacity-40"
             >
-              Next
+              <span className="hidden xs:inline">Next</span>
               <ChevronRightIcon className="w-4 h-4" />
             </button>
           </div>
@@ -269,7 +269,7 @@ export default function CareersPage() {
             </Transition.Child>
 
             <div className="fixed inset-0 z-50 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4">
+              <div className="flex min-h-full items-center justify-center p-1 xs:p-2 sm:p-4">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-out duration-200"
@@ -279,9 +279,9 @@ export default function CareersPage() {
                   leaveFrom="opacity-100 scale-100"
                   leaveTo="opacity-0 scale-95"
                 >
-                  <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-3xl bg-white p-8 shadow-2xl transition-all animate-fade-in-up border border-blue-100">
+                  <Dialog.Panel className="w-full max-w-lg xs:max-w-xl sm:max-w-3xl transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white p-4 xs:p-6 sm:p-8 shadow-2xl transition-all animate-fade-in-up border border-blue-100">
                     <div className="flex justify-between items-center mb-2">
-                      <Dialog.Title className="text-2xl font-extrabold text-blue-900">
+                      <Dialog.Title className="text-lg xs:text-xl sm:text-2xl font-extrabold text-blue-900">
                         {selectedJob?.title}
                       </Dialog.Title>
                       <button
@@ -291,20 +291,20 @@ export default function CareersPage() {
                         <XMarkIcon className="w-6 h-6" />
                       </button>
                     </div>
-                    <p className="text-gray-600 mb-2 flex items-center gap-2">
+                    <p className="text-gray-600 mb-2 flex items-center gap-2 text-xs xs:text-sm">
                       <MapPinIcon className="h-5 w-5 text-blue-400" />
                       {selectedJob?.location}
                     </p>
                     <div className="prose max-w-none mb-6">
-                      <h3 className="text-xl font-bold mt-4 mb-2 text-blue-800">Description</h3>
+                      <h3 className="text-base xs:text-lg font-bold mt-4 mb-2 text-blue-800">Description</h3>
                       <div dangerouslySetInnerHTML={{ __html: selectedJob?.description || "" }} />
-                      <h3 className="text-xl font-bold mt-6 mb-2 text-blue-800">Requirements</h3>
+                      <h3 className="text-base xs:text-lg font-bold mt-6 mb-2 text-blue-800">Requirements</h3>
                       <div dangerouslySetInnerHTML={{ __html: selectedJob?.requirements || "" }} />
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="space-y-3 xs:space-y-4 mt-3 xs:mt-6">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
                         <div>
-                          <label className="block text-sm font-medium mb-1">{labels[language].language}</label>
+                          <label className="block text-xs xs:text-sm font-medium mb-1">{labels[language].language}</label>
                           <select
                             className="border p-2 rounded w-full"
                             value={form.language}
@@ -319,7 +319,7 @@ export default function CareersPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">{labels[language].fullName}</label>
+                          <label className="block text-xs xs:text-sm font-medium mb-1">{labels[language].fullName}</label>
                           <input
                             type="text"
                             className="w-full border p-2 rounded"
@@ -329,9 +329,9 @@ export default function CareersPage() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
                         <div>
-                          <label className="block text-sm font-medium mb-1">{labels[language].email}</label>
+                          <label className="block text-xs xs:text-sm font-medium mb-1">{labels[language].email}</label>
                           <input
                             type="email"
                             className="w-full border p-2 rounded"
@@ -341,7 +341,7 @@ export default function CareersPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">{labels[language].resume}</label>
+                          <label className="block text-xs xs:text-sm font-medium mb-1">{labels[language].resume}</label>
                           <input
                             type="file"
                             accept="application/pdf"
@@ -352,10 +352,10 @@ export default function CareersPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">{labels[language].coverLetter}</label>
+                        <label className="block text-xs xs:text-sm font-medium mb-1">{labels[language].coverLetter}</label>
                         <textarea
                           className="w-full border p-2 rounded"
-                          rows={4}
+                          rows={3}
                           value={form.cover_letter}
                           onChange={(e) => setForm({ ...form, cover_letter: e.target.value })}
                           required
@@ -402,7 +402,7 @@ export default function CareersPage() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-8 py-5 rounded-xl shadow-xl bg-green-600 text-white font-bold text-lg animate-fade-in-up">
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-5 xs:px-8 py-4 xs:py-5 rounded-xl shadow-xl bg-green-600 text-white font-bold text-base xs:text-lg animate-fade-in-up">
             {labels[language].submitted}
           </div>
         </Transition>
