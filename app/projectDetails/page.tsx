@@ -397,7 +397,7 @@ const ProjectDetails = () => {
 
       {/* Sticky Bouncy CTA */}
       <motion.a
-        href="/appointment"
+        href="/have-a-project"
         className="fixed bottom-8 right-8 px-7 py-3 rounded-full bg-gradient-to-r from-blue-700 to-blue-500 shadow-xl text-white text-lg font-extrabold z-50 hover:scale-105 hover:from-yellow-400 hover:to-yellow-600 hover:text-blue-900 transition-all ring-2 ring-blue-400 animate-pulse"
         initial={{ scale: 0.98, boxShadow: "0 2px 24px #3b82f680" }}
         animate={{
