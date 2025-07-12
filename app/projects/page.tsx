@@ -1,23 +1,22 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { FaSearch, FaAward, FaFilter } from "react-icons/fa";
-import { AboutUsData } from "@/useAPI/types";
-import { fetchAboutUsData } from "@/useAPI/information";
 import { baseAPI } from "@/useAPI/api";
-import { MOCK_PROJECTS } from "@/mocks/projects";
 
-
-interface Project {
+export interface Project {
   id: number;
   title: string;
   description: string;
   image: string;
-  link: string;
-  category?: string; // Add if you want category filtering
+  link?: string;
   badge?: string;
+  badge_color?: string;
+  stack: { tech: string }[];
+  // Add other properties if you want to show category for filtering
+  category?: string;
 }
 
 const CATEGORIES = [
@@ -30,37 +29,27 @@ const CATEGORIES = [
   "SaaS",
 ];
 
-const BADGE_MAP: Record<string, { icon: JSX.Element; text: string }> = {
-  featured: { icon: <FaAward className="text-yellow-400 mr-1" />, text: "Featured" },
-};
-
 function truncateText(html: string, max: number) {
   if (!html) return "";
-  // Remove HTML tags (SSR safe)
   const str = html.replace(/<[^>]*>/g, "");
   return str.length > max ? str.substring(0, max) + "..." : str;
 }
 
+const BADGE_MAP: Record<string, { icon: JSX.Element; text: string }> = {
+  featured: { icon: <FaAward className="text-yellow-400 mr-1" />, text: "Featured" },
+};
 
 const ProjectsPage = () => {
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
-
-  const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
 
   useEffect(() => {
-    fetchAboutUsData().then(setHeaderData);
+    fetch(`${baseAPI}/project/projects/`)
+      .then(res => res.json())
+      .then(setProjects);
   }, []);
 
-  useEffect(() => {
-  fetch(`${baseAPI}/project/projects/`)
-    .then(res => res.json())
-    .then((data) => setProjects(data)); // <--- FIXED!
-}, []);
-
-
-  // Filtering and searching
   const filteredProjects = useMemo(() => {
     let list = [...projects];
     if (filter !== "All") {
@@ -77,16 +66,7 @@ const ProjectsPage = () => {
   }, [projects, filter, search]);
 
   return (
-    <div
-      className="min-h-screen py-24 px-4"
-      style={{
-        backgroundImage: headerData?.backgroundImage
-          ? `linear-gradient(135deg, rgba(18,18,40,0.90), rgba(18,20,46,0.97)), url(${headerData.backgroundImage})`
-          : "linear-gradient(135deg, #171f34, #293350)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <div className="min-h-screen py-24 px-4 bg-gradient-to-br from-[#182540] to-[#294573]">
       <div className="max-w-7xl mx-auto">
         <motion.h1
           className="text-4xl md:text-5xl font-extrabold text-center mb-8 text-white"
@@ -155,12 +135,7 @@ const ProjectsPage = () => {
               <Link
                 href={{
                   pathname: "/projectDetails",
-                  query: {
-                    title: project.title,
-                    image: project.image,
-                    description: project.description,
-                    link: project.link,
-                  },
+                  query: { id: project.id }
                 }}
                 className="block"
               >
@@ -190,20 +165,6 @@ const ProjectsPage = () => {
               </Link>
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* Add a call to action or highlight */}
-        <motion.div
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Link
-            href="/proposal"
-            className="inline-block bg-gradient-to-r from-blue-500 to-blue-700 hover:from-yellow-400 hover:to-yellow-600 text-white text-lg font-bold px-8 py-4 rounded-full shadow-xl transition-all"
-          >
-            Have a Project in Mind? Let’s Build it Together!
-          </Link>
         </motion.div>
       </div>
     </div>
