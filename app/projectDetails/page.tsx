@@ -67,7 +67,7 @@ const ProjectDetails = () => {
   const [project, setProject] = useState<Project | null>(null);
   useEffect(() => {
     if (id) {
-      fetch(`${baseAPI}/projects/projects/${id}/`)
+      fetch(`${baseAPI}/project/projects/${id}/`)
         .then(res => res.json())
         .then(setProject)
         .catch(() => setProject(null));
