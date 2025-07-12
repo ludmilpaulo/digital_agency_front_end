@@ -199,7 +199,7 @@ const ProjectsPage = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <Link
-            href="/contact"
+            href="/proposal"
             className="inline-block bg-gradient-to-r from-blue-500 to-blue-700 hover:from-yellow-400 hover:to-yellow-600 text-white text-lg font-bold px-8 py-4 rounded-full shadow-xl transition-all"
           >
             Have a Project in Mind? Let’s Build it Together!
