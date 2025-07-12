@@ -22,25 +22,32 @@ export default function CommentsSection({
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    // AI check
-    const aiResult = await aiCommentBot(form.content);
-    if (aiResult.isSpam) {
-      setError("Your comment was flagged as spam or inappropriate.");
-      return;
-    }
-    try {
-      await addComment({ postId: Number(postId), data: form }).unwrap();
-      setForm({ name: "", email: "", content: "" });
-      setSuccess("Comment submitted! Awaiting moderation.");
-      setShowForm(false);
-    } catch (err: any) {
-      setError("Failed to submit. Please try again.");
-    }
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  setSuccess(null);
+
+  // AI check (your demo as before)
+  const aiResult = await aiCommentBot(form.content);
+  if (aiResult.isSpam) {
+    setError("Your comment was flagged as spam or inappropriate.");
+    return;
+  }
+  try {
+    await addComment({
+      post: Number(postId),     // Must be sent to the backend!
+      name: form.name,
+      email: form.email,
+      content: form.content,
+    }).unwrap();
+    setForm({ name: "", email: "", content: "" });
+    setSuccess("Comment submitted! Awaiting moderation.");
+    setShowForm(false);
+  } catch (err: any) {
+    setError("Failed to submit. Please try again.");
+  }
+};
+
 
   return (
     <section className="mt-12 md:mt-16 relative px-2">
