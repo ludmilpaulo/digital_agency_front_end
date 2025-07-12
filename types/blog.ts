@@ -33,7 +33,7 @@ export interface Post {
   excerpt?: string | null;          // For summary in cards/lists
   tags?: string;                    // "SEO, Marketing, Development"
   categories?: string;
-             // "Tech, News"
+  markdown?: string;                // Optional markdown content
   comments_count?: number;          // Optional count for UI
   comments?: Comment[];             // Array of comments (if embedded)
   is_published?: boolean;           // For admin

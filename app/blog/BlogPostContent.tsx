@@ -17,6 +17,19 @@ export default function BlogPostContent({ post }: { post: Post }) {
   const authorAvatar = post.author?.avatar || logo;
   const authorName = post.author?.name || aboutUs?.title || "Maindo Digital";
 
+  // Get excerpt (plain text, 200 chars max) for sharing
+  function getExcerpt() {
+    if (post.markdown) {
+      // Remove markdown syntax for excerpt
+      return post.markdown.replace(/[#_*>\-\[\]`]/g, "").slice(0, 200);
+    }
+    // Strip HTML tags for excerpt
+    return post.content
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .slice(0, 200);
+  }
+
   return (
     <article className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-lg p-6 md:p-10 max-w-3xl mx-auto">
       <h1 className="text-3xl md:text-4xl font-extrabold mb-3 text-blue-950">{post.title}</h1>
@@ -43,11 +56,16 @@ export default function BlogPostContent({ post }: { post: Post }) {
         />
       </div>
       <div className="prose prose-blue max-w-none mb-7 dark:prose-invert text-lg leading-relaxed">
-        <ReactMarkdown>{post.content}</ReactMarkdown>
+        {post.markdown ? (
+          <ReactMarkdown>{post.markdown}</ReactMarkdown>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        )}
       </div>
       <ShareButtons
         url={typeof window !== "undefined" ? window.location.href : ""}
         title={post.title}
+        excerpt={getExcerpt()}
       />
       <AuthorBio author={post.author} logo={logo} aboutUs={aboutUs} />
     </article>
