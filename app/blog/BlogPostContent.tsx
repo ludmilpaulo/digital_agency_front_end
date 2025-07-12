@@ -4,6 +4,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import AuthorBio from "./AuthorBio";
 import ShareButtons from "@/components/ShareButtons";
+import Head from "next/head";
 import { Post } from "@/types/blog";
 import { useGetAboutUsQuery } from "@/redux/services/aboutUsApi";
 
@@ -31,6 +32,14 @@ export default function BlogPostContent({ post }: { post: Post }) {
   }
 
   return (
+    <>    
+    <Head>
+      <title>{post.title}</title>
+      <meta property="og:title" content={post.title} />
+      <meta property="og:description" content={getExcerpt()} />
+      <meta property="og:image" content={post.image || logo} />
+      <meta property="og:url" content={typeof window !== "undefined" ? window.location.href : ""} />
+    </Head>
     <article className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-lg p-6 md:p-10 max-w-3xl mx-auto">
       <h1 className="text-3xl md:text-4xl font-extrabold mb-3 text-blue-950">{post.title}</h1>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-5">
@@ -69,5 +78,6 @@ export default function BlogPostContent({ post }: { post: Post }) {
       />
       <AuthorBio author={post.author} logo={logo} aboutUs={aboutUs} />
     </article>
+    </>
   );
 }

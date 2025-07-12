@@ -43,7 +43,7 @@ export default function CommentsSection({
   };
 
   return (
-    <section className="mt-16 relative">
+    <section className="mt-12 md:mt-16 relative px-2">
       <h2 className="font-extrabold text-2xl mb-6 flex items-center gap-2 text-blue-700">
         <FaRegCommentDots /> Comments ({comments.length})
       </h2>
@@ -57,7 +57,7 @@ export default function CommentsSection({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="bg-blue-50 border border-blue-100 text-blue-900 px-6 py-6 rounded-xl shadow text-center"
+              className="bg-blue-50 border border-blue-100 text-blue-900 px-4 py-6 sm:px-6 rounded-xl shadow text-center text-base"
             >
               No comments yet — be the first to share your thoughts!
             </motion.div>
@@ -70,19 +70,19 @@ export default function CommentsSection({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex gap-4 bg-white rounded-xl shadow p-5 border border-gray-100"
+              className="flex items-start gap-3 sm:gap-4 bg-white rounded-xl shadow p-4 sm:p-5 border border-gray-100"
             >
-              <div>
+              <div className="pt-1 flex-shrink-0">
                 <FaUserCircle className="text-3xl text-blue-200" />
               </div>
-              <div className="flex-1">
-                <div className="font-bold text-blue-900 flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-blue-900 flex items-center gap-2 flex-wrap">
                   {c.name}
-                  <span className="text-xs text-gray-400 font-normal">
+                  <span className="text-xs text-gray-400 font-normal whitespace-nowrap">
                     • {dayjs(c.created_date || c.created_at).fromNow()}
                   </span>
                 </div>
-                <div className="text-gray-700 text-[1.05rem] leading-relaxed mt-1">
+                <div className="text-gray-700 text-[1.05rem] leading-relaxed mt-1 break-words">
                   {c.content}
                 </div>
               </div>
@@ -96,7 +96,7 @@ export default function CommentsSection({
         <motion.button
           whileHover={{ scale: 1.07 }}
           whileTap={{ scale: 0.95 }}
-          className="hidden md:flex fixed bottom-12 right-12 z-40 items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg font-bold text-lg hover:bg-blue-800 transition"
+          className="hidden md:flex fixed bottom-8 right-4 z-40 items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg font-bold text-lg hover:bg-blue-800 transition"
           onClick={() => setShowForm(true)}
         >
           <FaRegCommentDots /> Add Comment
@@ -113,10 +113,10 @@ export default function CommentsSection({
             exit={{ opacity: 0, y: 24 }}
             transition={{ type: "spring", duration: 0.5 }}
             onSubmit={handleSubmit}
-            className="max-w-lg mx-auto bg-white/90 backdrop-blur border border-blue-100 shadow-2xl rounded-2xl px-8 py-8 space-y-5"
+            className="max-w-lg w-full mx-auto bg-white/90 backdrop-blur border border-blue-100 shadow-2xl rounded-2xl px-4 py-6 sm:px-8 sm:py-8 space-y-5"
           >
-            <h3 className="text-xl font-bold text-blue-800 mb-2">Add a Comment</h3>
-            <div className="flex gap-4">
+            <h3 className="text-lg sm:text-xl font-bold text-blue-800 mb-2">Add a Comment</h3>
+            <div className="flex flex-col sm:flex-row gap-4">
               <input
                 className="flex-1 border-b-2 border-blue-200 focus:border-blue-600 outline-none px-3 py-2 text-base rounded-t transition"
                 placeholder="Your name"
