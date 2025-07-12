@@ -16,6 +16,7 @@ export interface Comment {
   name: string;
   email: string;
   content: string;
+  is_approved: boolean;            // For moderation
   created_at: string;
   created_date: string;
   replies?: Comment[];              // Nested comments (optional)

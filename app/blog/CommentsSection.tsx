@@ -22,43 +22,47 @@ export default function CommentsSection({
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
-  setSuccess(null);
+  // Only approved comments
+  const approvedComments = comments.filter((c) => c.is_approved);
 
-  // AI check (your demo as before)
-  const aiResult = await aiCommentBot(form.content);
-  if (aiResult.isSpam) {
-    setError("Your comment was flagged as spam or inappropriate.");
-    return;
-  }
-  try {
-    await addComment({
-      post: Number(postId),     // Must be sent to the backend!
-      name: form.name,
-      email: form.email,
-      content: form.content,
-    }).unwrap();
-    setForm({ name: "", email: "", content: "" });
-    setSuccess("Comment submitted! Awaiting moderation.");
-    setShowForm(false);
-  } catch (err: any) {
-    setError("Failed to submit. Please try again.");
-  }
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
+    // AI check
+    const aiResult = await aiCommentBot(form.content);
+    if (aiResult.isSpam) {
+      setError("Your comment was flagged as spam or inappropriate.");
+      return;
+    }
+    try {
+      await addComment({
+        post: Number(postId),
+        name: form.name,
+        email: form.email,
+        content: form.content,
+      }).unwrap();
+      setForm({ name: "", email: "", content: "" });
+      setSuccess(
+        "Comment submitted! Awaiting moderation. Your comment will appear after approval (within 24 hours)."
+      );
+      setShowForm(false);
+    } catch (err: any) {
+      setError("Failed to submit. Please try again.");
+    }
+  };
 
   return (
     <section className="mt-12 md:mt-16 relative px-2">
       <h2 className="font-extrabold text-2xl mb-6 flex items-center gap-2 text-blue-700">
-        <FaRegCommentDots /> Comments ({comments.length})
+        <FaRegCommentDots /> Comments ({approvedComments.length})
       </h2>
 
       {/* Comments */}
       <div className="space-y-6 mb-14">
         <AnimatePresence>
-          {comments.length === 0 && (
+          {approvedComments.length === 0 && (
             <motion.div
               key="no-comments"
               initial={{ opacity: 0, y: 8 }}
@@ -71,7 +75,7 @@ export default function CommentsSection({
           )}
         </AnimatePresence>
         <AnimatePresence>
-          {comments.map((c) => (
+          {approvedComments.map((c) => (
             <motion.div
               key={c.id}
               initial={{ opacity: 0, y: 8 }}
@@ -122,7 +126,9 @@ export default function CommentsSection({
             onSubmit={handleSubmit}
             className="max-w-lg w-full mx-auto bg-white/90 backdrop-blur border border-blue-100 shadow-2xl rounded-2xl px-4 py-6 sm:px-8 sm:py-8 space-y-5"
           >
-            <h3 className="text-lg sm:text-xl font-bold text-blue-800 mb-2">Add a Comment</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-blue-800 mb-2">
+              Add a Comment
+            </h3>
             <div className="flex flex-col sm:flex-row gap-4">
               <input
                 className="flex-1 border-b-2 border-blue-200 focus:border-blue-600 outline-none px-3 py-2 text-base rounded-t transition"
@@ -131,7 +137,7 @@ export default function CommentsSection({
                 required
                 maxLength={80}
                 autoComplete="name"
-                onChange={e => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
                 disabled={isLoading}
               />
               <input
@@ -142,7 +148,7 @@ export default function CommentsSection({
                 required
                 maxLength={120}
                 autoComplete="email"
-                onChange={e => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 disabled={isLoading}
               />
             </div>
@@ -153,7 +159,7 @@ export default function CommentsSection({
               required
               minLength={6}
               maxLength={800}
-              onChange={e => setForm({ ...form, content: e.target.value })}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
               disabled={isLoading}
             />
             {error && (
@@ -208,6 +214,16 @@ export default function CommentsSection({
         >
           <FaRegCommentDots className="inline mr-2" /> Add Comment
         </button>
+      )}
+      {/* Success message on main section (for mobile, if you close the form) */}
+      {success && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-green-700 text-base text-center mt-4 font-semibold"
+        >
+          {success}
+        </motion.div>
       )}
     </section>
   );
