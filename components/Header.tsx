@@ -147,7 +147,7 @@ const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for m
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className={`fixed top-0 right-0 w-4/5 max-w-xs h-full z-60 flex flex-col items-center pt-10 pb-8 px-8 ${NAVBAR_BG} shadow-2xl`}
+        className={`fixed top-0 right-0 w-4/5 max-w-xs h-full z-60 flex flex-col items-center pt-10 pb-8 px-8 bg-black/70 shadow-2xl`}
         style={{
           // fallback if Tailwind class gets purged
           backgroundColor: "#000",
