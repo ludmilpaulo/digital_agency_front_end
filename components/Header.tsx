@@ -121,7 +121,7 @@ const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for m
         {/* Mobile Nav Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden text-white text-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+          className="md:hidden bg-black/70 text-white text-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
           aria-label="Toggle navigation"
         >
           {open ? <FaTimes /> : <FaBars />}
@@ -138,7 +138,7 @@ const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for m
         animate={{ opacity: 0.7 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 bg-black"
+        className="fixed inset-0 z-50 bg-black/70"
         onClick={() => setOpen(false)}
       />
       {/* Side Drawer */}
@@ -155,31 +155,31 @@ const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for m
       >
         <button
           onClick={() => setOpen(false)}
-          className="absolute top-5 right-5 text-white text-3xl z-70"
+          className="absolute top-5 right-5 bg-black/70 text-white text-3xl z-70"
           aria-label="Close navigation"
         >
           <FaTimes />
         </button>
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col bg-black/70 items-center mb-8">
           <Image
             src={aboutUs.logo}
             alt="Logo"
             width={60}
             height={60}
-            className="rounded-2xl bg-white shadow mb-2"
+            className="rounded-2xl bg-black/70 shadow mb-2"
             priority
           />
-          <span className="text-2xl font-extrabold text-white tracking-tight">
-            <span className="text-blue-400">Maindo</span> Digital
+          <span className="text-2xl bg-black/70 font-extrabold text-white tracking-tight">
+            <span className="text-blue-400 bg-black/70">Maindo</span> Digital
           </span>
         </div>
-        <nav className="flex flex-col gap-6 w-full">
+        <nav className="flex flex-col bg-black/70 gap-6 w-full">
           {NAV.map(({ href, label, icon }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-4 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
+              className="flex items-center gap-4 bg-black/70 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
             >
               <span className="text-xl">{icon}</span>
               {label}
@@ -193,7 +193,7 @@ const NAVBAR_BG = "bg-black"; // Same as desktop, but without transparency for m
             Get a Quote
           </Link>
         </nav>
-        <div className="flex gap-4 mt-10">
+        <div className="flex bg-black/70 gap-4 mt-10">
           {socials.map(({ key, color }) => {
             const url = aboutUs[key as keyof AboutUsData] as string;
             if (!url) return null;
