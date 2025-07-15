@@ -13,6 +13,7 @@ interface CardAddFormProps {
   setDetails: (d: any) => void;
   handleAddCard: (listId: number) => void;
 }
+
 const CardAddForm: React.FC<CardAddFormProps> = ({
   listId, boardUsers, details, setDetails, handleAddCard
 }) => (
@@ -22,17 +23,20 @@ const CardAddForm: React.FC<CardAddFormProps> = ({
       placeholder="Title"
       value={details.title}
       onChange={e => setDetails({ ...details, title: e.target.value })}
+      onMouseDown={(e) => e.stopPropagation()}
     />
     <textarea
       className="border px-2 py-1 rounded text-sm bg-white mb-1"
       placeholder="Description"
       value={details.description}
       onChange={e => setDetails({ ...details, description: e.target.value })}
+      onMouseDown={(e) => e.stopPropagation()}
     />
     <select
       className="border px-2 py-1 rounded text-sm bg-white mb-1"
       value={details.status}
       onChange={e => setDetails({ ...details, status: e.target.value })}
+      onMouseDown={(e) => e.stopPropagation()}
     >
       <option value="Not Started">Not Started</option>
       <option value="In Progress">In Progress</option>
@@ -46,6 +50,7 @@ const CardAddForm: React.FC<CardAddFormProps> = ({
         const values = Array.from(e.target.selectedOptions).map(o => Number(o.value));
         setDetails({ ...details, assignees: values });
       }}
+      onMouseDown={(e) => e.stopPropagation()}
     >
       {boardUsers.map((u: User) => (
         <option value={u.id} key={u.id}>{u.username}</option>
@@ -53,8 +58,15 @@ const CardAddForm: React.FC<CardAddFormProps> = ({
     </select>
     <button
       className="bg-blue-600 text-white rounded px-2 text-xs font-semibold hover:bg-blue-700"
-      onClick={() => handleAddCard(listId)}
-    >Add Card</button>
+      onClick={(e) => {
+        e.stopPropagation();
+        handleAddCard(listId);
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      Add Card
+    </button>
   </div>
 );
+
 export default CardAddForm;

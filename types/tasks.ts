@@ -33,8 +33,18 @@ export interface Board {
   users: User[];
   managers: User[];
   status: string;
-  lists?: List[];
+  lists: List[];
+  development_link?: string;
+  repository_link?: string;
+  client_link?: string;
+  sample_link?: string;
+  budget?: number;
+  budget_used?: number;
+  deadline?: string;
+  start_date?: string;
+  end_date?: string;
 }
+
 
 export interface Task {
   id: number;

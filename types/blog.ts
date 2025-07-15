@@ -41,22 +41,21 @@ export interface Post {
   is_featured?: boolean;            // For "trending", etc
 }
 
-// types.ts
 export interface User {
   id: number;
   email: string;
   username: string;
-  token?: string; // JWT token for auth
-  first_name?: string; // Optional for user profile
-  last_name?: string; // Optional for user profile
-  is_active?: boolean; // Optional for admin
-  is_staff?: boolean; // Optional for admin
-  date_joined?: string; // Optional for user profile
-  last_login?: string; // Optional for user profile
-  avatar?: string | null; // URL to user's avatar image
-  bio?: string | null; // User's bio or description
-  groups: string[]; 
-  user_id: number;// or number[] if using PKs
-  // ...any other fields
+  token?: string;
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
+  is_staff?: boolean;
+  is_superuser?: boolean; // Add this!
+  date_joined?: string;
+  last_login?: string;
+  avatar?: string | null;
+  bio?: string | null;
+  groups: string[];
+  user_id: number;
 }
 

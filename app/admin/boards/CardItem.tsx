@@ -16,17 +16,20 @@ const CardItem: React.FC<{
         <button
           className="ml-2 text-xs text-red-400 hover:text-red-600"
           title="Delete card"
-          onClick={() => handleDeleteCard(card.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteCard(card.id);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           ✕
         </button>
       )}
     </div>
     <div className="text-xs text-blue-700 mb-1">{card.description}</div>
-    {/* Show assignees */}
     {card.assignees && card.assignees.length > 0 && (
       <div className="flex gap-1 flex-wrap mt-1">
-        {card.assignees.map((user: any) => (
+        {card.assignees.map((user) => (
           <span
             key={user.id}
             className="inline-block px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full text-xs font-semibold"
@@ -44,4 +47,5 @@ const CardItem: React.FC<{
     </div>
   </div>
 );
+
 export default CardItem;

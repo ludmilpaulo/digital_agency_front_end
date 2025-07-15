@@ -7,21 +7,41 @@ export const boardsApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: `${baseAPI}/task/` }),
   tagTypes: ["Boards"],
   endpoints: (builder) => ({
-    getBoards: builder.query<Board[], void>({
-      query: () => `boards/?nested=true`,
+    getBoards: builder.query<Board[], { user_id?: number; manager_id?: number; search?: string }>({
+      query: (params) => ({
+        url: `boards/`,
+        params: params,
+      }),
       providesTags: ["Boards"],
     }),
+
     addBoard: builder.mutation<
-      Board,
-      { name: string; description: string; managers_ids: number[] }
-    >({
-      query: (body) => ({
-        url: `boards/`,
-        method: "POST",
-        body,
+        Board,
+        {
+          name: string;
+          description: string;
+          development_link?: string;
+          repository_link?: string;
+          client_link?: string;
+          sample_link?: string;
+          managers_ids: number[];
+          users_ids: number[];
+          budget?: number;
+          budget_used?: number;
+          deadline?: string;
+          start_date?: string;
+          end_date?: string;
+          status?: string;
+        }
+      >({
+        query: (body) => ({
+          url: `boards/`,
+          method: "POST",
+          body,
+        }),
+        invalidatesTags: ["Boards"],
       }),
-      invalidatesTags: ["Boards"],
-    }),
+
     deleteBoard: builder.mutation<void, number>({
       query: (id) => ({
         url: `boards/${id}/`,

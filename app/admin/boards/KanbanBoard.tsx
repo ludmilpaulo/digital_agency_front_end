@@ -15,11 +15,24 @@ interface KanbanBoardProps {
   handleAddCard: (listId: number) => void;
   handleDeleteCard: (cardId: number) => void;
 }
+
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
-  board, users, newLists, setNewLists, newCardDetails, setNewCardDetails,
-  handleAddList, handleDeleteList, handleAddCard, handleDeleteCard,
+  board,
+  users,
+  newLists,
+  setNewLists,
+  newCardDetails,
+  setNewCardDetails,
+  handleAddList,
+  handleDeleteList,
+  handleAddCard,
+  handleDeleteCard,
 }) => {
   const onDragEnd = (_result: DropResult) => {};
+
+  // Ensure the object is initialized properly
+  const currentListInput = newLists?.[board.id] || "";
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="all-lists" direction="horizontal" type="LIST">
@@ -29,7 +42,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {...provided.droppableProps}
             ref={provided.innerRef}
           >
-            {board.lists.map((list, i) => (
+            {board.lists.map((list) => (
               <ListColumn
                 key={list.id}
                 list={list}
@@ -42,16 +55,20 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
               />
             ))}
             {provided.placeholder}
+            
             {/* Add List */}
             <div className="w-80 flex-shrink-0 flex flex-col justify-center items-center bg-gradient-to-tr from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-dashed border-blue-400">
               <input
                 className="border px-2 py-1 rounded w-full mb-2 text-sm bg-white"
                 placeholder="Add list"
-                value={newLists[board.id] || ""}
-                onChange={e => setNewLists((prev) => ({
-                  ...prev, [board.id]: e.target.value,
-                }))}
-                onKeyDown={e =>
+                value={currentListInput}
+                onChange={(e) =>
+                  setNewLists((prev = {}) => ({
+                    ...prev,
+                    [board.id]: e.target.value,
+                  }))
+                }
+                onKeyDown={(e) =>
                   e.key === "Enter" ? handleAddList(board.id) : undefined
                 }
               />
@@ -68,4 +85,5 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     </DragDropContext>
   );
 };
+
 export default KanbanBoard;

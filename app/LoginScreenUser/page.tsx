@@ -3,7 +3,7 @@ import Image from "next/image";
 import { css } from "@emotion/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Transition } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, User, Shield, Briefcase, Globe } from "lucide-react";
@@ -12,6 +12,8 @@ import { loginUser } from "../../redux/slices/authSlice";
 import { baseAPI } from "@/useAPI/api";
 import { fetchAboutUsData } from "@/useAPI/information";
 import { AboutUsData } from "@/useAPI/types";
+import { persistor } from "@/redux/store";
+import type { User as UserType } from "@/types/blog";
 
 const cardStyles = css`
   background: rgba(255,255,255,0.82);
@@ -36,21 +38,45 @@ const SSO_PROVIDERS = [
     name: "Google",
     icon: <Globe className="w-5 h-5 mr-2" />,
     bg: "bg-white text-gray-800 border",
-    onClick: () => window.location.href = `${baseAPI}/accounts/google/login/`, // update for your SSO endpoint
+    onClick: () => window.location.href = `${baseAPI}/accounts/google/login/`,
   },
 ];
 
 const ROLE_ICONS: Record<string, JSX.Element> = {
-  Executive: <Shield className="inline-block w-5 h-5 text-blue-700 mr-1" />,
+  Admin: <Shield className="inline-block w-5 h-5 text-blue-700 mr-1" />,
   Staff: <Briefcase className="inline-block w-5 h-5 text-blue-500 mr-1" />,
+  Executive: <Shield className="inline-block w-5 h-5 text-blue-700 mr-1" />,
   Freelancer: <User className="inline-block w-5 h-5 text-yellow-500 mr-1" />,
   Basic: <User className="inline-block w-5 h-5 text-gray-400 mr-1" />,
+  User: <User className="inline-block w-5 h-5 text-blue-400 mr-1" />,
 };
 
-const getRole = (user: any) =>
-  user?.groups?.find((g: string) =>
-    ["Executive", "Staff", "Freelancer", "Basic"].includes(g)
-  ) || "User";
+function getRedirectPath(user: UserType): string {
+  if (user.is_superuser || user.groups.includes("admin")) {
+    return "/admin";
+  }
+  if (user.is_staff || user.groups.includes("staff")) {
+    return "/staff";
+  }
+  return "/";
+}
+
+function getRole(user: UserType | null): string {
+  if (!user) return "User";
+  if (user.is_superuser) return "Admin";
+  if (user.is_staff) return "Staff";
+  if (user.groups.includes("Executive")) return "Executive";
+  if (user.groups.includes("Freelancer")) return "Freelancer";
+  if (user.groups.includes("Basic")) return "Basic";
+  return "User";
+}
+
+// Optional: Error response interface for strict error handling
+interface ErrorResponse {
+  error?: string;
+  detail?: string;
+  [key: string]: unknown;
+}
 
 export default function LoginScreenUser() {
   const router = useRouter();
@@ -66,6 +92,14 @@ export default function LoginScreenUser() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!sessionStorage.getItem("store_reset")) {
+      dispatch({ type: "RESET_APP" });
+      persistor.purge();
+      sessionStorage.setItem("store_reset", "true");
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
     fetchAboutUsData().then(setHeaderData);
   }, []);
 
@@ -73,7 +107,7 @@ export default function LoginScreenUser() {
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("maindo_user");
       if (user) {
-        const parsed = JSON.parse(user);
+        const parsed: UserType = JSON.parse(user);
         setUserRole(getRole(parsed));
       }
     }
@@ -82,26 +116,37 @@ export default function LoginScreenUser() {
   const toggleForgotPasswordDialog = () => setShowForgotPasswordDialog((v) => !v);
   const togglePasswordVisibility = () => setShowPassword((v) => !v);
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  // ---- FULLY TYPED handleSubmit ----
+  const handleSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       const res = await fetch(`${baseAPI}/account/custom-login/`, {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const resJson = await res.json();
-      if (res.status === 200) {
-        dispatch(loginUser(resJson));
-        setUserRole(getRole(resJson));
-        localStorage.setItem("maindo_user", JSON.stringify(resJson));
-        router.push("/");
+      // Try to type the response as UserType, fallback to ErrorResponse for error handling
+      const resJson: UserType | ErrorResponse = await res.json();
+
+      if (res.status === 200 && "username" in resJson) {
+        console.log("Login successful:", resJson);
+        const user = resJson as UserType;
+        dispatch(loginUser(user));
+        setUserRole(getRole(user));
+        localStorage.setItem("maindo_user", JSON.stringify(user));
+        const path = getRedirectPath(user);
+        router.push(path);
       } else {
-        setError(resJson.detail || "Invalid credentials, please try again.");
+        setError(
+          (resJson as ErrorResponse).detail ||
+          (resJson as ErrorResponse).error ||
+          "Invalid credentials, please try again."
+        );
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please check your internet connection and try again.");
     } finally {
       setLoading(false);

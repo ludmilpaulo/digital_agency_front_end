@@ -12,6 +12,7 @@ import { Eye, EyeOff, User, Mail, Shield, Globe } from "lucide-react";
 import { fetchAboutUsData } from "@/useAPI/information";
 import { AboutUsData } from "@/useAPI/types";
 import { baseAPI } from "@/useAPI/api";
+import { persistor } from "@/redux/store";
 
 // Gradient + Glass styles
 const gradientBg = {
@@ -50,6 +51,16 @@ export default function SignupScreen() {
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("store_reset")) {
+      dispatch({ type: "RESET_APP" });
+      persistor.purge();
+      sessionStorage.setItem("store_reset", "true");
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     fetchAboutUsData().then(setHeaderData);

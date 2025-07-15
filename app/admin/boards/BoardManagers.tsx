@@ -1,16 +1,30 @@
+// components/admin/boards/BoardManagers.tsx
 import React from "react";
 import { User } from "@/types/kanban";
 
-const BoardManagers: React.FC<{ managers: User[] }> = ({ managers }) =>
-  managers && managers.length > 0 ? (
-    <div className="mb-4 flex items-center gap-2">
-      <span className="text-xs text-gray-500 font-bold">Managers:</span>
-      {managers.map((mgr: User) => (
+interface BoardManagersProps {
+  managers: User[];
+  users: User[];
+}
+
+const BoardManagers: React.FC<BoardManagersProps> = ({ managers, users }) => {
+  const combinedUsers = Array.from(
+    new Map([...managers, ...users].map(user => [user.id, user])).values()
+  );
+
+  return combinedUsers.length > 0 ? (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="text-xs text-gray-500 font-bold">Team:</span>
+      {combinedUsers.map(user => (
         <span
-          key={mgr.id}
-          className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold mr-1"
-        >{mgr.username}</span>
+          key={user.id}
+          className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold"
+        >
+          {user.username}
+        </span>
       ))}
     </div>
   ) : null;
+};
+
 export default BoardManagers;

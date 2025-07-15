@@ -39,7 +39,8 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
 
   // Fetch data
-  const { data: boards = [], isLoading: boardsLoading } = useGetBoardsQuery();
+  const { data: boards = [], isLoading: boardsLoading } = useGetBoardsQuery({});
+
   const { data: cards = [], isLoading: cardsLoading } = useGetCardsQuery();
   const { data: lists = [], isLoading: listsLoading } = useGetListsQuery(
     user ? { userId: user.user_id } : undefined

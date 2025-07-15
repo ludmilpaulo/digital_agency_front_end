@@ -1,10 +1,11 @@
 // redux/services/cardsApi.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { Card } from '@/types/tasks';
+import { baseAPI } from '@/useAPI/api';
 
 export const cardsApi = createApi({
   reducerPath: 'cardsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL + '/task/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: baseAPI + '/task/' }),
   tagTypes: ['Card'],
   endpoints: (builder) => ({
     getCards: builder.query<Card[], { listId?: number; userId?: number } | void>({
