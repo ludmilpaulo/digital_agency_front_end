@@ -65,7 +65,7 @@ const BoardsAdmin: React.FC = () => {
   const [newCardDetails, setNewCardDetails] = useState<Record<number, any>>({});
 
   // Users (for managers/assigns)
-  const { data: users = [] } = useGetUsersQuery({});
+  const { data: users = [] } = useGetUsersQuery();
 
   // API params based on tab/filter
   const apiParams = useMemo(() => {
