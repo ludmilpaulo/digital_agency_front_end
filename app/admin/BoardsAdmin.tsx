@@ -11,13 +11,13 @@ import {
   useAddCardMutation,
   useDeleteCardMutation,
 } from "@/redux/services/boardsApi";
-import { useGetUsersQuery } from "@/redux/services/usersApi"; // Must exist!
+import { useGetUsersQuery } from "@/redux/services/usersApi";
 import { Board, User } from "@/types/kanban";
 import BoardSelector from "./boards/BoardSelector";
 import KanbanBoard from "./boards/KanbanBoard";
 import { PlusCircle, Filter, User as UserIcon, Grid, LayoutList } from "lucide-react";
 
-// Tab menu
+// Tab config
 type TabKey = "my" | "all" | "filter";
 const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "my", label: "My Boards", icon: <Grid className="w-4 h-4 mr-1" /> },
@@ -52,6 +52,7 @@ const BoardsAdmin: React.FC = () => {
   const user = useSelector(selectUser);
   const currentUserId = user?.user_id ?? null;
 
+  // Tab and filter state
   const [activeTab, setActiveTab] = useState<TabKey>("my");
   const [filterText, setFilterText] = useState("");
   const [filterUser, setFilterUser] = useState<number | "">("");
@@ -64,7 +65,7 @@ const BoardsAdmin: React.FC = () => {
   const [newCardDetails, setNewCardDetails] = useState<Record<number, any>>({});
 
   // Users (for managers/assigns)
-  const { data: users = [] } = useGetUsersQuery();
+  const { data: users = [] } = useGetUsersQuery({});
 
   // API params based on tab/filter
   const apiParams = useMemo(() => {
@@ -102,11 +103,11 @@ const BoardsAdmin: React.FC = () => {
     // Clean and ensure all fields required by Django/DRF
     const payload = {
       ...boardFields,
-      description: boardFields.description || "Board description", // Can't be blank for CKEditor5Field
+      description: boardFields.description || "Board description",
       managers_ids: Array.isArray(boardFields.managers_ids) ? boardFields.managers_ids : [],
       users_ids: Array.isArray(boardFields.users_ids) ? boardFields.users_ids : [],
-      budget: boardFields.budget ? boardFields.budget : "0.00",
-      budget_used: boardFields.budget_used ? boardFields.budget_used : "0.00",
+      budget: boardFields.budget ? Number(boardFields.budget) : 0,
+      budget_used: boardFields.budget_used ? Number(boardFields.budget_used) : 0,
       deadline: boardFields.deadline || "",
       start_date: boardFields.start_date || "",
       end_date: boardFields.end_date || "",
@@ -117,16 +118,10 @@ const BoardsAdmin: React.FC = () => {
       status: boardFields.status || "Started",
     };
     try {
-      const payload = {
-          ...boardFields,
-          budget: boardFields.budget ? Number(boardFields.budget) : undefined,
-          budget_used: boardFields.budget_used ? Number(boardFields.budget_used) : undefined,
-        };
-        await addBoard(payload);
-
+      await addBoard(payload).unwrap();
       setShowAddModal(false);
       setBoardFields({ ...initialBoardFields });
-      setTimeout(refetch, 400);
+      setTimeout(refetch, 500);
     } catch (err: any) {
       alert(
         err?.data?.detail ||
@@ -201,18 +196,19 @@ const BoardsAdmin: React.FC = () => {
 
   // --- Render ---
   return (
-    <div className="p-4 max-w-7xl mx-auto w-full">
+    <div className="p-2 md:p-4 max-w-7xl mx-auto w-full">
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 mb-4">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 mb-4">
         {TAB_CONFIG.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 flex items-center gap-1 rounded-t-lg font-semibold ${
-              activeTab === tab.key
-                ? "bg-blue-100 border-b-2 border-blue-600 text-blue-700"
-                : "text-gray-500 hover:text-blue-600"
-            }`}
+            className={`px-3 py-2 md:px-6 rounded-t-xl font-bold border-b-2 transition flex items-center
+              ${
+                activeTab === tab.key
+                  ? "border-blue-600 text-blue-700 bg-blue-50"
+                  : "border-transparent text-gray-400 hover:text-blue-500 hover:bg-blue-50"
+              }`}
           >
             {tab.icon} {tab.label}
           </button>
@@ -227,24 +223,29 @@ const BoardsAdmin: React.FC = () => {
 
       {/* Filter Inputs */}
       {activeTab === "filter" && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col md:flex-row gap-3 mb-4 items-center">
           <input
             type="text"
             className="border p-2 rounded w-full max-w-xs"
-            placeholder="Search..."
+            placeholder="Search board by name..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
           />
-          <select
-            className="border p-2 rounded"
-            value={filterUser}
-            onChange={(e) => setFilterUser(e.target.value ? +e.target.value : "")}
-          >
-            <option value="">All Users</option>
-            {users.map((u: User) => (
-              <option key={u.id} value={u.id}>{u.username}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2 w-full max-w-xs">
+            <UserIcon className="w-4 h-4 text-blue-400" />
+            <select
+              className="border px-2 py-2 rounded w-full"
+              value={filterUser}
+              onChange={(e) => setFilterUser(e.target.value ? Number(e.target.value) : "")}
+            >
+              <option value="">All users</option>
+              {users.map((u: User) => (
+                <option value={u.id} key={u.id}>
+                  {u.username}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
@@ -350,8 +351,6 @@ const BoardAddModal: React.FC<BoardAddModalProps> = ({
           <PlusCircle className="w-6 h-6" /> Create New Board
         </h3>
         <div className="grid grid-cols-1 gap-3">
-          {/* ...Other fields above... */}
-
           <input
             className="border px-3 py-2 rounded w-full"
             placeholder="Board Name"
@@ -365,9 +364,67 @@ const BoardAddModal: React.FC<BoardAddModalProps> = ({
             value={boardFields.description}
             onChange={e => setBoardFields(f => ({ ...f, description: e.target.value }))}
           />
-
-          {/* All your link/user fields go here... */}
-
+          {/* Extra links */}
+          <input
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Development Link (https://...)"
+            value={boardFields.development_link}
+            onChange={e => setBoardFields(f => ({ ...f, development_link: e.target.value }))}
+          />
+          <input
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Repository Link (https://...)"
+            value={boardFields.repository_link}
+            onChange={e => setBoardFields(f => ({ ...f, repository_link: e.target.value }))}
+          />
+          <input
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Client Link (https://...)"
+            value={boardFields.client_link}
+            onChange={e => setBoardFields(f => ({ ...f, client_link: e.target.value }))}
+          />
+          <input
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Sample Link (https://...)"
+            value={boardFields.sample_link}
+            onChange={e => setBoardFields(f => ({ ...f, sample_link: e.target.value }))}
+          />
+          {/* Managers select */}
+          <label className="block text-xs font-semibold text-gray-600 mt-2">Select Managers</label>
+          <select
+            className="border px-2 py-2 rounded w-full"
+            multiple
+            value={boardFields.managers_ids.map(String)}
+            onChange={e =>
+              setBoardFields(f => ({
+                ...f,
+                managers_ids: Array.from(e.target.selectedOptions).map(o => Number(o.value)),
+              }))
+            }
+          >
+            <option disabled value="">Select Managers (multi)</option>
+            {users.map((u: User) => (
+              <option value={u.id} key={u.id}>{u.username}</option>
+            ))}
+          </select>
+          {/* Users select */}
+          <label className="block text-xs font-semibold text-gray-600 mt-2">Select Users</label>
+          <select
+            className="border px-2 py-2 rounded w-full"
+            multiple
+            value={boardFields.users_ids.map(String)}
+            onChange={e =>
+              setBoardFields(f => ({
+                ...f,
+                users_ids: Array.from(e.target.selectedOptions).map(o => Number(o.value)),
+              }))
+            }
+          >
+            <option disabled value="">Select Users (multi)</option>
+            {users.map((u: User) => (
+              <option value={u.id} key={u.id}>{u.username}</option>
+            ))}
+          </select>
           {/* Budget fields */}
           <input
             type="number"
@@ -383,8 +440,7 @@ const BoardAddModal: React.FC<BoardAddModalProps> = ({
             value={boardFields.budget_used}
             onChange={e => setBoardFields(f => ({ ...f, budget_used: e.target.value }))}
           />
-
-          {/* Date fields with labels */}
+          {/* Date fields */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Deadline</label>
             <input
@@ -415,8 +471,7 @@ const BoardAddModal: React.FC<BoardAddModalProps> = ({
               placeholder="End Date (yyyy-mm-dd)"
             />
           </div>
-
-          {/* Status select as before */}
+          {/* Status select */}
           <select
             className="border px-2 py-2 rounded w-full"
             value={boardFields.status}
@@ -447,6 +502,5 @@ const BoardAddModal: React.FC<BoardAddModalProps> = ({
     </div>
   );
 };
-
 
 export default BoardsAdmin;
