@@ -9,6 +9,7 @@ import {
   FaFileAlt,
   FaBullhorn,
   FaBriefcase,
+  FaTimes,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/slices/authSlice";
@@ -16,18 +17,22 @@ import { selectUser } from "@/redux/slices/authSlice";
 interface SidebarProps {
   tab: string;
   setTab: (value: string) => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 interface SidebarLinkProps {
   icon: React.ReactNode;
   label: string;
+  value: string;
   active?: boolean;
   onClick?: () => void;
 }
-function SidebarLink({ icon, label, active, onClick }: SidebarLinkProps) {
+
+function SidebarLink({ icon, label, value, active, onClick }: SidebarLinkProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg transition
+      className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full transition
         ${active
           ? "bg-blue-700 font-bold shadow text-white"
           : "hover:bg-blue-700 hover:text-white text-blue-200"}`}
@@ -46,29 +51,116 @@ function getInitials(name?: string) {
     .slice(0, 2);
 }
 
-export default function Sidebar({ tab, setTab }: SidebarProps) {
+export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
   const user = useSelector(selectUser);
   const mainRole = user?.groups?.[0] || "User";
 
+  // Responsive classes: left-0 when open, -left-64 when closed
+  const sidebarClass =
+    "fixed md:static z-30 md:z-0 top-0 left-0 h-full md:h-screen bg-gradient-to-b from-blue-900 to-blue-800 text-white shadow-lg flex flex-col py-8 px-4 w-64 transition-all duration-300" +
+    (open ? " left-0" : " -left-64") +
+    " md:left-0";
+
   return (
-    <aside className="w-60 h-screen bg-gradient-to-b from-blue-900 to-blue-800 text-white shadow-lg flex flex-col py-8 px-4">
-      <div className="text-2xl font-extrabold tracking-wide mb-10 flex items-center gap-2">
+    <aside className={sidebarClass}>
+      {/* Mobile Close Button */}
+      <button
+        className="absolute md:hidden top-4 right-4 text-white p-2"
+        onClick={onClose}
+        aria-label="Close sidebar"
+        type="button"
+      >
+        <FaTimes size={22} />
+      </button>
+
+      <div className="text-2xl font-extrabold tracking-wide mb-10 flex items-center gap-2 mt-2 md:mt-0">
         <FaColumns className="text-blue-300" />
-        <h2 className="text-2xl font-extrabold text-blue-900">
+        <h2 className="text-2xl font-extrabold text-blue-100">
           Welcome, {user?.username}!
         </h2>
       </div>
 
-      <nav className="flex flex-col gap-3">
-        <SidebarLink icon={<FaHome />} label="Dashboard" active={tab === "dashboard"} onClick={() => setTab("dashboard")} />
-        <SidebarLink icon={<FaColumns />} label="Boards" active={tab === "boards"} onClick={() => setTab("boards")} />
-        <SidebarLink icon={<FaUsers />} label="Members" active={tab === "members"} onClick={() => setTab("members")} />
-        <SidebarLink icon={<FaTasks />} label="My Tasks" active={tab === "mytasks"} onClick={() => setTab("mytasks")} />
-        <SidebarLink icon={<FaTasks />} label="Task Table" active={tab === "tasktable"} onClick={() => setTab("tasktable")} />
-        <SidebarLink icon={<FaFileAlt />} label="Documents" active={tab === "documents"} onClick={() => setTab("documents")} />
-        <SidebarLink icon={<FaBullhorn />} label="Campaign" active={tab === "campaign"} onClick={() => setTab("campaign")} />
-        <SidebarLink icon={<FaBriefcase />} label="Careers" active={tab === "careers"} onClick={() => setTab("careers")} />
-        <SidebarLink icon={<FaCog />} label="Settings" active={tab === "settings"} onClick={() => setTab("settings")} />
+      <nav className="flex flex-col gap-2 mt-3">
+        <SidebarLink
+          icon={<FaColumns />}
+          label="Boards"
+          value="boards"
+          active={tab === "boards"}
+          onClick={() => {
+            setTab("boards");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaUsers />}
+          label="Members"
+          value="members"
+          active={tab === "members"}
+          onClick={() => {
+            setTab("members");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaTasks />}
+          label="My Tasks"
+          value="mytasks"
+          active={tab === "mytasks"}
+          onClick={() => {
+            setTab("mytasks");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaTasks />}
+          label="Task Table"
+          value="tasktable"
+          active={tab === "tasktable"}
+          onClick={() => {
+            setTab("tasktable");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaFileAlt />}
+          label="Documents"
+          value="documents"
+          active={tab === "documents"}
+          onClick={() => {
+            setTab("documents");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaBullhorn />}
+          label="Campaign"
+          value="campaign"
+          active={tab === "campaign"}
+          onClick={() => {
+            setTab("campaign");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaBriefcase />}
+          label="Careers"
+          value="careers"
+          active={tab === "careers"}
+          onClick={() => {
+            setTab("careers");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaCog />}
+          label="Settings"
+          value="settings"
+          active={tab === "settings"}
+          onClick={() => {
+            setTab("settings");
+            onClose?.();
+          }}
+        />
       </nav>
 
       <div className="flex-grow" />
