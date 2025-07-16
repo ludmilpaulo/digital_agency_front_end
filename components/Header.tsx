@@ -33,7 +33,7 @@ export interface AboutUsData {
 const NAV = [
   { href: "/", label: "Home", icon: <FaHome /> },
   { href: "/services", label: "Services", icon: <FaServer /> },
-  { href: "/projects", label: "Projects", icon: <FaProjectDiagram /> },
+ // { href: "/projects", label: "Projects", icon: <FaProjectDiagram /> },
   { href: "/blog", label: "Blog", icon: <FaBook /> },
   { href: "/about-us", label: "About Us", icon: <FaUserCircle /> },
 ];

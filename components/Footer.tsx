@@ -157,7 +157,7 @@ const Footer = () => {
                 href="/projects"
                 className="hover:text-blue-400 text-gray-200 transition"
               >
-                Projects
+                {/*Projects*/}
               </Link>
             </li>
             <li>
