@@ -106,7 +106,7 @@ const MainBanner: React.FC = () => {
               Book an Appointment
             </span>
           </Link>
-          <Link href="/contact">
+          <Link href="/have-a-project">
             <span className="bg-white/80 hover:bg-white text-blue-700 border border-blue-600 font-bold text-lg px-7 py-3 rounded-full shadow transition-all">
               Have an Idea? Let&#39;s Build It!
             </span>
