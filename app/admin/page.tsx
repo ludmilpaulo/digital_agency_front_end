@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tabs";
 import Sidebar from "./Sidebar";
 import { FaBars } from "react-icons/fa";
+import { AccessibleOverlay } from "@/components/AccessibleOverlay"; // <-- import here
 
 // Dynamically loaded components (to avoid SSR issues)
 const BoardsAdmin = dynamic(() => import("./BoardsAdmin"), { ssr: false });
@@ -74,7 +75,6 @@ export default function AdminPage() {
     })();
   }, [user, router]);
 
-  // Set default tab for non-staff users (shouldn't ever happen, but keeps previous logic)
   useEffect(() => {
     if (!loading && user) {
       const groups: string[] = user?.groups ?? [];
@@ -96,11 +96,9 @@ export default function AdminPage() {
     );
   }
 
-  // Handlers for demo
   const handleAssign = (cardId: number, userIds: number[]) => {
     console.log("Assigning card", cardId, "to users", userIds);
   };
-
   const handleStatusChange = (cardId: number, status: TaskStatus) => {
     console.log("Changing card", cardId, "to status", status);
   };
@@ -117,22 +115,23 @@ export default function AdminPage() {
         <FaBars size={20} />
       </button>
 
-      {/* Sidebar Desktop + Mobile Drawer */}
+      {/* Sidebar Desktop */}
       <Sidebar
         tab={tab}
         setTab={setTab}
-        open={sidebarOpen}
+        open={true}
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-20 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Sidebar overlay"
+      {/* Overlay + Sidebar for Mobile */}
+      <AccessibleOverlay isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+        <Sidebar
+          tab={tab}
+          setTab={setTab}
+          open={true}
+          onClose={() => setSidebarOpen(false)}
         />
-      )}
+      </AccessibleOverlay>
 
       {/* Main Content */}
       <main className="flex-1 p-3 pt-20 md:pt-10 md:p-10 transition-all w-full max-w-full">
@@ -147,15 +146,14 @@ export default function AdminPage() {
             <TabsTrigger value="careers">Careers</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
-          <TabsContent value="boards">
-            <BoardsAdmin />
-            </TabsContent>
+          <TabsContent value="boards"><BoardsAdmin /></TabsContent>
           <TabsContent value="members"><MembersAdmin /></TabsContent>
-          <TabsContent value="mytasks"><MyTasks/></TabsContent>
+          <TabsContent value="mytasks"><MyTasks /></TabsContent>
           <TabsContent value="tasktable">
             <TaskTable
               cards={cards}
               users={users}
+              boards={boards}
               onAssign={handleAssign}
               onStatusChange={handleStatusChange}
             />

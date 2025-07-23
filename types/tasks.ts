@@ -12,7 +12,7 @@ export interface Card {
   title: string;
   description: string;
   status: "Not Started" | "In Progress" | "Completed";
-  assignedTo: number[];      // must match API
+  assignedTo?: number[];     // must match API
   startDate?: string;
   dueDate?: string;
   [key: string]: any; 
