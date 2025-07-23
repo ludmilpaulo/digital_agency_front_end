@@ -59,6 +59,10 @@ export default function RootLayout({
   
       <html lang="en">
       <head>
+         <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-HCWW2X2GZ4"
+          strategy="afterInteractive"
+        />
         
           {/* Ahrefs Analytics Script */}
           <Script
