@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useAddTaskCommentMutation, useGetTaskCommentsQuery } from "@/redux/services/tasksApi";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/slices/authSlice";
-import type { TaskComment } from "@/types/tasks"; // Use the real type
+import type { TaskComment } from "@/types/tasks";
 
 export default function TaskNotes({ cardId }: { cardId: number }) {
   const { data: comments = [] } = useGetTaskCommentsQuery(cardId);
@@ -14,21 +14,20 @@ export default function TaskNotes({ cardId }: { cardId: number }) {
   const [amount, setAmount] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!note.trim() && !amount) return;
+    e.preventDefault();
+    if (!note.trim() && !amount) return;
 
-  // Always send as string (empty for null/undefined)
-  const amountValue = amount.trim() === "" ? undefined : amount.trim();
+    // Fix: Convert to number
+    const amountValue = amount.trim() === "" ? undefined : Number(amount);
 
-  await addComment({
-    card: cardId,
-    text: note,
-    amount: amountValue,   // <-- always string!
-  }).unwrap();
-  setNote("");
-  setAmount("");
-};
-
+    await addComment({
+      card: cardId,
+      text: note,
+      amount: amountValue,   // number | undefined
+    }).unwrap();
+    setNote("");
+    setAmount("");
+  };
 
   return (
     <div className="bg-blue-50 rounded p-3 mt-2">
