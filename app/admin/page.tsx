@@ -147,9 +147,11 @@ export default function AdminPage() {
             <TabsTrigger value="careers">Careers</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
-          <TabsContent value="boards"><BoardsAdmin /></TabsContent>
+          <TabsContent value="boards">
+            <BoardsAdmin />
+            </TabsContent>
           <TabsContent value="members"><MembersAdmin /></TabsContent>
-          <TabsContent value="mytasks"><MyTasks cards={cards} users={users} /></TabsContent>
+          <TabsContent value="mytasks"><MyTasks/></TabsContent>
           <TabsContent value="tasktable">
             <TaskTable
               cards={cards}

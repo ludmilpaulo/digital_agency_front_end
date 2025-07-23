@@ -1,10 +1,11 @@
 // redux/services/listsApi.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { List } from '@/types/tasks';
+import { baseAPI } from '@/useAPI/api';
 
 export const listsApi = createApi({
   reducerPath: 'listsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL + '/task/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: baseAPI + '/task/' }),
   tagTypes: ['List'],
   endpoints: (builder) => ({
     getLists: builder.query<List[], { boardId?: number; userId?: number } | void>({

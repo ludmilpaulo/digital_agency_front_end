@@ -49,9 +49,23 @@ export interface Board {
 export interface Task {
   id: number;
   title: string;
-  due_date: string | null;
-  start_date: string | null;
+  description?: string;          // <--- add this!
+  status: "Not Started" | "In Progress" | "Completed" | "Failed" | "Reassigned";
+  list?: number | { id: number; name: string };
   assignees: User[];
-  list?: { id: number; name: string } | string;
-  // ...
+  assignees_ids?: number[];      // <--- needed for create/update!
+  image?: string | null;
+  start_date?: string | null;
+  due_date?: string | null;
+  [key: string]: any;
+}
+
+// types/tasks.ts
+export interface TaskComment {
+  id: number;
+  card: number;
+  user: User;
+  text: string;
+  amount?: number | null;
+  created?: string;
 }

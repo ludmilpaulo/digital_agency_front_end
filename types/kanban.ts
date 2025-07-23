@@ -30,3 +30,20 @@ export interface Board {
   status: string;
   lists: List[];
 }
+
+export interface BoardFields {
+  name: string;
+  description: string;
+  development_link: string;
+  repository_link: string;
+  client_link: string;
+  sample_link: string;
+  managers_ids: number[];
+  users_ids: number[];
+  budget: string;        // Always as string for form input, can parse to number before sending API
+  budget_used: string;
+  deadline: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
