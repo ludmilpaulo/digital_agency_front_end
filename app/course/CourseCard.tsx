@@ -1,48 +1,26 @@
 "use client";
-import React from "react";
+
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import React from "react";
+import type { Course } from "./CoursesClient";
 
-interface Course {
-  id: number;
-  title: string;
-  description: string;
-  imageUrl: string;
-}
-
-interface CourseCardProps {
-  course: Course;
-}
-
-const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
-  const router = useRouter();
-
-  const handleClick = () => {
-    router.push(`/courses/${course.id}`);
-  };
-
+export default function CourseCard({ course }: { course: Course }) {
   return (
-    <div className="border p-4 shadow-md rounded-lg">
-      {/* Replacing <img> with Next.js Image component */}
-      <Image
-        src={course.imageUrl}
-        alt={course.title}
-        width={400}
-        height={160}
-        className="rounded"
-        layout="responsive"
-      />
-      <h3 className="text-lg font-bold my-2">{course.title}</h3>
-      <p className="text-sm text-gray-600">{course.description}</p>
-      {/* Replacing <a> with <span> that's clickable */}
-      <span
-        onClick={handleClick}
-        className="text-blue-500 hover:text-blue-700 cursor-pointer"
-      >
-        Learn more
-      </span>
-    </div>
+    <article className="border rounded-2xl overflow-hidden shadow-sm bg-white">
+      <div className="relative w-full h-44">
+        <Image
+          src={course.imageUrl}
+          alt={course.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={false}
+        />
+      </div>
+      <div className="p-4">
+        <h2 className="text-lg font-semibold">{course.title}</h2>
+        <p className="text-sm text-slate-600 mt-1">{course.description}</p>
+      </div>
+    </article>
   );
-};
-
-export default CourseCard;
+}
