@@ -11,6 +11,9 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
+/* MIXPANEL */
+import { trackCtaClicked } from "@/lib/analytics/mixpanel";
+
 export type SocialKey = "facebook" | "linkedin" | "twitter" | "instagram" | "whatsapp";
 export interface AboutUsData {
   id: number;
@@ -81,7 +84,11 @@ const Header = () => {
     <header className="fixed w-full z-50 bg-black/80 backdrop-blur-xl shadow-lg">
       <div className="mx-auto max-w-7xl px-4 flex items-center justify-between h-20">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link
+          href="/"
+          className="flex items-center gap-2 group"
+          onClick={() => trackCtaClicked("Logo", "Nav")}
+        >
           <Image
             src={aboutUs.logo}
             alt="Logo"
@@ -101,6 +108,7 @@ const Header = () => {
             <Link
               key={href}
               href={href}
+              onClick={() => trackCtaClicked(label, "Nav")}
               className="flex items-center px-4 py-2 rounded-xl text-white text-base gap-2 hover:bg-blue-600/20 hover:text-blue-400 font-semibold transition-all duration-200 relative group"
             >
               <span className="text-xl">{icon}</span>
@@ -111,6 +119,7 @@ const Header = () => {
           {user && (
             <Link
               href="/admin"
+              onClick={() => trackCtaClicked("My Dashboard", "Nav")}
               className="flex items-center px-4 py-2 rounded-xl text-white text-base gap-2 hover:bg-blue-600/20 hover:text-blue-400 font-semibold transition-all duration-200 relative group"
             >
               <span className="text-xl"><FaTachometerAlt /></span>
@@ -120,6 +129,7 @@ const Header = () => {
           )}
           <Link
             href="/contact"
+            onClick={() => trackCtaClicked("Get a Quote", "Nav")}
             className="ml-4 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold shadow-lg transition"
           >
             Get a Quote
@@ -137,6 +147,7 @@ const Header = () => {
                   style={{ height: 28, width: 28 }}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackCtaClicked(String(key), "Social Header")}
                 />
               );
             })}
@@ -184,7 +195,10 @@ const Header = () => {
                     <Link
                       href="/admin"
                       className="flex items-center gap-2 px-4 py-3 hover:bg-blue-100 text-gray-800"
-                      onClick={() => setDropdown(false)}
+                      onClick={() => {
+                        setDropdown(false);
+                        trackCtaClicked("My Dashboard", "User Menu");
+                      }}
                     >
                       <FaTachometerAlt className="text-blue-400" />
                       My Dashboard
@@ -205,7 +219,10 @@ const Header = () => {
 
         {/* Mobile Nav Button */}
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            setOpen(!open);
+            trackCtaClicked(!open ? "Open Mobile Menu" : "Close Mobile Menu", "Mobile Nav");
+          }}
           className="md:hidden bg-black/70 text-white text-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
           aria-label="Toggle navigation"
         >
@@ -234,12 +251,16 @@ const Header = () => {
               style={{ backgroundColor: "#000" }}
             >
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  trackCtaClicked("Close Mobile Menu", "Mobile Nav");
+                }}
                 className="absolute top-5 right-5 bg-black/70 text-white text-3xl z-70"
                 aria-label="Close navigation"
               >
                 <FaTimes />
               </button>
+
               {/* Avatar on Mobile */}
               {user && (
                 <div className="flex flex-col items-center mb-6">
@@ -253,6 +274,7 @@ const Header = () => {
                   <span className="text-white font-semibold text-lg">{user.username || user.email}</span>
                 </div>
               )}
+
               {/* Logo for unauthenticated mobile */}
               {!user && (
                 <div className="flex flex-col items-center mb-8">
@@ -268,12 +290,16 @@ const Header = () => {
                   </span>
                 </div>
               )}
+
               <nav className="flex flex-col gap-6 w-full">
                 {NAV.map(({ href, label, icon }) => (
                   <Link
                     key={href}
                     href={href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      trackCtaClicked(label, "Mobile Nav");
+                    }}
                     className="flex items-center gap-4 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
                   >
                     <span className="text-xl">{icon}</span>
@@ -283,7 +309,10 @@ const Header = () => {
                 {user && (
                   <Link
                     href="/admin"
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      trackCtaClicked("My Dashboard", "Mobile Nav");
+                    }}
                     className="flex items-center gap-4 text-white text-lg font-bold px-4 py-3 rounded-xl hover:bg-blue-500/20 hover:text-blue-400 transition w-full"
                   >
                     <span className="text-xl"><FaTachometerAlt /></span>
@@ -301,12 +330,16 @@ const Header = () => {
                 )}
                 <Link
                   href="/contact"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    trackCtaClicked("Get a Quote", "Mobile Nav");
+                  }}
                   className="w-full mt-3 px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold text-lg shadow-lg transition"
                 >
                   Get a Quote
                 </Link>
               </nav>
+
               <div className="flex gap-4 mt-10">
                 {socials.map(({ key, color }) => {
                   const url = aboutUs[key as keyof AboutUsData] as string;
@@ -320,6 +353,7 @@ const Header = () => {
                       style={{ height: 34, width: 34 }}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackCtaClicked(String(key), "Social Header")}
                     />
                   );
                 })}
@@ -336,6 +370,7 @@ const Header = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-7 right-7 z-[60] bg-green-500 hover:bg-green-600 p-4 rounded-full shadow-2xl transition-all animate-bounce"
+          onClick={() => trackCtaClicked("WhatsApp", "Floating")}
         >
           <FaWhatsapp className="text-white text-3xl" />
         </a>

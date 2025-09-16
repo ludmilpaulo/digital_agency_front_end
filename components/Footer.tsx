@@ -10,6 +10,9 @@ import toast, { Toaster } from "react-hot-toast";
 import type { RootState } from "@/redux/store";
 import { baseAPI } from "@/useAPI/api";
 
+/* MIXPANEL */
+import { trackCtaClicked, trackNewsletterSignup } from "@/lib/analytics/mixpanel";
+
 export type FooterSocialKey = "facebook" | "linkedin" | "twitter" | "instagram";
 
 interface AboutUsData {
@@ -20,7 +23,6 @@ interface AboutUsData {
   linkedin: string | null;
   twitter: string;
   instagram: string;
-  // ...other fields you use
 }
 
 const socials: { key: FooterSocialKey; color: string }[] = [
@@ -62,6 +64,9 @@ const Footer = () => {
         toast.success(
           "Please check your email to confirm your subscription. (Check your spam/junk folder too!)"
         );
+        // MIXPANEL: track successful signup
+        trackNewsletterSignup(email);
+
         setTimeout(() => setSubscribed(false), 3000);
         setEmail("");
       } else {
@@ -71,7 +76,7 @@ const Footer = () => {
             "Could not subscribe. Are you already on our list?"
         );
       }
-    } catch (err) {
+    } catch {
       toast.error("Network error. Please try again.");
     } finally {
       setSubmitting(false);
@@ -108,20 +113,22 @@ const Footer = () => {
           </div>
           <div className="mt-4">
             <p className="text-white text-lg font-extrabold leading-tight">
-              Let’s build something 
+              Let’s build something{" "}
               <Link href="/LoginScreenUser" className="hover:text-blue-400 transition">
-              <span className="text-blue-400">great</span>{" "}
+                <span className="text-blue-400">great</span>{" "}
               </Link>
               together!
             </p>
             <Link
               href="/contact"
+              onClick={() => trackCtaClicked("Contact Us", "Footer")}
               className="inline-block mt-3 px-5 py-2.5 bg-blue-600 hover:bg-blue-800 text-white rounded-full font-bold shadow transition-all"
             >
               Contact Us
             </Link>
           </div>
         </div>
+
         {/* Company/Resources */}
         <div>
           <div className="text-blue-300 uppercase font-bold mb-3 text-sm tracking-wide">
@@ -129,47 +136,33 @@ const Footer = () => {
           </div>
           <ul className="space-y-2 font-medium">
             <li>
-              <Link
-                href="/about-us"
-                className="hover:text-blue-400 text-gray-200 transition"
-              >
+              <Link href="/about-us" className="hover:text-blue-400 text-gray-200 transition">
                 About Us
               </Link>
             </li>
             <li>
-              <Link
-                href="/careers"
-                className="hover:text-blue-400 text-gray-200 transition"
-              >
+              <Link href="/careers" className="hover:text-blue-400 text-gray-200 transition">
                 Careers
               </Link>
             </li>
             <li>
-              <Link
-                href="/blog"
-                className="hover:text-blue-400 text-gray-200 transition"
-              >
+              <Link href="/blog" className="hover:text-blue-400 text-gray-200 transition">
                 Blog
               </Link>
             </li>
             <li>
-              <Link
-                href="/projects"
-                className="hover:text-blue-400 text-gray-200 transition"
-              >
+              <Link href="/projects" className="hover:text-blue-400 text-gray-200 transition">
                 {/*Projects*/}
               </Link>
             </li>
             <li>
-              <Link
-                href="/faq"
-                className="hover:text-blue-400 text-gray-200 transition"
-              >
+              <Link href="/faq" className="hover:text-blue-400 text-gray-200 transition">
                 FAQ
               </Link>
             </li>
           </ul>
         </div>
+
         {/* Socials + Newsletter */}
         <div>
           <div className="text-blue-300 uppercase font-bold mb-3 text-sm tracking-wide">
@@ -180,11 +173,7 @@ const Footer = () => {
               const url = aboutUs[key];
               if (!url) return null;
               return (
-                <motion.div
-                  whileHover={{ scale: 1.18, rotate: 7 }}
-                  whileTap={{ scale: 0.96 }}
-                  key={key}
-                >
+                <motion.div whileHover={{ scale: 1.18, rotate: 7 }} whileTap={{ scale: 0.96 }} key={key}>
                   <SocialIcon
                     url={url}
                     fgColor="#fff"
@@ -192,20 +181,15 @@ const Footer = () => {
                     style={{ height: 38, width: 38 }}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackCtaClicked(String(key), "Social Footer")}
                   />
                 </motion.div>
               );
             })}
           </div>
-          <form
-            className="flex flex-col gap-2 mt-3"
-            onSubmit={handleNewsletter}
-            autoComplete="off"
-          >
-            <label
-              htmlFor="footer-newsletter"
-              className="text-gray-300 font-medium mb-1"
-            >
+
+          <form className="flex flex-col gap-2 mt-3" onSubmit={handleNewsletter} autoComplete="off">
+            <label htmlFor="footer-newsletter" className="text-gray-300 font-medium mb-1">
               Newsletter
             </label>
             <div className="relative">
@@ -239,12 +223,14 @@ const Footer = () => {
               className={`w-fit px-4 py-1.5 rounded bg-blue-500 hover:bg-blue-700 text-white text-sm font-semibold shadow transition ${
                 (subscribed || submitting) ? "opacity-60 pointer-events-none" : ""
               }`}
+              onClick={() => trackCtaClicked("Newsletter Submit", "Footer")}
             >
               {submitting ? "Please wait..." : subscribed ? "Subscribed!" : "Subscribe"}
             </button>
           </form>
         </div>
       </div>
+
       {/* Divider */}
       <div className="border-t border-blue-900/40 py-4 flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto px-4">
         <div className="text-xs text-gray-400 mb-2 md:mb-0 tracking-wide">
