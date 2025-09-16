@@ -10,6 +10,8 @@ import { useDispatch } from "react-redux";
 import Script from "next/script";
 import { fetchAboutUs } from "@/redux/slices/aboutUsSlice";
 import FetchAboutUsClient from "./FetchAboutUsClient";
+import AnalyticsConsent from "@/components/AnalyticsConsent";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -96,6 +98,8 @@ export default function RootLayout({
          <StoreProvider>
           <FetchAboutUsClient />
           <Header />
+          <AnalyticsConsent />
+        <AnalyticsTracker />
           {children}
           <Footer />
         </StoreProvider>
