@@ -128,7 +128,7 @@ export default function ServiceDetailPage() {
 
         {/* CTA Button */}
         <Link
-          href="/proposal"
+          href={`/proposal?service=${encodeURIComponent(service.title)}`}
           className="mt-6 inline-flex items-center gap-2 px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full shadow-lg"
         >
           Request a Proposal <FaArrowRight />
@@ -162,7 +162,7 @@ export default function ServiceDetailPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/proposal"
+                  href={`/proposal?service=${encodeURIComponent(service.title)}&plan=${encodeURIComponent(plan.name)}&price=${encodeURIComponent(plan.price)}`}
                   className={`block w-full text-center py-2 rounded-full font-semibold shadow-md transition ${
                     plan.popular
                       ? "bg-blue-600 text-white hover:bg-blue-700"

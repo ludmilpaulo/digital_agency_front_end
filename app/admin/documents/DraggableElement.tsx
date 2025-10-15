@@ -13,6 +13,8 @@ interface Props {
   onDelete: (id: string) => void;
   onPositionChange: (id: string, x: number, y: number) => void;
   onResizeChange: (id: string, width: number, height: number, x: number, y: number) => void;
+  containerWidth?: number;
+  containerHeight?: number;
 }
 
 const DraggableElement: React.FC<Props> = ({
@@ -25,6 +27,8 @@ const DraggableElement: React.FC<Props> = ({
   onDelete,
   onPositionChange,
   onResizeChange,
+  containerWidth = 800,
+  containerHeight = 1100,
 }) => {
   const targetRef = useRef<HTMLDivElement>(null);
   const [frame, setFrame] = useState({
@@ -44,6 +48,16 @@ const DraggableElement: React.FC<Props> = ({
       rotate: 0,
     });
   }, [defaultX, defaultY, defaultWidth, defaultHeight]);
+
+  // Function to constrain position within boundaries
+  const constrainPosition = (x: number, y: number, width: number, height: number) => {
+    const maxX = containerWidth - width;
+    const maxY = containerHeight - height;
+    return [
+      Math.max(0, Math.min(x, maxX)),
+      Math.max(0, Math.min(y, maxY))
+    ];
+  };
 
   return (
     <div
@@ -119,11 +133,22 @@ const DraggableElement: React.FC<Props> = ({
           origin={false}
           edge={false}
           onDrag={({ beforeTranslate }) => {
-            setFrame((prev) => ({ ...prev, translate: beforeTranslate as [number, number] }));
+            const [x, y] = constrainPosition(
+              beforeTranslate[0],
+              beforeTranslate[1],
+              frame.width,
+              frame.height
+            );
+            setFrame((prev) => ({ ...prev, translate: [x, y] }));
           }}
           onDragEnd={({ lastEvent }) => {
             if (lastEvent) {
-              const [x, y] = lastEvent.beforeTranslate as [number, number];
+              const [x, y] = constrainPosition(
+                lastEvent.beforeTranslate[0],
+                lastEvent.beforeTranslate[1],
+                frame.width,
+                frame.height
+              );
               onPositionChange(id, x, y);
             }
           }}

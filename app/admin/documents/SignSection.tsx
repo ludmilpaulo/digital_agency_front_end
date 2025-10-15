@@ -165,36 +165,50 @@ const SignSection: React.FC<Props> = ({ documents, onLoading }) => {
       </select>
 
       {selectedDoc && (
-        <div className="relative border shadow-lg rounded p-4 bg-white overflow-visible">
-          <PDFViewer
-            fileUrl={selectedDoc.file_url}
-            pageNumber={pageNumber}
-            numPages={numPages}
-            setPageNumber={setPageNumber}
-            setNumPages={setNumPages}
-            onPdfClick={(x, y, width, height) => {
-              setClickedPosition({ x, y });
-              setViewerDims({ width, height });
-              setShowPad(true);
-            }}
-          />
+        <div className="relative border shadow-lg rounded p-4 bg-white overflow-visible mx-auto" style={{ maxWidth: '850px' }}>
+          <div className="relative" style={{ width: '800px', margin: '0 auto' }}>
+            <PDFViewer
+              fileUrl={selectedDoc.file_url}
+              pageNumber={pageNumber}
+              numPages={numPages}
+              setPageNumber={setPageNumber}
+              setNumPages={setNumPages}
+              onPdfClick={(x, y, width, height) => {
+                // Adjust for any padding/margin
+                setClickedPosition({ x, y });
+                setViewerDims({ width, height });
+                setShowPad(true);
+              }}
+            />
 
-          <div className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none">
-            {currentPageElements.map((el) => (
-              <div key={el.id} className="pointer-events-auto">
-                <DraggableElement
-                  id={el.id}
-                  src={el.src}
-                  defaultX={el.x}
-                  defaultY={el.y}
-                  defaultWidth={el.width}
-                  defaultHeight={el.height}
-                  onDelete={handleDeleteElement}
-                  onPositionChange={handlePositionChange}
-                  onResizeChange={handleResizeChange}
-                />
-              </div>
-            ))}
+            <div 
+              className="absolute pointer-events-none" 
+              style={{ 
+                top: 0, 
+                left: 0, 
+                width: '800px',
+                height: '100%',
+                zIndex: 10 
+              }}
+            >
+              {currentPageElements.map((el) => (
+                <div key={el.id} className="pointer-events-auto">
+                  <DraggableElement
+                    id={el.id}
+                    src={el.src}
+                    defaultX={el.x}
+                    defaultY={el.y}
+                    defaultWidth={el.width}
+                    defaultHeight={el.height}
+                    onDelete={handleDeleteElement}
+                    onPositionChange={handlePositionChange}
+                    onResizeChange={handleResizeChange}
+                    containerWidth={viewerDims.width}
+                    containerHeight={viewerDims.height}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

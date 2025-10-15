@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { FaSpinner, FaPaperPlane, FaLinkedin, FaInstagram, FaFacebook, FaTwitter } from "react-icons/fa";
+import { FaSpinner, FaPaperPlane, FaLinkedin, FaInstagram, FaFacebook, FaTwitter, FaCheckCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { baseAPI } from "@/useAPI/api";
 import type { RootState } from "@/redux/store";
@@ -28,6 +28,7 @@ const fallback = {
 export default function ProposalClient() {
   const aboutUs = useSelector((state: RootState) => state.aboutUs?.data) || fallback;
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [form, setForm] = useState({
     name: "",
@@ -39,6 +40,41 @@ export default function ProposalClient() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    service?: string;
+    plan?: string;
+    price?: string;
+  }>({});
+
+  // Pre-fill form from URL parameters
+  useEffect(() => {
+    const service = searchParams.get("service");
+    const plan = searchParams.get("plan");
+    const price = searchParams.get("price");
+
+    if (service || plan || price) {
+      setSelectedPlan({ service: service || "", plan: plan || "", price: price || "" });
+      
+      // Build service description
+      let serviceText = service || "";
+      if (plan) {
+        serviceText += ` - ${plan}`;
+      }
+      if (price) {
+        serviceText += ` (${price})`;
+      }
+
+      setForm(prev => ({
+        ...prev,
+        service: serviceText,
+        message: plan && price 
+          ? `I'm interested in the ${plan} plan for ${service} at ${price}. `
+          : service 
+          ? `I'm interested in ${service}. `
+          : prev.message,
+      }));
+    }
+  }, [searchParams]);
 
   const inputCls =
     "p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white/90 text-blue-900";
@@ -185,9 +221,36 @@ export default function ProposalClient() {
             Request a Proposal
           </h1>
           <p className="md:hidden text-center text-blue-600 mb-3 text-sm">
-            Let’s create something amazing together.<br />
+            Let's create something amazing together.<br />
             Our team replies within 24 hours.
           </p>
+
+          {/* Selected Plan Indicator */}
+          {selectedPlan.service && (
+            <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+              <div className="flex items-start">
+                <FaCheckCircle className="text-blue-600 mt-1 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-bold text-blue-900 mb-1">Selected Service</h3>
+                  <p className="text-sm text-blue-800">
+                    <strong>{selectedPlan.service}</strong>
+                    {selectedPlan.plan && (
+                      <>
+                        <br />
+                        <span className="text-blue-600">Plan: {selectedPlan.plan}</span>
+                      </>
+                    )}
+                    {selectedPlan.price && (
+                      <>
+                        <br />
+                        <span className="text-green-600 font-semibold">Price: {selectedPlan.price}</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-4">
             <input
