@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Board } from "./types";
 import useApi from "./api";
-import BoardList from "./BoardList";
+// import BoardList from "./BoardList"; // TODO: Implement BoardList component
 import { FaPlus, FaChartBar, FaTasks, FaUsers } from "react-icons/fa";
 
 export default function BoardsPage() {
@@ -136,9 +136,9 @@ export default function BoardsPage() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Create New Board</h2>
           <div className="flex gap-3">
-            <input
-              value={newBoard}
-              onChange={(e) => setNewBoard(e.target.value)}
+        <input
+          value={newBoard}
+          onChange={(e) => setNewBoard(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter board name..."
               className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -149,10 +149,10 @@ export default function BoardsPage() {
               className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <FaPlus /> Add Board
-            </button>
+        </button>
           </div>
           {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
-        </div>
+      </div>
 
         {/* View Toggle */}
         <div className="flex justify-between items-center mb-4">
@@ -206,17 +206,30 @@ export default function BoardsPage() {
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                   <span>Created: {new Date(board.created_at || Date.now()).toLocaleDateString()}</span>
                 </div>
-              </div>
-            ))}
+          </div>
+        ))}
           </div>
         )}
 
         {/* Selected Board Details */}
         {selectedBoard && (
-          <BoardList 
-            board={selectedBoard} 
-            onClose={() => setSelectedBoard(null)} 
-          />
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">{selectedBoard.name}</h2>
+                <button 
+                  onClick={() => setSelectedBoard(null)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-gray-600">{selectedBoard.description}</p>
+              <div className="mt-4">
+                <p className="text-sm text-gray-500">Board details coming soon...</p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

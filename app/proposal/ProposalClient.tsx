@@ -149,7 +149,7 @@ export default function ProposalClient() {
             Request a Proposal
           </h2>
           <p className="text-blue-100 text-base font-medium mb-6 text-center leading-relaxed">
-            Let’s create something amazing together.<br />
+            Let&apos;s create something amazing together.<br />
             Expect a response from our experts within 24 hours.
           </p>
           <ul className="text-blue-100 text-sm flex flex-col gap-1 mt-6">
@@ -221,7 +221,7 @@ export default function ProposalClient() {
             Request a Proposal
           </h1>
           <p className="md:hidden text-center text-blue-600 mb-3 text-sm">
-            Let's create something amazing together.<br />
+            Let&apos;s create something amazing together.<br />
             Our team replies within 24 hours.
           </p>
 
