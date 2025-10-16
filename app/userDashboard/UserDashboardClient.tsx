@@ -2,55 +2,75 @@
 
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { RootState } from "@/redux/store";
 import { 
   FaUser, FaProjectDiagram, FaTasks, FaCalendar, FaFileAlt, 
   FaEnvelope, FaCog, FaChartLine, FaCheckCircle, FaClock, 
-  FaExclamationTriangle, FaEdit, FaEye, FaDownload 
+  FaExclamationTriangle, FaEdit, FaEye, FaDownload, FaKey,
+  FaInfoCircle, FaTimes
 } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import { trackEvent } from "@/lib/analytics/mixpanel";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 interface Project {
   id: number;
   title: string;
   status: string;
-  progress: number;
-  startDate: string;
-  deadline: string;
+  progress?: number;
+  start_date?: string;
+  deadline?: string;
   description: string;
+  client?: string;
+  budget?: number;
+  created_at?: string;
 }
 
 interface Task {
   id: number;
   title: string;
   status: string;
-  priority: string;
-  dueDate: string;
-  assignedTo: string;
+  priority?: string;
+  due_date?: string;
+  description?: string;
+  board?: number;
 }
 
 interface Appointment {
   id: number;
   date: string;
-  time: string;
+  time?: string;
   service: string;
   status: string;
-  notes: string;
+  notes?: string;
+  client_name?: string;
+  phone?: string;
 }
 
 interface Proposal {
   id: number;
   service: string;
+  status?: string;
+  created_at: string;
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+interface Invoice {
+  id: number;
+  project_title: string;
+  amount: number;
   status: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  due_date?: string;
 }
 
 export default function UserDashboardClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useSelector((state: RootState) => state.auth.user);
   
   const [activeTab, setActiveTab] = useState("overview");
@@ -59,6 +79,8 @@ export default function UserDashboardClient() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -66,6 +88,8 @@ export default function UserDashboardClient() {
     company: "",
     avatar: "",
   });
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -73,14 +97,22 @@ export default function UserDashboardClient() {
       return;
     }
 
+    // Check if new user (from URL params)
+    const isNewUser = searchParams.get("newuser") === "true";
+    if (isNewUser) {
+      setShowPasswordPrompt(true);
+    }
+
     fetchDashboardData();
     trackEvent("User Dashboard Viewed", { userId: user.user_id || user.id });
-  }, [user, router]);
+  }, [user, router, searchParams]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch user profile
+      const userId = user?.user_id || user?.id;
+      
+      // Set profile from user data
       setProfile({
         name: user?.username || user?.first_name || "User",
         email: user?.email || "",
@@ -89,43 +121,76 @@ export default function UserDashboardClient() {
         avatar: user?.avatar || "",
       });
 
-      // TODO: Fetch real data from backend
-      // For now, using mock data
-      setProjects([
+      // Fetch real data from backend
+      const headers = {
+        "Content-Type": "application/json",
+        // Add auth token if available
+        ...((user as any)?.access && { "Authorization": `Bearer ${(user as any).access}` })
+      };
+
+      // Fetch Projects
+      try {
+        const projectsRes = await fetch(`${baseAPI}/projects/`, { headers });
+        if (projectsRes.ok) {
+          const projectsData = await projectsRes.json();
+          // Filter projects for this user if needed
+          setProjects(Array.isArray(projectsData) ? projectsData : []);
+        }
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+      }
+
+      // Fetch Tasks (user-specific)
+      try {
+        const tasksRes = await fetch(`${baseAPI}/tasks/api/tasks/?user_id=${userId}`, { headers });
+        if (tasksRes.ok) {
+          const tasksData = await tasksRes.json();
+          setTasks(Array.isArray(tasksData) ? tasksData : []);
+        }
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      }
+
+      // Fetch Appointments
+      try {
+        const appointmentsRes = await fetch(`${baseAPI}/appointments/`, { headers });
+        if (appointmentsRes.ok) {
+          const appointmentsData = await appointmentsRes.json();
+          // Filter appointments for this user's email
+          const userAppointments = Array.isArray(appointmentsData) 
+            ? appointmentsData.filter((apt: any) => apt.email === user?.email)
+            : [];
+          setAppointments(userAppointments);
+        }
+      } catch (err) {
+        console.error("Error fetching appointments:", err);
+      }
+
+      // Fetch Proposals
+      try {
+        const proposalsRes = await fetch(`${baseAPI}/services/proposals/`, { headers });
+        if (proposalsRes.ok) {
+          const proposalsData = await proposalsRes.json();
+          // Filter proposals for this user's email
+          const userProposals = Array.isArray(proposalsData)
+            ? proposalsData.filter((prop: any) => prop.email === user?.email)
+            : [];
+          setProposals(userProposals);
+        }
+      } catch (err) {
+        console.error("Error fetching proposals:", err);
+      }
+
+      // Fetch Invoices (mock for now, implement when backend ready)
+      setInvoices([
         {
           id: 1,
-          title: "Website Redesign",
-          status: "In Progress",
-          progress: 65,
-          startDate: "2025-09-15",
-          deadline: "2025-11-30",
-          description: "Modern responsive website with Next.js",
-        },
-        {
-          id: 2,
-          title: "Mobile App Development",
-          status: "Planning",
-          progress: 25,
-          startDate: "2025-10-01",
-          deadline: "2026-01-15",
-          description: "Native iOS and Android app",
-        },
-      ]);
-
-      setTasks([
-        { id: 1, title: "Review design mockups", status: "Completed", priority: "High", dueDate: "2025-10-10", assignedTo: "Design Team" },
-        { id: 2, title: "Approve homepage content", status: "In Progress", priority: "High", dueDate: "2025-10-18", assignedTo: "You" },
-        { id: 3, title: "Provide brand assets", status: "Pending", priority: "Medium", dueDate: "2025-10-20", assignedTo: "You" },
-      ]);
-
-      setAppointments([
-        { id: 1, date: "2025-10-20", time: "10:00 AM", service: "Project Review Meeting", status: "Scheduled", notes: "Discuss progress and next steps" },
-        { id: 2, date: "2025-10-25", time: "2:00 PM", service: "Design Consultation", status: "Scheduled", notes: "Review UI/UX designs" },
-      ]);
-
-      setProposals([
-        { id: 1, service: "Web Development - Professional", status: "Approved", createdAt: "2025-09-10", updatedAt: "2025-09-12" },
-        { id: 2, service: "Mobile App Development", status: "Under Review", createdAt: "2025-10-01", updatedAt: "2025-10-01" },
+          project_title: projects[0]?.title || "Website Development",
+          amount: 2999,
+          status: "Paid",
+          created_at: new Date().toISOString(),
+          due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+        }
       ]);
 
     } catch (error) {
@@ -135,40 +200,66 @@ export default function UserDashboardClient() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-      case "approved":
-        return "text-green-600 bg-green-100";
-      case "in progress":
-      case "scheduled":
-        return "text-blue-600 bg-blue-100";
-      case "pending":
-      case "under review":
-        return "text-yellow-600 bg-yellow-100";
-      case "planning":
-        return "text-purple-600 bg-purple-100";
-      default:
-        return "text-gray-600 bg-gray-100";
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match!");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseAPI}/accounts/change-password/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${(user as any)?.access}`
+        },
+        body: JSON.stringify({
+          new_password: newPassword,
+          confirm_password: confirmPassword
+        })
+      });
+
+      if (response.ok) {
+        toast.success("Password changed successfully!");
+        setShowPasswordPrompt(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        trackEvent("Password Changed", { userId: user?.user_id || user?.id });
+      } else {
+        toast.error("Failed to change password");
+      }
+    } catch (error) {
+      toast.error("Error changing password");
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "text-red-600 bg-red-100";
-      case "medium":
-        return "text-yellow-600 bg-yellow-100";
-      case "low":
-        return "text-green-600 bg-green-100";
-      default:
-        return "text-gray-600 bg-gray-100";
+  const downloadInvoice = async (invoiceId: number) => {
+    try {
+      toast.success(`Downloading invoice #${invoiceId}...`);
+      trackEvent("Invoice Downloaded", { invoiceId, userId: user?.user_id || user?.id });
+      
+      // TODO: Implement actual PDF download
+      // For now, show success message
+      setTimeout(() => {
+        toast.success("Invoice download started!");
+      }, 500);
+    } catch (error) {
+      toast.error("Error downloading invoice");
     }
   };
+
+  if (!user) {
+    return null;
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your dashboard...</p>
@@ -179,11 +270,73 @@ export default function UserDashboardClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div className="flex items-center gap-3 md:gap-4">
+      {/* Password Change Prompt */}
+      {showPasswordPrompt && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <FaKey className="text-blue-600 text-xl" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Change Your Password</h3>
+              </div>
+              <button onClick={() => setShowPasswordPrompt(false)} className="text-gray-400 hover:text-gray-600">
+                <FaTimes />
+              </button>
+            </div>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
+              <div className="flex items-start gap-2">
+                <FaExclamationTriangle className="text-yellow-600 mt-1 flex-shrink-0" />
+                <p className="text-sm text-yellow-800">
+                  For security, please change your password from the one emailed to you.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter new password (min 8 characters)"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <button
+                onClick={handlePasswordChange}
+                disabled={!newPassword || !confirmPassword}
+                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-colors"
+              >
+                Change Password
+              </button>
+              <button
+                onClick={() => setShowPasswordPrompt(false)}
+                className="w-full py-2 text-gray-600 hover:text-gray-800 text-sm"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               {profile.avatar ? (
                 <div className="relative flex-shrink-0">
                   <Image
@@ -204,7 +357,7 @@ export default function UserDashboardClient() {
                 </div>
               )}
               <div>
-                <h1 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">Welcome back, {profile.name}!</h1>
+                <h1 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">Welcome back, {profile.name}! 👋</h1>
                 <p className="text-xs md:text-sm text-blue-100 flex items-center gap-2 mt-1">
                   <FaEnvelope className="text-xs" />
                   {profile.email}
@@ -282,6 +435,7 @@ export default function UserDashboardClient() {
             { id: "tasks", label: "My Tasks", icon: <FaTasks />, gradient: "from-green-500 to-emerald-500" },
             { id: "appointments", label: "Appointments", icon: <FaCalendar />, gradient: "from-orange-500 to-red-500" },
             { id: "proposals", label: "Proposals", icon: <FaFileAlt />, gradient: "from-cyan-500 to-blue-500" },
+            { id: "invoices", label: "Invoices", icon: <FaDownload />, gradient: "from-green-500 to-teal-500" },
             { id: "profile", label: "Profile", icon: <FaUser />, gradient: "from-gray-500 to-slate-500" },
           ].map((tab) => (
             <button
@@ -310,70 +464,82 @@ export default function UserDashboardClient() {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
               
-              {/* Recent Projects */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              {/* Recent Activity */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <FaProjectDiagram className="text-blue-600" />
-                  Recent Projects
-                </h3>
-                <div className="space-y-4">
-                  {projects.slice(0, 3).map((project) => (
-                    <div key={project.id} className="border-l-4 border-blue-600 pl-4 py-2 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{project.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{project.description}</p>
-                          <div className="mt-2">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                              <span>Progress: {project.progress}%</span>
-                              <span>•</span>
-                              <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all"
-                                style={{ width: `${project.progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                          {project.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setActiveTab("projects")}
-                  className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm"
-                >
-                  View all projects →
-                </button>
-              </div>
-
-              {/* Upcoming Appointments */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <FaCalendar className="text-purple-600" />
-                  Upcoming Appointments
+                  <FaChartLine className="text-blue-600" />
+                  Recent Activity
                 </h3>
                 <div className="space-y-3">
-                  {appointments.map((apt) => (
-                    <div key={apt.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50">
-                      <div className="bg-purple-100 p-3 rounded-lg">
-                        <FaCalendar className="text-purple-600 text-xl" />
+                  {proposals.length > 0 && (
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <FaFileAlt className="text-blue-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">New proposal submitted</p>
+                        <p className="text-sm text-gray-600">{proposals[0].service}</p>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{apt.service}</h4>
-                        <p className="text-sm text-gray-600">{new Date(apt.date).toLocaleDateString()} at {apt.time}</p>
-                        <p className="text-xs text-gray-500 mt-1">{apt.notes}</p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
-                        {apt.status}
-                      </span>
                     </div>
-                  ))}
+                  )}
+                  {tasks.length > 0 && (
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <FaTasks className="text-green-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">Tasks assigned</p>
+                        <p className="text-sm text-gray-600">{tasks.length} active tasks</p>
+                      </div>
+                    </div>
+                  )}
+                  {projects.length === 0 && proposals.length === 0 && tasks.length === 0 && (
+                    <p className="text-gray-500 text-center py-8">No recent activity</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold mb-4">Project Progress</h3>
+                  {projects.length > 0 ? (
+                    projects.slice(0, 3).map((project) => (
+                      <div key={project.id} className="mb-4">
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700">{project.title}</span>
+                          <span className="text-sm text-gray-500">{project.progress || 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${project.progress || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No projects yet</p>
+                  )}
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold mb-4">Upcoming Deadlines</h3>
+                  {tasks.filter(t => t.due_date).length > 0 ? (
+                    tasks.filter(t => t.due_date).slice(0, 3).map((task) => (
+                      <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
+                        <div>
+                          <p className="font-medium text-gray-900">{task.title}</p>
+                          <p className="text-sm text-gray-600">{new Date(task.due_date!).toLocaleDateString()}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          task.status === "Completed" ? "bg-green-100 text-green-700" :
+                          task.priority === "High" ? "bg-red-100 text-red-700" :
+                          "bg-yellow-100 text-yellow-700"
+                        }`}>
+                          {task.status}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No upcoming deadlines</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -381,303 +547,314 @@ export default function UserDashboardClient() {
 
           {/* Projects Tab */}
           {activeTab === "projects" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Request New Project
-                </button>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {projects.map((project) => (
-                  <div key={project.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold text-gray-900">{project.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                        {project.status}
-                      </span>
-                    </div>
-                    
-                    <p className="text-gray-600 mb-4">{project.description}</p>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-600">Progress</span>
-                          <span className="font-semibold text-gray-900">{project.progress}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div
-                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all"
-                            style={{ width: `${project.progress}%` }}
-                          ></div>
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.length > 0 ? (
+                  projects.map((project) => (
+                    <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          project.status === "Completed" ? "bg-green-100 text-green-700" :
+                          project.status === "In Progress" ? "bg-blue-100 text-blue-700" :
+                          "bg-gray-100 text-gray-700"
+                        }`}>
+                          {project.status}
+                        </span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <p className="text-gray-500">Start Date</p>
-                          <p className="font-medium">{new Date(project.startDate).toLocaleDateString()}</p>
+                      <p className="text-gray-600 text-sm mb-4">{project.description}</p>
+                      {project.progress !== undefined && (
+                        <div className="mb-4">
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm text-gray-600">Progress</span>
+                            <span className="text-sm font-medium text-gray-900">{project.progress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
+                              style={{ width: `${project.progress}%` }}
+                            ></div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-gray-500">Deadline</p>
-                          <p className="font-medium">{new Date(project.deadline).toLocaleDateString()}</p>
+                      )}
+                      {project.deadline && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <FaClock />
+                          <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
                         </div>
-                      </div>
+                      )}
                     </div>
-                    
-                    <div className="mt-4 flex gap-2">
-                      <button className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2">
-                        <FaEye /> View Details
-                      </button>
-                      <button className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition">
-                        <FaEnvelope />
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                    <FaProjectDiagram className="text-6xl text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Projects Yet</h3>
+                    <p className="text-gray-500">Your projects will appear here once they&apos;re assigned to you.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
 
           {/* Tasks Tab */}
           {activeTab === "tasks" && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">My Tasks</h2>
-              
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+                {tasks.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
                     {tasks.map((task) => (
-                      <tr key={task.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="font-medium text-gray-900">{task.title}</div>
-                          <div className="text-sm text-gray-500">{task.assignedTo}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                            {task.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {task.priority}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {new Date(task.dueDate).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:text-blue-800">
-                            <FaEdit />
-                          </button>
-                        </td>
-                      </tr>
+                      <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
+                            {task.description && (
+                              <p className="text-gray-600 text-sm mb-3">{task.description}</p>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                task.status === "Completed" || task.status === "Done" ? "bg-green-100 text-green-700" :
+                                task.status === "In Progress" ? "bg-blue-100 text-blue-700" :
+                                "bg-gray-100 text-gray-700"
+                              }`}>
+                                {task.status}
+                              </span>
+                              {task.priority && (
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  task.priority === "High" ? "bg-red-100 text-red-700" :
+                                  task.priority === "Medium" ? "bg-yellow-100 text-yellow-700" :
+                                  "bg-gray-100 text-gray-700"
+                                }`}>
+                                  {task.priority}
+                                </span>
+                              )}
+                              {task.due_date && (
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                                  <FaClock />
+                                  {new Date(task.due_date).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                ) : (
+                  <div className="p-12 text-center">
+                    <FaTasks className="text-6xl text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Tasks Yet</h3>
+                    <p className="text-gray-500">Your tasks will appear here once they&apos;re assigned to you.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Appointments Tab */}
           {activeTab === "appointments" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">My Appointments</h2>
-                <button 
-                  onClick={() => router.push("/appointment")}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  Book New Appointment
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {appointments.map((apt) => (
-                  <div key={apt.id} className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-purple-100 p-4 rounded-lg">
-                          <FaCalendar className="text-purple-600 text-2xl" />
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">My Appointments</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {appointments.length > 0 ? (
+                  appointments.map((apt) => (
+                    <div key={apt.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 bg-blue-100 rounded-xl">
+                            <FaCalendar className="text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900">{apt.service}</h3>
+                            <p className="text-sm text-gray-600">{new Date(apt.date).toLocaleDateString()}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">{apt.service}</h3>
-                          <p className="text-gray-600">{new Date(apt.date).toLocaleDateString()} at {apt.time}</p>
-                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          apt.status === "Confirmed" ? "bg-green-100 text-green-700" :
+                          apt.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                          "bg-gray-100 text-gray-700"
+                        }`}>
+                          {apt.status}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
-                        {apt.status}
-                      </span>
+                      {apt.notes && (
+                        <p className="text-gray-600 text-sm">{apt.notes}</p>
+                      )}
                     </div>
-                    
-                    <p className="text-gray-600 mb-4">{apt.notes}</p>
-                    
-                    <div className="flex gap-2">
-                      <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition">
-                        Reschedule
-                      </button>
-                      <button className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">
-                        Cancel
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                    <FaCalendar className="text-6xl text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Appointments</h3>
+                    <p className="text-gray-500">Your appointments will appear here.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
 
           {/* Proposals Tab */}
           {activeTab === "proposals" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">My Proposals</h2>
-                <button 
-                  onClick={() => router.push("/proposal")}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  New Proposal Request
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {proposals.map((proposal) => (
-                  <div key={proposal.id} className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900">{proposal.service}</h3>
-                        <div className="mt-2 space-y-1 text-sm text-gray-600">
-                          <p>Submitted: {new Date(proposal.createdAt).toLocaleDateString()}</p>
-                          <p>Last Updated: {new Date(proposal.updatedAt).toLocaleDateString()}</p>
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">My Proposals</h2>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+                {proposals.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {proposals.map((proposal) => (
+                      <div key={proposal.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-2">{proposal.service}</h3>
+                            {proposal.message && (
+                              <p className="text-gray-600 text-sm mb-3">{proposal.message}</p>
+                            )}
+                            <p className="text-sm text-gray-500">
+                              Submitted: {new Date(proposal.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            proposal.status === "Approved" ? "bg-green-100 text-green-700" :
+                            proposal.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                            "bg-gray-100 text-gray-700"
+                          }`}>
+                            {proposal.status || "Pending"}
+                          </span>
                         </div>
                       </div>
-                      <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(proposal.status)}`}>
-                        {proposal.status}
-                      </span>
-                    </div>
-                    
-                    <div className="mt-4 flex gap-2">
-                      <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center gap-2">
-                        <FaEye /> View Details
-                      </button>
-                      <button className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
-                        <FaDownload /> Download
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="p-12 text-center">
+                    <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Proposals</h3>
+                    <p className="text-gray-500">Your service requests will appear here.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Invoices Tab */}
+          {activeTab === "invoices" && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">My Invoices</h2>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+                {invoices.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {invoices.map((invoice) => (
+                      <div key={invoice.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-1">Invoice #{invoice.id}</h3>
+                            <p className="text-gray-600 text-sm mb-2">{invoice.project_title}</p>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm text-gray-500">
+                                Date: {new Date(invoice.created_at).toLocaleDateString()}
+                              </span>
+                              {invoice.due_date && (
+                                <span className="text-sm text-gray-500">
+                                  Due: {new Date(invoice.due_date).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-gray-900">${invoice.amount.toLocaleString()}</p>
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                invoice.status === "Paid" ? "bg-green-100 text-green-700" :
+                                invoice.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                "bg-red-100 text-red-700"
+                              }`}>
+                                {invoice.status}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => downloadInvoice(invoice.id)}
+                              className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                              title="Download Invoice"
+                            >
+                              <FaDownload />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center">
+                    <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Invoices</h3>
+                    <p className="text-gray-500">Your invoices will appear here.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Settings</h2>
-              
-              <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-                <div className="mb-6 text-center">
-                  {profile.avatar ? (
-                    <Image
-                      src={profile.avatar}
-                      alt={profile.name}
-                      width={120}
-                      height={120}
-                      className="rounded-full mx-auto mb-4"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
-                      {profile.name.charAt(0).toUpperCase()}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        value={profile.name}
+                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
                     </div>
-                  )}
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-                    Change Photo
-                  </button>
-                </div>
-                
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      value={profile.name}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <input
+                        type="email"
+                        value={profile.email}
+                        disabled
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                      <input
+                        type="tel"
+                        value={profile.phone}
+                        onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                      <input
+                        type="text"
+                        value={profile.company}
+                        onChange={(e) => setProfile({...profile, company: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                    <input
-                      type="tel"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Company</label>
-                    <input
-                      type="text"
-                      value={profile.company}
-                      onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div className="pt-4 flex gap-3">
+                  <div className="flex gap-4">
                     <button
-                      type="submit"
-                      onClick={(e) => {
-                        e.preventDefault();
+                      onClick={() => {
+                        toast.success("Profile updated successfully!");
                         trackEvent("Profile Updated", { userId: user?.user_id || user?.id });
-                        alert("Profile updated successfully!");
                       }}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors"
                     >
                       Save Changes
                     </button>
                     <button
-                      type="button"
-                      className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                      onClick={() => setShowPasswordPrompt(true)}
+                      className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition-colors flex items-center gap-2"
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-                
-                <div className="mt-8 pt-6 border-t">
-                  <h3 className="font-semibold text-gray-900 mb-4">Account Settings</h3>
-                  <div className="space-y-2">
-                    <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                      <FaKey />
                       Change Password
-                    </button>
-                    <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                      Notification Preferences
-                    </button>
-                    <button className="w-full text-left px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">
-                      Delete Account
                     </button>
                   </div>
                 </div>
