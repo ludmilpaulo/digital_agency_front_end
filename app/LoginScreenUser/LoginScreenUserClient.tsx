@@ -319,13 +319,12 @@ export default function LoginScreenUserClient() {
           <Link href="/SignupScreen" className="text-sm text-blue-700 hover:underline font-semibold">
             Don&apos;t have an account? <span className="underline">Sign up</span>
           </Link>
-          <button
-            onClick={toggleForgotPasswordDialog}
+          <Link
+            href="/forgot-password"
             className="text-sm text-blue-600 hover:underline font-semibold"
-            type="button"
           >
             Forgot password?
-          </button>
+          </Link>
         </div>
 
         {/* Modal for forgot password */}
