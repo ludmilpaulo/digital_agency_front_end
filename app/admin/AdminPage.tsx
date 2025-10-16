@@ -113,11 +113,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 relative">
       {/* Mobile Hamburger */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-30 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
+        className="md:hidden fixed top-4 left-4 z-40 bg-white text-gray-700 p-3 rounded-xl shadow-xl hover:shadow-2xl transition-all hover:scale-110 border border-gray-200"
         aria-label="Open sidebar"
         type="button"
       >
@@ -133,33 +133,81 @@ export default function AdminPage() {
       </AccessibleOverlay>
 
       {/* Main Content */}
-      <main className="flex-1 p-3 pt-20 md:pt-10 md:p-10 transition-all w-full max-w-full">
-        {/* Welcome Header */}
-        <div className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-4 md:p-6 text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <main className="flex-1 p-4 pt-20 md:pt-8 md:p-8 transition-all w-full max-w-full overflow-x-hidden">
+        {/* Modern Welcome Header */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Dashboard</h1>
-              <p className="text-sm md:text-base text-blue-100">Welcome back, {user?.username}! Here&apos;s your overview.</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                Welcome back, {user?.username}! 👋
+              </h1>
+              <p className="text-gray-600 text-sm md:text-base">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
             </div>
-            <div className="flex gap-2 md:gap-3">
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
-                <p className="text-xl md:text-2xl font-bold">{boards.length}</p>
-                <p className="text-xs text-blue-100">Boards</p>
+          </div>
+
+          {/* Modern Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {/* Boards Stat */}
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-100 transition-colors">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-500 bg-blue-50 px-2 py-1 rounded-full">Active</span>
               </div>
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
-                <p className="text-xl md:text-2xl font-bold">{users.length}</p>
-                <p className="text-xs text-blue-100">Users</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{boards.length}</h3>
+              <p className="text-sm text-gray-600">Total Boards</p>
+            </div>
+
+            {/* Users Stat */}
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-purple-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-50 rounded-xl group-hover:bg-purple-100 transition-colors">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-500 bg-purple-50 px-2 py-1 rounded-full">+{users.length > 0 ? 5 : 0}%</span>
               </div>
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
-                <p className="text-xl md:text-2xl font-bold">{myTasks.length}</p>
-                <p className="text-xs text-blue-100">Tasks</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{users.length}</h3>
+              <p className="text-sm text-gray-600">Team Members</p>
+            </div>
+
+            {/* Tasks Stat */}
+            <div className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-green-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-green-50 rounded-xl group-hover:bg-green-100 transition-colors">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-500 bg-green-50 px-2 py-1 rounded-full">Today</span>
               </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{myTasks.length}</h3>
+              <p className="text-sm text-gray-600">Active Tasks</p>
+            </div>
+
+            {/* Quick Action */}
+            <div className="group bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">Quick</h3>
+              <p className="text-sm text-blue-100">Create New...</p>
             </div>
           </div>
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="mb-6 gap-2 overflow-x-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-blue-100 flex-wrap md:flex-nowrap justify-start">
+          <TabsList className="mb-6 gap-2 overflow-x-auto bg-white p-1.5 rounded-2xl shadow-sm border border-gray-200 flex-wrap md:flex-nowrap justify-start scrollbar-hide">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
