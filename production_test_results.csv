@@ -3,7 +3,7 @@
 "Careers API Returns Data","PASS","Success"
 "Services API Accessible","PASS","Success"
 "Tasks/Boards API Accessible","PASS","Success"
-"Auto-Create User Endpoint Works","FAIL","Check failed"
+"Auto-Create User Endpoint Works","PASS","Success"
 "Login Endpoint Works (Test with ludmil account)","PASS","Success"
 "Boards API Accessible","PASS","Success"
 "Lists API Accessible","PASS","Success"

@@ -180,7 +180,7 @@ Test-Feature "Auto-Create User Endpoint Works" {
         
         Write-Host "   Creating test user with email: $testEmail" -ForegroundColor Cyan
         
-        $response = Invoke-RestMethod -Uri "$backendUrl/accounts/auto-create-user/" `
+        $response = Invoke-RestMethod -Uri "$backendUrl/account/auto-create-user/" `
             -Method Post `
             -Body $userData `
             -ContentType "application/json" `
