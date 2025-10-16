@@ -1,154 +1,227 @@
-"use client";
+import mixpanel from 'mixpanel-browser';
 
-import mixpanel, { Mixpanel } from "mixpanel-browser";
+// Initialize Mixpanel
+const MIXPANEL_TOKEN = 'fdb13340c58132944c02019cc4a17a09';
 
-/** ===== Event Catalog (Maindo Digital, non-ecommerce) ===== */
-export type EventName =
-  // Website engagement
-  | "Page View"
-  | "CTA Clicked"
-  | "Section Viewed"
-  // Lead gen
-  | "Contact Form Opened"
-  | "Contact Form Submitted"
-  | "Quote Requested"
-  | "Newsletter Signup"
-  | "Lead Captured"
-  | "Consultation Booked"
-  | "Proposal Downloaded"
-  // Quality/Error/Feedback
-  | "Error Shown"
-  | "Feedback Submitted";
-
-/** ===== Strongly-typed props ===== */
-type Scalar = string | number | boolean | null | undefined;
-type List = string[] | number[];
-export type Props = Record<string, Scalar | List>;
-
-export interface IdentifyProps extends Props {
-  email?: string;
-  name?: string;
-  company?: string;
-  role?: string;
-  plan?: string;
-  createdAt?: string; // ISO
-}
-
-/** ===== Singleton init ===== */
 let initialized = false;
 
-function apiHost(): string | undefined {
-  const v = process.env.NEXT_PUBLIC_MIXPANEL_API_HOST?.trim();
-  return v || undefined;
-}
+export const initMixpanel = () => {
+  if (typeof window !== 'undefined' && !initialized) {
+    // Check for user consent
+    const consent = localStorage.getItem("analytics-consent");
+    if (consent !== "accepted") {
+      console.log('⚠️ Mixpanel: User consent not given');
+      return null;
+    }
 
-export function initMixpanel(): Mixpanel | null {
-  if (typeof window === "undefined") return null;
-  if (initialized) return mixpanel;
-
-  const token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
-  const enabled = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "false";
-  if (!token || !enabled) return null;
-
-  mixpanel.init(token, {
-    api_host: apiHost(),
-    debug: process.env.NEXT_PUBLIC_MIXPANEL_DEBUG === "true",
-    track_pageview: false, // manual via router
-    persistence: "localStorage",
-  });
-
-  // App-wide super props
-  mixpanel.register({
-    app: "Maindo Digital",
-    env: process.env.NODE_ENV,
-    locale: navigator.language,
-  });
-
+    mixpanel.init(MIXPANEL_TOKEN, {
+      autocapture: true,
+      record_sessions_percent: 100,
+      debug: process.env.NODE_ENV === 'development',
+      track_pageview: true,
+      persistence: 'localStorage',
+    });
   initialized = true;
+    console.log('✅ Mixpanel initialized successfully');
   return mixpanel;
 }
+  return initialized ? mixpanel : null;
+};
 
-/** ===== Low-level API (keep internal use simple) ===== */
-export function track(event: EventName, props?: Props): void {
-  if (!initialized) return;
-  mixpanel.track(event, props);
-}
+// Track generic event (used by AnalyticsTracker)
+export const track = (eventName: string, properties?: Record<string, any>) => {
+  if (typeof window !== 'undefined' && initialized) {
+    mixpanel.track(eventName, properties);
+  }
+};
 
-export function identify(userId: string, props?: IdentifyProps): void {
-  if (!initialized) return;
-  mixpanel.identify(userId);
-  if (props && Object.keys(props).length) mixpanel.people.set(props);
-}
+// Register properties once
+export const registerOnce = (properties: Record<string, any>) => {
+  if (typeof window !== 'undefined' && initialized) {
+    mixpanel.register_once(properties);
+  }
+};
 
-export function reset(): void {
-  if (!initialized) return;
-  mixpanel.reset();
-}
+// Track page view
+export const trackPageView = (pageName: string) => {
+  if (typeof window !== 'undefined') {
+    mixpanel.track('Page View', {
+      page: pageName,
+      url: window.location.href,
+      referrer: document.referrer,
+    });
+  }
+};
 
-export function registerSuper(props: Props): void {
-  if (!initialized) return;
-  mixpanel.register(props);
-}
+// Track user events
+export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+  if (typeof window !== 'undefined') {
+    mixpanel.track(eventName, {
+      ...properties,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
 
-export function registerOnce(props: Props): void {
-  if (!initialized) return;
-  mixpanel.register_once(props);
-}
+// Identify user
+export const identifyUser = (userId: string | number, userProperties?: Record<string, any>) => {
+  if (typeof window !== 'undefined') {
+    mixpanel.identify(userId.toString());
+    if (userProperties) {
+      mixpanel.people.set(userProperties);
+    }
+  }
+};
 
-/** ===== Convenience helpers (use these in UI code) ===== */
-// Engagement
-export function trackPageView(path: string): void {
-  track("Page View", { path });
-}
+// Alias for identifyUser
+export const identify = identifyUser;
 
-export function trackCtaClicked(cta: string, placement?: string): void {
-  track("CTA Clicked", { cta, placement });
-}
+// Track user login
+export const trackLogin = (userId: string | number, method: string) => {
+  identifyUser(userId);
+  trackEvent('User Login', { method, userId });
+};
 
-export function trackSectionViewed(section: "Services" | "Portfolio" | "Testimonials" | "Pricing" | "About"): void {
-  track("Section Viewed", { section });
-}
+// Track user signup
+export const trackSignup = (userId: string | number, method: string) => {
+  identifyUser(userId);
+  trackEvent('User Signup', { method, userId });
+};
 
-// Lead gen
-export function trackContactFormOpened(placement?: string): void {
-  track("Contact Form Opened", { placement });
-}
+// Track proposal submission
+export const trackProposalSubmission = (data: {
+  service: string;
+  plan?: string;
+  price?: string;
+}) => {
+  trackEvent('Proposal Submitted', data);
+};
 
-export function trackContactFormSubmitted(args: {
-  name?: string;
-  email?: string;
-  service?: string;
-  messageLength?: number;
-  source?: string; // e.g., utm or ref
-}): void {
-  track("Contact Form Submitted", args);
-}
+// Track service view
+export const trackServiceView = (serviceName: string, slug: string) => {
+  trackEvent('Service Viewed', { serviceName, slug });
+};
 
-export function trackQuoteRequested(args: { service: string; budget?: string; timeline?: string }): void {
-  track("Quote Requested", args);
-}
+// Track plan selection
+export const trackPlanSelection = (service: string, plan: string, price: string) => {
+  trackEvent('Plan Selected', { service, plan, price });
+};
 
-export function trackNewsletterSignup(email: string): void {
-  track("Newsletter Signup", { email });
-}
+// Track document signing
+export const trackDocumentSigned = (documentId: number, documentTitle: string) => {
+  trackEvent('Document Signed', { documentId, documentTitle });
+};
 
-export function trackLeadCaptured(source: string): void {
-  track("Lead Captured", { source });
-}
+// Track task creation
+export const trackTaskCreated = (taskData: any) => {
+  trackEvent('Task Created', taskData);
+};
 
-export function trackConsultationBooked(method: "Calendly" | "Email" | "Phone", whenISO?: string): void {
-  track("Consultation Booked", { method, when: whenISO });
-}
+// Track blog post view
+export const trackBlogView = (postId: number, postTitle: string) => {
+  trackEvent('Blog Post Viewed', { postId, postTitle });
+};
 
-export function trackProposalDownloaded(service: string): void {
-  track("Proposal Downloaded", { service });
-}
+// Track search
+export const trackSearch = (query: string, resultsCount: number) => {
+  trackEvent('Search Performed', { query, resultsCount });
+};
 
-// Quality/Error/Feedback
-export function trackError(where: string, code?: string, message?: string): void {
-  track("Error Shown", { where, code, message });
-}
+// Track error
+export const trackError = (errorMessage: string, errorStack?: string) => {
+  trackEvent('Error Occurred', { errorMessage, errorStack });
+};
 
-export function trackFeedback(rating: number, message?: string): void {
-  track("Feedback Submitted", { rating, message });
-}
+// Set user properties
+export const setUserProperties = (properties: Record<string, any>) => {
+  if (typeof window !== 'undefined') {
+    mixpanel.people.set(properties);
+  }
+};
+
+// Increment user property
+export const incrementUserProperty = (property: string, amount: number = 1) => {
+  if (typeof window !== 'undefined') {
+    mixpanel.people.increment(property, amount);
+  }
+};
+
+// Track timing
+export const trackTiming = (eventName: string, duration: number, properties?: Record<string, any>) => {
+  trackEvent(eventName, {
+    ...properties,
+    duration_ms: duration,
+  });
+};
+
+// Reset user (on logout)
+export const resetUser = () => {
+  if (typeof window !== 'undefined') {
+    mixpanel.reset();
+  }
+};
+
+// Alias for reset
+export const reset = resetUser;
+
+// Track newsletter signup
+export const trackNewsletterSignup = (email: string) => {
+  trackEvent('Newsletter Signup', { email });
+};
+
+// Track CTA clicks
+export const trackCtaClicked = (ctaName: string, location: string) => {
+  trackEvent('CTA Clicked', { ctaName, location });
+};
+
+// Get distinct ID
+export const getDistinctId = () => {
+  if (typeof window !== 'undefined') {
+    return mixpanel.get_distinct_id();
+  }
+  return null;
+};
+
+// Opt user out
+export const optOut = () => {
+  if (typeof window !== 'undefined') {
+    mixpanel.opt_out_tracking();
+  }
+};
+
+// Opt user in
+export const optIn = () => {
+  if (typeof window !== 'undefined') {
+    mixpanel.opt_in_tracking();
+  }
+};
+
+// Export mixpanel instance for advanced usage
+export { mixpanel };
+
+// Named export bundle
+const analytics = {
+  init: initMixpanel,
+  trackPageView,
+  trackEvent,
+  identifyUser,
+  trackLogin,
+  trackSignup,
+  trackProposalSubmission,
+  trackServiceView,
+  trackPlanSelection,
+  trackDocumentSigned,
+  trackTaskCreated,
+  trackBlogView,
+  trackSearch,
+  trackError,
+  setUserProperties,
+  incrementUserProperty,
+  trackTiming,
+  resetUser,
+  getDistinctId,
+  optOut,
+  optIn,
+};
+
+export default analytics;

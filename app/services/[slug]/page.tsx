@@ -17,6 +17,7 @@ import {
   FaRocket,
   FaChartLine,
 } from "react-icons/fa";
+import { trackServiceView, trackPlanSelection } from "@/lib/analytics/mixpanel";
 
 interface Plan {
   id: number;
@@ -64,6 +65,9 @@ export default function ServiceDetailPage() {
         if (!res.ok) throw new Error("Service not found");
         const data = await res.json();
         setService(data);
+        
+        // Track service view
+        trackServiceView(data.title, slug);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -163,6 +167,7 @@ export default function ServiceDetailPage() {
                 </ul>
                 <Link
                   href={`/proposal?service=${encodeURIComponent(service.title)}&plan=${encodeURIComponent(plan.name)}&price=${encodeURIComponent(plan.price)}`}
+                  onClick={() => trackPlanSelection(service.title, plan.name, plan.price)}
                   className={`block w-full text-center py-2 rounded-full font-semibold shadow-md transition ${
                     plan.popular
                       ? "bg-blue-600 text-white hover:bg-blue-700"

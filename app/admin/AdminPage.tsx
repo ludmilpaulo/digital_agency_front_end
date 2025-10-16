@@ -22,6 +22,7 @@ const Documents = dynamic(() => import("./Documents"), { ssr: false });
 const Campaign = dynamic(() => import("./Campaign"), { ssr: false });
 const Careers = dynamic(() => import("./Careers"), { ssr: false });
 const TaskTable = dynamic(() => import("./TaskTable"), { ssr: false });
+const Analytics = dynamic(() => import("./Analytics"), { ssr: false });
 
 // RTK Query hooks
 import { useGetBoardsQuery } from "@/redux/services/boardsApi";
@@ -128,6 +129,7 @@ export default function AdminPage() {
       <main className="flex-1 p-3 pt-20 md:pt-10 md:p-10 transition-all w-full max-w-full">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="mb-4 gap-2 overflow-x-auto">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="boards">Boards</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="mytasks">My Tasks</TabsTrigger>
@@ -138,6 +140,9 @@ export default function AdminPage() {
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="analytics">
+            <Analytics />
+          </TabsContent>
           <TabsContent value="boards">
             <BoardsAdmin />
           </TabsContent>

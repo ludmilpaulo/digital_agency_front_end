@@ -9,6 +9,7 @@ import { FaSpinner, FaPaperPlane, FaLinkedin, FaInstagram, FaFacebook, FaTwitter
 import toast from "react-hot-toast";
 import { baseAPI } from "@/useAPI/api";
 import type { RootState } from "@/redux/store";
+import { trackProposalSubmission, trackEvent } from "@/lib/analytics/mixpanel";
 
 // Load Toaster only on the client (avoids any SSR hiccups)
 const Toaster = dynamic(() => import("react-hot-toast").then(m => m.Toaster), { ssr: false });
@@ -98,6 +99,13 @@ export default function ProposalClient() {
       });
 
       if (res.ok) {
+        // Track successful proposal submission
+        trackProposalSubmission({
+          service: form.service,
+          plan: selectedPlan.plan,
+          price: selectedPlan.price,
+        });
+        
         setForm({
           name: "",
           email: "",
