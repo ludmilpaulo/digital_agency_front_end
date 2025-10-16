@@ -600,41 +600,40 @@ export default function UserDashboardClient() {
                     return paginated.length > 0 ? (
                       <>
                         {paginated.map((project) => (
-                    <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100">
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          project.status === "Completed" ? "bg-green-100 text-green-700" :
-                          project.status === "In Progress" ? "bg-blue-100 text-blue-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
-                          {project.status}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-4">{project.description}</p>
-                      {project.progress !== undefined && (
-                        <div className="mb-4">
-                          <div className="flex justify-between mb-2">
-                            <span className="text-sm text-gray-600">Progress</span>
-                            <span className="text-sm font-medium text-gray-900">{project.progress}%</span>
+                          <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100">
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                project.status === "Completed" ? "bg-green-100 text-green-700" :
+                                project.status === "In Progress" ? "bg-blue-100 text-blue-700" :
+                                "bg-gray-100 text-gray-700"
+                              }`}>
+                                {project.status}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm mb-4">{project.description}</p>
+                            {project.progress !== undefined && (
+                              <div className="mb-4">
+                                <div className="flex justify-between mb-2">
+                                  <span className="text-sm text-gray-600">Progress</span>
+                                  <span className="text-sm font-medium text-gray-900">{project.progress}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-600 h-2 rounded-full"
+                                    style={{ width: `${project.progress}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+                            {project.deadline && (
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <FaClock />
+                                <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
+                              </div>
+                            )}
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{ width: `${project.progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                      {project.deadline && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaClock />
-                          <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
-                        </div>
-                          )}
-                        </div>
-                      ))
-                        }
+                        ))}
                         <div className="col-span-full">
                           <AdminPagination
                             currentPage={projectsPage}
@@ -708,41 +707,40 @@ export default function UserDashboardClient() {
                       <>
                         <div className="divide-y divide-gray-100">
                           {paginated.map((task) => (
-                      <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
-                            {task.description && (
-                              <p className="text-gray-600 text-sm mb-3">{task.description}</p>
-                            )}
-                            <div className="flex flex-wrap gap-2">
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                task.status === "Completed" || task.status === "Done" ? "bg-green-100 text-green-700" :
-                                task.status === "In Progress" ? "bg-blue-100 text-blue-700" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
-                                {task.status}
-                              </span>
-                              {task.priority && (
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  task.priority === "High" ? "bg-red-100 text-red-700" :
-                                  task.priority === "Medium" ? "bg-yellow-100 text-yellow-700" :
-                                  "bg-gray-100 text-gray-700"
-                                }`}>
-                                  {task.priority}
-                                </span>
-                              )}
-                              {task.due_date && (
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
-                                  <FaClock />
-                                  {new Date(task.due_date).toLocaleDateString()}
-                                </span>
-                              )}
+                            <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
+                                  {task.description && (
+                                    <p className="text-gray-600 text-sm mb-3">{task.description}</p>
+                                  )}
+                                  <div className="flex flex-wrap gap-2">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                      task.status === "Completed" || task.status === "Done" ? "bg-green-100 text-green-700" :
+                                      task.status === "In Progress" ? "bg-blue-100 text-blue-700" :
+                                      "bg-gray-100 text-gray-700"
+                                    }`}>
+                                      {task.status}
+                                    </span>
+                                    {task.priority && (
+                                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                        task.priority === "High" ? "bg-red-100 text-red-700" :
+                                        task.priority === "Medium" ? "bg-yellow-100 text-yellow-700" :
+                                        "bg-gray-100 text-gray-700"
+                                      }`}>
+                                        {task.priority}
+                                      </span>
+                                    )}
+                                    {task.due_date && (
+                                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                                        <FaClock />
+                                        {new Date(task.due_date).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                            </div>
-                          </div>
-                        </div>
                           ))}
                         </div>
                         <div className="p-4 border-t border-gray-100">
