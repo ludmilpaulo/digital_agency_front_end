@@ -8,12 +8,13 @@ import {
   FaUser, FaProjectDiagram, FaTasks, FaCalendar, FaFileAlt, 
   FaEnvelope, FaCog, FaChartLine, FaCheckCircle, FaClock, 
   FaExclamationTriangle, FaEdit, FaEye, FaDownload, FaKey,
-  FaInfoCircle, FaTimes
+  FaInfoCircle, FaTimes, FaSearch
 } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import { trackEvent } from "@/lib/analytics/mixpanel";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import AdminPagination from "@/components/AdminPagination";
 
 interface Project {
   id: number;
@@ -81,6 +82,21 @@ export default function UserDashboardClient() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  
+  // Pagination states
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [tasksPage, setTasksPage] = useState(1);
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [proposalsPage, setProposalsPage] = useState(1);
+  const [invoicesPage, setInvoicesPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  
+  // Search states
+  const [projectsSearch, setProjectsSearch] = useState("");
+  const [tasksSearch, setTasksSearch] = useState("");
+  const [appointmentsSearch, setAppointmentsSearch] = useState("");
+  const [proposalsSearch, setProposalsSearch] = useState("");
+  
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -548,12 +564,42 @@ export default function UserDashboardClient() {
           {/* Projects Tab */}
           {activeTab === "projects" && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
               </div>
+              
+              {/* Search Bar */}
+              {projects.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search projects by title or description..."
+                      value={projectsSearch}
+                      onChange={(e) => {
+                        setProjectsSearch(e.target.value);
+                        setProjectsPage(1);
+                      }}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {projects.length > 0 ? (
-                  projects.map((project) => (
+                  (() => {
+                    const filtered = projects.filter((project) =>
+                      project.title.toLowerCase().includes(projectsSearch.toLowerCase()) ||
+                      project.description?.toLowerCase().includes(projectsSearch.toLowerCase())
+                    );
+                    const startIdx = (projectsPage - 1) * itemsPerPage;
+                    const paginated = filtered.slice(startIdx, startIdx + itemsPerPage);
+                    
+                    return paginated.length > 0 ? (
+                      <>
+                        {paginated.map((project) => (
                     <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100">
                       <div className="flex justify-between items-start mb-4">
                         <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
@@ -585,9 +631,34 @@ export default function UserDashboardClient() {
                           <FaClock />
                           <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
                         </div>
-                      )}
-                    </div>
-                  ))
+                          )}
+                        </div>
+                      ))
+                        }
+                        <div className="col-span-full">
+                          <AdminPagination
+                            currentPage={projectsPage}
+                            totalItems={filtered.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setProjectsPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                        <FaProjectDiagram className="text-6xl text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Projects Found</h3>
+                        <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
+                        <button
+                          onClick={() => setProjectsSearch("")}
+                          className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
                     <FaProjectDiagram className="text-6xl text-gray-300 mx-auto mb-4" />
@@ -603,10 +674,40 @@ export default function UserDashboardClient() {
           {activeTab === "tasks" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
+              
+              {/* Search Bar */}
+              {tasks.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search tasks by title or description..."
+                      value={tasksSearch}
+                      onChange={(e) => {
+                        setTasksSearch(e.target.value);
+                        setTasksPage(1);
+                      }}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
                 {tasks.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {tasks.map((task) => (
+                  (() => {
+                    const filtered = tasks.filter((task) =>
+                      task.title.toLowerCase().includes(tasksSearch.toLowerCase()) ||
+                      task.description?.toLowerCase().includes(tasksSearch.toLowerCase())
+                    );
+                    const startIdx = (tasksPage - 1) * itemsPerPage;
+                    const paginated = filtered.slice(startIdx, startIdx + itemsPerPage);
+                    
+                    return paginated.length > 0 ? (
+                      <>
+                        <div className="divide-y divide-gray-100">
+                          {paginated.map((task) => (
                       <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -639,10 +740,35 @@ export default function UserDashboardClient() {
                               )}
                             </div>
                           </div>
+                            </div>
+                          </div>
                         </div>
+                          ))}
+                        </div>
+                        <div className="p-4 border-t border-gray-100">
+                          <AdminPagination
+                            currentPage={tasksPage}
+                            totalItems={filtered.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setTasksPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <FaTasks className="text-6xl text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Tasks Found</h3>
+                        <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
+                        <button
+                          onClick={() => setTasksSearch("")}
+                          className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        >
+                          Clear search
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()
                 ) : (
                   <div className="p-12 text-center">
                     <FaTasks className="text-6xl text-gray-300 mx-auto mb-4" />
