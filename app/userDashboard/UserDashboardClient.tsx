@@ -782,33 +782,87 @@ export default function UserDashboardClient() {
           {activeTab === "appointments" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">My Appointments</h2>
+              
+              {/* Search Bar */}
+              {appointments.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search appointments by service or notes..."
+                      value={appointmentsSearch}
+                      onChange={(e) => {
+                        setAppointmentsSearch(e.target.value);
+                        setAppointmentsPage(1);
+                      }}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {appointments.length > 0 ? (
-                  appointments.map((apt) => (
-                    <div key={apt.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-3 bg-blue-100 rounded-xl">
-                            <FaCalendar className="text-blue-600" />
+                  (() => {
+                    const filtered = appointments.filter((apt) =>
+                      apt.service.toLowerCase().includes(appointmentsSearch.toLowerCase()) ||
+                      apt.notes?.toLowerCase().includes(appointmentsSearch.toLowerCase())
+                    );
+                    const startIdx = (appointmentsPage - 1) * itemsPerPage;
+                    const paginated = filtered.slice(startIdx, startIdx + itemsPerPage);
+                    
+                    return paginated.length > 0 ? (
+                      <>
+                        {paginated.map((apt) => (
+                          <div key={apt.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-3 bg-blue-100 rounded-xl">
+                                  <FaCalendar className="text-blue-600" />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-gray-900">{apt.service}</h3>
+                                  <p className="text-sm text-gray-600">{new Date(apt.date).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                apt.status === "Confirmed" ? "bg-green-100 text-green-700" :
+                                apt.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                "bg-gray-100 text-gray-700"
+                              }`}>
+                                {apt.status}
+                              </span>
+                            </div>
+                            {apt.notes && (
+                              <p className="text-gray-600 text-sm">{apt.notes}</p>
+                            )}
                           </div>
-                          <div>
-                            <h3 className="font-bold text-gray-900">{apt.service}</h3>
-                            <p className="text-sm text-gray-600">{new Date(apt.date).toLocaleDateString()}</p>
-                          </div>
+                        ))}
+                        <div className="col-span-full">
+                          <AdminPagination
+                            currentPage={appointmentsPage}
+                            totalItems={filtered.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setAppointmentsPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                          />
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          apt.status === "Confirmed" ? "bg-green-100 text-green-700" :
-                          apt.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
-                          {apt.status}
-                        </span>
+                      </>
+                    ) : (
+                      <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                        <FaCalendar className="text-6xl text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Appointments Found</h3>
+                        <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
+                        <button
+                          onClick={() => setAppointmentsSearch("")}
+                          className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        >
+                          Clear search
+                        </button>
                       </div>
-                      {apt.notes && (
-                        <p className="text-gray-600 text-sm">{apt.notes}</p>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })()
                 ) : (
                   <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
                     <FaCalendar className="text-6xl text-gray-300 mx-auto mb-4" />
@@ -824,32 +878,86 @@ export default function UserDashboardClient() {
           {activeTab === "proposals" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">My Proposals</h2>
+              
+              {/* Search Bar */}
+              {proposals.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search proposals by service or message..."
+                      value={proposalsSearch}
+                      onChange={(e) => {
+                        setProposalsSearch(e.target.value);
+                        setProposalsPage(1);
+                      }}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
                 {proposals.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {proposals.map((proposal) => (
-                      <div key={proposal.id} className="p-6 hover:bg-gray-50 transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-2">{proposal.service}</h3>
-                            {proposal.message && (
-                              <p className="text-gray-600 text-sm mb-3">{proposal.message}</p>
-                            )}
-                            <p className="text-sm text-gray-500">
-                              Submitted: {new Date(proposal.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            proposal.status === "Approved" ? "bg-green-100 text-green-700" :
-                            proposal.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-gray-100 text-gray-700"
-                          }`}>
-                            {proposal.status || "Pending"}
-                          </span>
+                  (() => {
+                    const filtered = proposals.filter((proposal) =>
+                      proposal.service.toLowerCase().includes(proposalsSearch.toLowerCase()) ||
+                      proposal.message?.toLowerCase().includes(proposalsSearch.toLowerCase())
+                    );
+                    const startIdx = (proposalsPage - 1) * itemsPerPage;
+                    const paginated = filtered.slice(startIdx, startIdx + itemsPerPage);
+                    
+                    return paginated.length > 0 ? (
+                      <>
+                        <div className="divide-y divide-gray-100">
+                          {paginated.map((proposal) => (
+                            <div key={proposal.id} className="p-6 hover:bg-gray-50 transition-colors">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900 mb-2">{proposal.service}</h3>
+                                  {proposal.message && (
+                                    <p className="text-gray-600 text-sm mb-3">{proposal.message}</p>
+                                  )}
+                                  <p className="text-sm text-gray-500">
+                                    Submitted: {new Date(proposal.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  proposal.status === "Approved" ? "bg-green-100 text-green-700" :
+                                  proposal.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                  "bg-gray-100 text-gray-700"
+                                }`}>
+                                  {proposal.status || "Pending"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
+                        <div className="p-4 border-t border-gray-100">
+                          <AdminPagination
+                            currentPage={proposalsPage}
+                            totalItems={filtered.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setProposalsPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Proposals Found</h3>
+                        <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
+                        <button
+                          onClick={() => setProposalsSearch("")}
+                          className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        >
+                          Clear search
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()
                 ) : (
                   <div className="p-12 text-center">
                     <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
