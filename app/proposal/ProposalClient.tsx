@@ -91,10 +91,24 @@ export default function ProposalClient() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${baseAPI}/services/proposals/`, {
+      // First, create user account and send credentials
+      const userResponse = await fetch(`${baseAPI}/accounts/auto-create-user/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        cache: "no-store",
+      });
+
+      const userData = await userResponse.json();
+
+      // Then submit the proposal
+      const res = await fetch(`${baseAPI}/services/proposals/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          user_id: userData.user_id || null
+        }),
         cache: "no-store",
       });
 
@@ -115,8 +129,30 @@ export default function ProposalClient() {
           time_frame: "",
           message: "",
         });
-        toast.success("Your request was submitted! Please check your email for confirmation.");
-        router.push("/");
+
+        // Show success message with account information
+        if (userData.user_created) {
+          toast.success(
+            `✅ Account created! Check your email (${form.email}) for login credentials.\n` +
+            `Your username is: ${userData.username}\n` +
+            `You can now login to track your project!`,
+            { duration: 8000 }
+          );
+          // Redirect to login page after a moment
+          setTimeout(() => {
+            router.push("/LoginScreenUser?newuser=true");
+          }, 3000);
+        } else if (userData.user_exists) {
+          toast.success("Request submitted! Please login with your existing account to track progress.");
+          setTimeout(() => {
+            router.push("/LoginScreenUser");
+          }, 2000);
+        } else {
+          toast.success("Your request was submitted! Please check your email for confirmation.");
+          setTimeout(() => {
+            router.push("/");
+          }, 2000);
+        }
       } else {
         // Try to show API error details if present
         let msg = "Something went wrong. Please try again.";
