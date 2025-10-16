@@ -22,6 +22,10 @@ export default function Services() {
   const { data: services = [], isLoading, refetch } = useGetServicesQuery();
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const itemsPerPage = 6;
+  
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -107,6 +111,16 @@ export default function Services() {
     }
   };
 
+  // Filter and paginate services
+  const filteredServices = services.filter((service: Service) =>
+    service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedServices = filteredServices.slice(startIndex, startIndex + itemsPerPage);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -116,19 +130,40 @@ export default function Services() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Services Management</h1>
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
-        >
-          <FaPlus /> Add Service
-        </button>
+    <div className="space-y-6">
+      {/* Header with Stats */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Services Management</h1>
+            <p className="text-gray-600 mt-1">{services.length} total services</p>
+          </div>
+          <button
+            onClick={handleCreate}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
+          >
+            <FaPlus /> Add New Service
+          </button>
+        </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <input
+          type="text"
+          placeholder="Search services by name or description..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // Reset to first page on search
+          }}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service: Service) => (
+        {paginatedServices.map((service: Service) => (
           <div key={service.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
             {service.image && (
               <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden">
@@ -173,14 +208,73 @@ export default function Services() {
         ))}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Previous
+          </button>
+          
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 rounded-lg transition ${
+                  currentPage === page
+                    ? "bg-blue-600 text-white font-semibold"
+                    : "bg-white border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Results Info */}
+      <div className="text-center text-sm text-gray-600">
+        Showing {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredServices.length)} of {filteredServices.length} services
+        {searchTerm && ` (filtered from ${services.length} total)`}
+      </div>
+
       {services.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-4">No services yet</p>
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+          <div className="text-6xl mb-4">📦</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No Services Yet</h3>
+          <p className="text-gray-500 mb-6">Create your first service to get started</p>
           <button
             onClick={handleCreate}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-lg"
           >
             Create Your First Service
+          </button>
+        </div>
+      )}
+
+      {filteredServices.length === 0 && services.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No Results Found</h3>
+          <p className="text-gray-500 mb-4">No services match your search &quot;{searchTerm}&quot;</p>
+          <button
+            onClick={() => setSearchTerm("")}
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-semibold"
+          >
+            Clear Search
           </button>
         </div>
       )}
