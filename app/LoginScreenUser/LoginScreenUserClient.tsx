@@ -15,6 +15,7 @@ import { fetchAboutUsData } from "@/useAPI/information";
 import { AboutUsData } from "@/useAPI/types";
 import { persistor } from "@/redux/store";
 import type { User as UserType } from "@/types/blog";
+import toast, { Toaster } from "react-hot-toast";
 
 const cardStyles = css`
   background: rgba(255, 255, 255, 0.82);
@@ -151,50 +152,84 @@ export default function LoginScreenUserClient() {
     setLoading(true);
 
     try {
+      console.log("Attempting login with:", { username, endpoint: `${baseAPI}/account/custom-login/` });
+      
       const res = await fetch(`${baseAPI}/account/custom-login/`, {
         method: "POST",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        headers: { 
+          Accept: "application/json", 
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ username, password }),
+        credentials: 'include', // Important for CORS
+        mode: 'cors', // Explicitly set CORS mode
       });
 
+      console.log("Login response status:", res.status, "OK:", res.ok);
+
       const resJson: UserType | ErrorResponse = await res.json();
+      console.log("Login response:", { status: res.status, hasUsername: "username" in resJson, data: resJson });
 
       if (res.status === 200 && "username" in resJson) {
         const user = resJson as UserType;
+        console.log("Login successful for user:", user.username);
+        
+        // Store user in Redux
         dispatch(loginUser(user));
         setUserRole(getRole(user));
+        
+        // Store user in localStorage
         if (typeof window !== "undefined") {
           localStorage.setItem("maindo_user", JSON.stringify(user));
         }
-        router.push(getRedirectPath(user));
+        
+        // Show success message
+        toast.success(`Welcome back, ${user.username}!`);
+        
+        // Redirect to appropriate dashboard
+        const redirectPath = getRedirectPath(user);
+        console.log("Redirecting to:", redirectPath);
+        
+        setTimeout(() => {
+          router.push(redirectPath);
+        }, 500);
       } else {
-        setError(
+        const errorMsg = 
           (resJson as ErrorResponse).detail ||
           (resJson as ErrorResponse).error ||
-          "Invalid credentials, please try again."
-        );
+          "Invalid credentials, please try again.";
+        console.error("Login error:", errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
-    } catch {
-      setError("Something went wrong. Please check your internet connection and try again.");
+    } catch (err: any) {
+      console.error("Login exception:", err);
+      const errorMsg = err?.message 
+        ? `Login failed: ${err.message}` 
+        : "Network error. Please check your connection and try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="w-full min-h-screen flex items-center justify-center px-4 py-10"
-      css={gradientStyles}
-      style={{
-        backgroundImage: headerData?.backgroundApp
-          ? `linear-gradient(112deg, rgba(27,47,79,0.80), rgba(255,255,255,0.35)), url(${headerData.backgroundApp})`
-          : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      {/* Loader Overlay */}
-      <AnimatePresence>
+    <>
+      <Toaster position="top-center" />
+      <div
+        className="w-full min-h-screen flex items-center justify-center px-4 py-10"
+        css={gradientStyles}
+        style={{
+          backgroundImage: headerData?.backgroundApp
+            ? `linear-gradient(112deg, rgba(27,47,79,0.80), rgba(255,255,255,0.35)), url(${headerData.backgroundApp})`
+            : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Loader Overlay */}
+        <AnimatePresence>
         {loading && (
           <motion.div
             className="fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-black/50"
@@ -360,6 +395,7 @@ export default function LoginScreenUserClient() {
           </div>
         </Transition>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 }
