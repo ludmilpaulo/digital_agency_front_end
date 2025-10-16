@@ -101,6 +101,32 @@ export default function ProposalClient() {
 
       const userData = await userResponse.json();
 
+      // Create a board for this service request
+      try {
+        const boardResponse = await fetch(`${baseAPI}/task/create-board-from-request/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userData.user_id,
+            user_name: form.name,
+            user_email: form.email,
+            service: form.service,
+            plan: selectedPlan.plan,
+            price: selectedPlan.price,
+            message: form.message,
+          }),
+          cache: "no-store",
+        });
+
+        if (boardResponse.ok) {
+          const boardData = await boardResponse.json();
+          console.log("Board created:", boardData);
+        }
+      } catch (boardError) {
+        console.error("Error creating board:", boardError);
+        // Continue even if board creation fails
+      }
+
       // Then submit the proposal
       const res = await fetch(`${baseAPI}/services/proposals/`, {
         method: "POST",
