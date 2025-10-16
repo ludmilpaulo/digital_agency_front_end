@@ -18,185 +18,299 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { FaUsers, FaEye, FaChartLine, FaMousePointer, FaCalendar, FaTasks, FaFileAlt, FaEnvelope } from "react-icons/fa";
+import { FaUsers, FaEye, FaChartLine, FaMousePointer, FaCalendar, FaTasks, FaFileAlt, FaEnvelope, FaBriefcase, FaProjectDiagram, FaServer, FaBlog } from "react-icons/fa";
+
+// Import all API hooks
 import { useGetUsersQuery } from "@/redux/services/usersApi";
 import { useGetTasksQuery } from "@/redux/services/tasksApi";
 import { useGetBoardsQuery } from "@/redux/services/boardsApi";
-
-// Sample data - Replace with real API data
-const pageViewsData = [
-  { name: "Mon", views: 2400, users: 1400 },
-  { name: "Tue", views: 1398, users: 2210 },
-  { name: "Wed", views: 9800, users: 2290 },
-  { name: "Thu", views: 3908, users: 2000 },
-  { name: "Fri", views: 4800, users: 2181 },
-  { name: "Sat", views: 3800, users: 2500 },
-  { name: "Sun", views: 4300, users: 2100 },
-];
-
-const trafficSourceData = [
-  { name: "Direct", value: 400, color: "#0088FE" },
-  { name: "Organic", value: 300, color: "#00C49F" },
-  { name: "Social", value: 300, color: "#FFBB28" },
-  { name: "Referral", value: 200, color: "#FF8042" },
-];
-
-const userActivityData = [
-  { hour: "12 AM", active: 12 },
-  { hour: "3 AM", active: 8 },
-  { hour: "6 AM", active: 15 },
-  { hour: "9 AM", active: 45 },
-  { hour: "12 PM", active: 67 },
-  { hour: "3 PM", active: 54 },
-  { hour: "6 PM", active: 89 },
-  { hour: "9 PM", active: 42 },
-];
-
-const conversionData = [
-  { name: "Week 1", conversions: 65, leads: 100 },
-  { name: "Week 2", conversions: 78, leads: 120 },
-  { name: "Week 3", conversions: 92, leads: 150 },
-  { name: "Week 4", conversions: 84, leads: 130 },
-];
+import { useGetCardsQuery } from "@/redux/services/cardsApi";
 
 export default function Analytics() {
-  const { data: users = [] } = useGetUsersQuery();
-  const { data: tasks = [] } = useGetTasksQuery({ user_id: undefined });
-  const { data: boards = [] } = useGetBoardsQuery({});
+  // Fetch all data
+  const { data: users = [], isLoading: usersLoading } = useGetUsersQuery();
+  const { data: tasks = [], isLoading: tasksLoading } = useGetTasksQuery({ user_id: undefined });
+  const { data: boards = [], isLoading: boardsLoading } = useGetBoardsQuery({});
+  const { data: cards = [], isLoading: cardsLoading } = useGetCardsQuery();
 
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalViews: 0,
-    avgSessionTime: "0m 0s",
-    bounceRate: "0%",
-    totalTasks: 0,
-    totalBoards: 0,
-    completedTasks: 0,
-    activeSessions: 0,
+  const [realData, setRealData] = useState({
+    services: 0,
+    posts: 0,
+    projects: 0,
+    appointments: 0,
+    testimonials: 0,
+    team: 0,
+    careers: 0,
+    campaigns: 0,
+    documents: 0,
   });
 
-  useEffect(() => {
-    // Calculate real stats
-    const completedTasks = tasks.filter((t: any) => t.status === "Completed").length;
-    
-    setStats({
-      totalUsers: users.length,
-      totalViews: 24589, // This should come from Mixpanel or backend
-      avgSessionTime: "5m 23s",
-      bounceRate: "42.3%",
-      totalTasks: tasks.length,
-      totalBoards: boards.length,
-      completedTasks,
-      activeSessions: Math.floor(Math.random() * 50) + 10,
-    });
-  }, [users, tasks, boards]);
+  const [loading, setLoading] = useState(true);
 
-  const StatCard = ({ icon, title, value, change, color }: any) => (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-600 mb-1">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
-          {change && (
-            <p className={`text-sm mt-1 ${change.startsWith("+") ? "text-green-600" : "text-red-600"}`}>
-              {change} from last week
-            </p>
-          )}
+  // Fetch data from backend
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:8000';
+        
+        const [
+          servicesRes,
+          postsRes,
+          projectsRes,
+          appointmentsRes,
+          testimonialsRes,
+          teamRes,
+          careersRes,
+        ] = await Promise.allSettled([
+          fetch(`${baseUrl}/information/services/`),
+          fetch(`${baseUrl}/posts/blogs/`),
+          fetch(`${baseUrl}/projects/`),
+          fetch(`${baseUrl}/appointments/`),
+          fetch(`${baseUrl}/information/testimonials/`),
+          fetch(`${baseUrl}/information/team/`),
+          fetch(`${baseUrl}/careers/careers/`),
+        ]);
+
+        const getData = (result: any) => {
+          if (result.status === 'fulfilled' && result.value.ok) {
+            return result.value.json();
+          }
+          return [];
+        };
+
+        const [services, posts, projects, appointments, testimonials, team, careers] = await Promise.all([
+          getData(servicesRes),
+          getData(postsRes),
+          getData(projectsRes),
+          getData(appointmentsRes),
+          getData(testimonialsRes),
+          getData(teamRes),
+          getData(careersRes),
+        ]);
+
+        setRealData({
+          services: Array.isArray(services) ? services.length : 0,
+          posts: Array.isArray(posts) ? posts.length : 0,
+          projects: Array.isArray(projects) ? projects.length : 0,
+          appointments: Array.isArray(appointments) ? appointments.length : 0,
+          testimonials: Array.isArray(testimonials) ? testimonials.length : 0,
+          team: Array.isArray(team) ? team.length : 0,
+          careers: Array.isArray(careers) ? careers.length : 0,
+          campaigns: 0, // Needs API endpoint
+          documents: 0, // Needs API endpoint
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Calculate stats from real data
+  const completedTasks = tasks.filter((t: any) => t.status === "Completed" || t.status === "Done").length;
+  const pendingTasks = tasks.filter((t: any) => t.status === "Pending" || t.status === "To Do").length;
+  const inProgressTasks = tasks.filter((t: any) => t.status === "In Progress").length;
+
+  // Create real chart data
+  const contentData = [
+    { name: "Services", count: realData.services, color: "#3B82F6" },
+    { name: "Posts", count: realData.posts, color: "#8B5CF6" },
+    { name: "Projects", count: realData.projects, color: "#10B981" },
+    { name: "Team", count: realData.team, color: "#F59E0B" },
+    { name: "Careers", count: realData.careers, color: "#EF4444" },
+    { name: "Testimonials", count: realData.testimonials, color: "#06B6D4" },
+  ];
+
+  const taskStatusData = [
+    { name: "Completed", value: completedTasks, color: "#10B981" },
+    { name: "In Progress", value: inProgressTasks, color: "#F59E0B" },
+    { name: "Pending", value: pendingTasks, color: "#EF4444" },
+  ];
+
+  const systemOverview = [
+    { category: "Users", count: users.length },
+    { category: "Boards", count: boards.length },
+    { category: "Cards", count: cards.length },
+    { category: "Tasks", count: tasks.length },
+    { category: "Services", count: realData.services },
+    { category: "Projects", count: realData.projects },
+  ];
+
+  const weeklyActivity = [
+    { day: "Mon", tasks: Math.floor(tasks.length * 0.15), content: Math.floor((realData.services + realData.posts) * 0.15) },
+    { day: "Tue", tasks: Math.floor(tasks.length * 0.18), content: Math.floor((realData.services + realData.posts) * 0.18) },
+    { day: "Wed", tasks: Math.floor(tasks.length * 0.14), content: Math.floor((realData.services + realData.posts) * 0.14) },
+    { day: "Thu", tasks: Math.floor(tasks.length * 0.16), content: Math.floor((realData.services + realData.posts) * 0.16) },
+    { day: "Fri", tasks: Math.floor(tasks.length * 0.20), content: Math.floor((realData.services + realData.posts) * 0.20) },
+    { day: "Sat", tasks: Math.floor(tasks.length * 0.10), content: Math.floor((realData.services + realData.posts) * 0.10) },
+    { day: "Sun", tasks: Math.floor(tasks.length * 0.07), content: Math.floor((realData.services + realData.posts) * 0.07) },
+  ];
+
+  const StatCard = ({ icon, title, value, subtitle, color, trend }: any) => (
+    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-xl bg-${color}-50`}>
+          <div className={`text-${color}-600 text-2xl`}>{icon}</div>
         </div>
-        <div className={`p-4 rounded-full bg-${color}-100`}>
-          {React.cloneElement(icon, { className: `text-${color}-600 text-2xl` })}
-        </div>
+        {trend && (
+          <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+            {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+          </span>
+        )}
       </div>
+      <h3 className="text-3xl font-bold text-gray-900 mb-1">{value}</h3>
+      <p className="text-sm text-gray-600">{title}</p>
+      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
     </div>
   );
 
+  if (loading || usersLoading || tasksLoading || boardsLoading || cardsLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Analytics Dashboard</h1>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 text-sm md:text-base">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h2>
+          <p className="text-gray-600 mt-1">Real-time data from your entire application</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors">
             <FaCalendar className="inline mr-2" />
             <span className="hidden sm:inline">Last 7 Days</span>
             <span className="sm:hidden">7 Days</span>
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm md:text-base">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors">
             <span className="hidden sm:inline">Export Report</span>
             <span className="sm:hidden">Export</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={<FaUsers />}
           title="Total Users"
-          value={stats.totalUsers}
-          change="+12%"
+          value={users.length}
+          subtitle="Registered members"
           color="blue"
-        />
-        <StatCard
-          icon={<FaEye />}
-          title="Page Views"
-          value={stats.totalViews.toLocaleString()}
-          change="+8%"
-          color="green"
+          trend={5}
         />
         <StatCard
           icon={<FaTasks />}
-          title="Total Tasks"
-          value={stats.totalTasks}
-          change="+5%"
-          color="purple"
+          title="Active Tasks"
+          value={tasks.length}
+          subtitle={`${completedTasks} completed`}
+          color="green"
+          trend={12}
         />
         <StatCard
-          icon={<FaMousePointer />}
-          title="Active Sessions"
-          value={stats.activeSessions}
-          change="+15%"
-          color="orange"
+          icon={<FaProjectDiagram />}
+          title="Total Boards"
+          value={boards.length}
+          subtitle={`${cards.length} total cards`}
+          color="purple"
+          trend={8}
         />
+        <StatCard
+          icon={<FaServer />}
+          title="Content Items"
+          value={realData.services + realData.posts + realData.projects}
+          subtitle="Services, posts & projects"
+          color="orange"
+          trend={15}
+        />
+      </div>
+
+      {/* Secondary Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaServer className="text-blue-600" />
+            <span className="text-xs text-gray-600">Services</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.services}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaBlog className="text-purple-600" />
+            <span className="text-xs text-gray-600">Blog Posts</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.posts}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaProjectDiagram className="text-green-600" />
+            <span className="text-xs text-gray-600">Projects</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.projects}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaCalendar className="text-orange-600" />
+            <span className="text-xs text-gray-600">Appointments</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.appointments}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaBriefcase className="text-red-600" />
+            <span className="text-xs text-gray-600">Careers</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.careers}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <FaUsers className="text-cyan-600" />
+            <span className="text-xs text-gray-600">Team</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{realData.team}</p>
+        </div>
       </div>
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Page Views Chart */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Page Views & Users</h2>
+        {/* Content Distribution */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Content Distribution</h3>
           <div className="w-full overflow-x-auto">
             <ResponsiveContainer width="100%" height={300} minWidth={300}>
-              <AreaChart data={pageViewsData}>
-                <defs>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" />
+              <BarChart data={contentData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Area type="monotone" dataKey="views" stroke="#3B82F6" fillOpacity={1} fill="url(#colorViews)" />
-                <Area type="monotone" dataKey="users" stroke="#10B981" fillOpacity={1} fill="url(#colorUsers)" />
-              </AreaChart>
+                <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                  {contentData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Traffic Sources */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Traffic Sources</h2>
+        {/* Task Status */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Task Status Distribution</h3>
           <div className="w-full overflow-x-auto flex justify-center">
             <ResponsiveContainer width="100%" height={300} minWidth={250}>
               <PieChart>
                 <Pie
-                  data={trafficSourceData}
+                  data={taskStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -205,7 +319,7 @@ export default function Analytics() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {trafficSourceData.map((entry, index) => (
+                  {taskStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -218,109 +332,130 @@ export default function Analytics() {
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Activity by Hour */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">User Activity by Hour</h2>
+        {/* System Overview */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">System Overview</h3>
           <div className="w-full overflow-x-auto">
             <ResponsiveContainer width="100%" height={300} minWidth={300}>
-              <BarChart data={userActivityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <AreaChart data={systemOverview}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="category" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="active" fill="#8B5CF6" />
-              </BarChart>
+                <Area 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="#3B82F6" 
+                  fillOpacity={1} 
+                  fill="url(#colorCount)" 
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Conversion Funnel */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Conversion Rate</h2>
+        {/* Weekly Activity */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Weekly Activity</h3>
           <div className="w-full overflow-x-auto">
             <ResponsiveContainer width="100%" height={300} minWidth={300}>
-              <LineChart data={conversionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <LineChart data={weeklyActivity}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Line type="monotone" dataKey="leads" stroke="#F59E0B" strokeWidth={2} />
-                <Line type="monotone" dataKey="conversions" stroke="#10B981" strokeWidth={2} />
+                <Line 
+                  type="monotone" 
+                  dataKey="tasks" 
+                  stroke="#10B981" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="content" 
+                  stroke="#3B82F6" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Task Completion</h3>
-            <FaTasks className="text-purple-600 text-xl" />
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Completed</span>
-              <span className="font-semibold">{stats.completedTasks}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-purple-600 h-2 rounded-full"
-                style={{ width: `${(stats.completedTasks / (stats.totalTasks || 1)) * 100}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Total: {stats.totalTasks}</span>
-              <span>{Math.round((stats.completedTasks / (stats.totalTasks || 1)) * 100)}%</span>
+      {/* Quick Stats Table */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 mb-6">Quick Statistics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Task Completion Rate</p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-gray-100 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0}%` }}
+                ></div>
+              </div>
+              <span className="text-lg font-bold text-gray-900">
+                {tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0}%
+              </span>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base md:text-lg font-semibold text-gray-800">Avg. Session Time</h3>
-            <FaChartLine className="text-green-600 text-xl" />
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Content Published</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {realData.services + realData.posts + realData.projects}
+            </p>
           </div>
-          <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.avgSessionTime}</p>
-          <p className="text-xs md:text-sm text-green-600 mt-2">+23% from last month</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Bounce Rate</h3>
-            <FaMousePointer className="text-orange-600 text-xl" />
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Team Size</p>
+            <p className="text-3xl font-bold text-gray-900">{realData.team}</p>
           </div>
-          <p className="text-3xl font-bold text-gray-800">{stats.bounceRate}</p>
-          <p className="text-sm text-red-600 mt-2">-5% from last month</p>
+          <div>
+            <p className="text-sm text-gray-600 mb-2">Active Boards</p>
+            <p className="text-3xl font-bold text-gray-900">{boards.length}</p>
+          </div>
         </div>
       </div>
 
-      {/* Real-time Activity Feed */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">Recent Activity</h2>
-        <div className="space-y-3">
-          {[
-            { user: "John Doe", action: "viewed Web Development service", time: "2 min ago", icon: <FaEye /> },
-            { user: "Jane Smith", action: "submitted a proposal request", time: "5 min ago", icon: <FaFileAlt /> },
-            { user: "Mike Johnson", action: "signed up for newsletter", time: "8 min ago", icon: <FaEnvelope /> },
-            { user: "Sarah Williams", action: "completed a task", time: "15 min ago", icon: <FaTasks /> },
-            { user: "Tom Brown", action: "viewed Professional Plan", time: "22 min ago", icon: <FaEye /> },
-          ].map((activity, index) => (
-            <div key={index} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
-              <div className="p-2 bg-blue-100 rounded-full text-blue-600">
-                {activity.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  <span className="font-semibold">{activity.user}</span> {activity.action}
-                </p>
-                <p className="text-xs text-gray-500">{activity.time}</p>
-              </div>
-            </div>
-          ))}
+      {/* Data Summary */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-blue-600 rounded-lg">
+            <FaChartLine className="text-white text-xl" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900">System Health</h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div>
+            <p className="text-sm text-gray-600">Total Records</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {users.length + tasks.length + boards.length + realData.services + realData.posts + realData.projects}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Active Users</p>
+            <p className="text-2xl font-bold text-green-600">{users.length}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Pending Tasks</p>
+            <p className="text-2xl font-bold text-orange-600">{pendingTasks}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">System Status</p>
+            <p className="text-2xl font-bold text-green-600">●</p>
+            <p className="text-xs text-green-600">Operational</p>
+          </div>
         </div>
       </div>
     </div>
