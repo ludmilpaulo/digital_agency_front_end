@@ -26,6 +26,10 @@ const Analytics = dynamic(() => import("./Analytics"), { ssr: false });
 const Services = dynamic(() => import("./Services"), { ssr: false });
 const Posts = dynamic(() => import("./Posts"), { ssr: false });
 const Appointments = dynamic(() => import("./Appointments"), { ssr: false });
+const Projects = dynamic(() => import("./Projects"), { ssr: false });
+const Testimonials = dynamic(() => import("./Testimonials"), { ssr: false });
+const Team = dynamic(() => import("./Team"), { ssr: false });
+const Solutions = dynamic(() => import("./Solutions"), { ssr: false });
 
 // RTK Query hooks
 import { useGetBoardsQuery } from "@/redux/services/boardsApi";
@@ -135,6 +139,10 @@ export default function AdminPage() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="solutions">Solutions</TabsTrigger>
+            <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="boards">Boards</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
@@ -154,6 +162,18 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="posts">
             <Posts />
+          </TabsContent>
+          <TabsContent value="projects">
+            <Projects />
+          </TabsContent>
+          <TabsContent value="solutions">
+            <Solutions />
+          </TabsContent>
+          <TabsContent value="testimonials">
+            <Testimonials />
+          </TabsContent>
+          <TabsContent value="team">
+            <Team />
           </TabsContent>
           <TabsContent value="appointments">
             <Appointments />

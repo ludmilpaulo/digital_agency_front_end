@@ -14,6 +14,10 @@ import {
   FaServer,
   FaBlog,
   FaCalendar,
+  FaProjectDiagram,
+  FaLightbulb,
+  FaQuoteLeft,
+  FaUserFriends,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/slices/authSlice";
@@ -112,6 +116,46 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
           active={tab === "posts"}
           onClick={() => {
             setTab("posts");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaProjectDiagram />}
+          label="Projects"
+          value="projects"
+          active={tab === "projects"}
+          onClick={() => {
+            setTab("projects");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaLightbulb />}
+          label="Solutions"
+          value="solutions"
+          active={tab === "solutions"}
+          onClick={() => {
+            setTab("solutions");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaQuoteLeft />}
+          label="Testimonials"
+          value="testimonials"
+          active={tab === "testimonials"}
+          onClick={() => {
+            setTab("testimonials");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaUserFriends />}
+          label="Team"
+          value="team"
+          active={tab === "team"}
+          onClick={() => {
+            setTab("team");
             onClose?.();
           }}
         />
