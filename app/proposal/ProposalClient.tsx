@@ -95,7 +95,7 @@ export default function ProposalClient() {
     
     try {
       // First, create user account and send credentials
-      const userResponse = await fetch(`${baseAPI}/accounts/auto-create-user/`, {
+      const userResponse = await fetch(`${baseAPI}/account/auto-create-user/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

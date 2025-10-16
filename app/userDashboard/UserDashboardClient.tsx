@@ -212,7 +212,7 @@ export default function UserDashboardClient() {
     }
 
     try {
-      const response = await fetch(`${baseAPI}/accounts/change-password/`, {
+      const response = await fetch(`${baseAPI}/account/change-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
