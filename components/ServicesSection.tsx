@@ -99,7 +99,7 @@ export default function ServicesSection() {
                 ))}
               </ul>
               <Link
-                href="/appointment"
+                href={`/proposal?service=Website Development&plan=${encodeURIComponent(pkg.name)}&price=${encodeURIComponent(pkg.price)}`}
                 className={`px-5 py-2 rounded-full font-bold text-white transition-all shadow-lg ${
                   pkg.popular
                     ? "bg-blue-600 hover:bg-blue-700"

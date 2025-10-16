@@ -11,6 +11,9 @@ import {
   FaBriefcase,
   FaTimes,
   FaChartBar,
+  FaServer,
+  FaBlog,
+  FaCalendar,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/slices/authSlice";
@@ -89,6 +92,36 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
           active={tab === "analytics"}
           onClick={() => {
             setTab("analytics");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaServer />}
+          label="Services"
+          value="services"
+          active={tab === "services"}
+          onClick={() => {
+            setTab("services");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaBlog />}
+          label="Posts"
+          value="posts"
+          active={tab === "posts"}
+          onClick={() => {
+            setTab("posts");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaCalendar />}
+          label="Appointments"
+          value="appointments"
+          active={tab === "appointments"}
+          onClick={() => {
+            setTab("appointments");
             onClose?.();
           }}
         />
