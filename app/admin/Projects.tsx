@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaEye, FaImage } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaImage, FaSearch } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import AdminPagination from "@/components/AdminPagination";
 
 interface Project {
   id: number;
@@ -24,6 +25,10 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -128,6 +133,21 @@ export default function Projects() {
     }
   };
 
+  // Filter and paginate projects
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || project.status.toLowerCase() === filterStatus.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalItems = filteredProjects.length;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -137,19 +157,58 @@ export default function Projects() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Projects Management</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Projects</h1>
+          <p className="text-sm text-gray-600 mt-1">Manage your portfolio projects</p>
+        </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 justify-center sm:justify-start shadow-lg hover:shadow-xl"
         >
           <FaPlus /> New Project
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project) => (
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search projects by title, description, or client..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="on hold">On Hold</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Projects Grid */}
+      {filteredProjects.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {paginatedProjects.map((project) => (
           <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
             {project.image && (
               <div className="relative w-full h-48">
@@ -203,19 +262,62 @@ export default function Projects() {
                 >
                   <FaTrash />
                 </button>
+                </div>
               </div>
             </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {projects.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+          {/* Pagination */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <AdminPagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+          {searchTerm || filterStatus !== "all" ? (
+            <>
+              <FaImage className="text-gray-300 text-6xl mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Projects Found</h3>
+              <p className="text-sm text-gray-400 mb-4">Try adjusting your search or filter</p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterStatus("all");
+                }}
+                className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              >
+                Clear filters
+              </button>
+            </>
+          ) : (
+            <>
+              <FaImage className="text-gray-300 text-6xl mx-auto mb-4" />
+              <p className="text-lg text-gray-500 mb-4">No projects yet</p>
+              <button
+                onClick={handleCreate}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
+              >
+                Create Your First Project
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {projects.length === 0 && !loading && (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
           <FaImage className="text-gray-300 text-6xl mx-auto mb-4" />
           <p className="text-lg text-gray-500 mb-4">No projects yet</p>
           <button
             onClick={handleCreate}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
           >
             Create Your First Project
           </button>
@@ -224,9 +326,9 @@ export default function Projects() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto my-4 shadow-2xl">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
               {editingProject ? "Edit Project" : "Create New Project"}
             </h2>
 
@@ -307,10 +409,10 @@ export default function Projects() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-lg hover:shadow-xl"
                 >
                   {editingProject ? "Update Project" : "Create Project"}
                 </button>
