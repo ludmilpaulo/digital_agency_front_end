@@ -113,11 +113,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-blue-50 relative">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative">
       {/* Mobile Hamburger */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-30 bg-blue-900 text-white p-3 rounded-full shadow-md"
+        className="md:hidden fixed top-4 left-4 z-30 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
         aria-label="Open sidebar"
         type="button"
       >
@@ -134,8 +134,32 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="flex-1 p-3 pt-20 md:pt-10 md:p-10 transition-all w-full max-w-full">
+        {/* Welcome Header */}
+        <div className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-blue-100">Welcome back, {user?.username}! Here&apos;s your overview.</p>
+            </div>
+            <div className="hidden md:flex gap-3">
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold">{boards.length}</p>
+                <p className="text-xs text-blue-100">Boards</p>
+              </div>
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold">{users.length}</p>
+                <p className="text-xs text-blue-100">Users</p>
+              </div>
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold">{myTasks.length}</p>
+                <p className="text-xs text-blue-100">Tasks</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="mb-4 gap-2 overflow-x-auto">
+          <TabsList className="mb-6 gap-2 overflow-x-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-blue-100">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>

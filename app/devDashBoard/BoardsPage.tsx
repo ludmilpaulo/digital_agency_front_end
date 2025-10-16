@@ -77,53 +77,75 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-100">
       {/* Header */}
-      <div className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Developer Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-600">Manage your projects and tasks</p>
+              <h1 className="text-4xl font-bold text-white drop-shadow-lg flex items-center gap-3">
+                <span className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FaTasks className="text-3xl" />
+                </span>
+                Developer Dashboard
+              </h1>
+              <p className="mt-2 text-lg text-purple-100">Manage your projects and track progress</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={() => router.push("/admin")}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all border border-white/30 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
-                Admin Dashboard
+                <FaChartBar />
+                Admin Panel
               </button>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-blue-50 rounded-lg p-4 flex items-center">
-              <FaTasks className="text-blue-600 text-2xl mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Total Boards</p>
-                <p className="text-2xl font-bold text-gray-900">{boards.length}</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-blue-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium mb-1">Total Boards</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{boards.length}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaTasks className="text-3xl text-blue-600" />
+                </div>
               </div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 flex items-center">
-              <FaChartBar className="text-green-600 text-2xl mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Active Projects</p>
-                <p className="text-2xl font-bold text-gray-900">{boards.filter(b => b.name).length}</p>
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-green-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium mb-1">Active Projects</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{boards.filter(b => b.name).length}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaChartBar className="text-3xl text-green-600" />
+                </div>
               </div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4 flex items-center">
-              <FaUsers className="text-purple-600 text-2xl mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Team Members</p>
-                <p className="text-2xl font-bold text-gray-900">-</p>
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-purple-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium mb-1">Team Members</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">-</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaUsers className="text-3xl text-purple-600" />
+                </div>
               </div>
             </div>
-            <div className="bg-orange-50 rounded-lg p-4 flex items-center">
-              <FaTasks className="text-orange-600 text-2xl mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Tasks</p>
-                <p className="text-2xl font-bold text-gray-900">-</p>
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-orange-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium mb-1">Total Tasks</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">-</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaTasks className="text-3xl text-orange-600" />
+                </div>
               </div>
             </div>
           </div>
@@ -133,40 +155,40 @@ export default function BoardsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Add Board Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Create New Board</h2>
-          <div className="flex gap-3">
-        <input
-          value={newBoard}
-          onChange={(e) => setNewBoard(e.target.value)}
+        <div className="bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-xl p-8 mb-8 border border-blue-100">
+          <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Create New Board</h2>
+          <div className="flex gap-4">
+            <input
+              value={newBoard}
+              onChange={(e) => setNewBoard(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter board name..."
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border-2 border-blue-200 rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
             />
             <button 
               onClick={addBoard} 
               disabled={!newBoard.trim()}
-              className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl font-semibold"
             >
               <FaPlus /> Add Board
-        </button>
+            </button>
           </div>
-          {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
-      </div>
+          {error && <p className="text-red-600 mt-3 text-sm font-medium">{error}</p>}
+        </div>
 
         {/* View Toggle */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Your Boards</h2>
-          <div className="flex gap-2">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">Your Boards</h2>
+          <div className="flex gap-2 bg-white rounded-xl p-1 shadow-md">
             <button
               onClick={() => setView("grid")}
-              className={`px-4 py-2 rounded-lg ${view === "grid" ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}
+              className={`px-6 py-2 rounded-lg transition-all font-medium ${view === "grid" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" : "text-gray-700 hover:bg-gray-100"}`}
             >
               Grid
             </button>
             <button
               onClick={() => setView("list")}
-              className={`px-4 py-2 rounded-lg ${view === "list" ? "bg-blue-600 text-white" : "bg-white text-gray-700"}`}
+              className={`px-6 py-2 rounded-lg transition-all font-medium ${view === "list" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" : "text-gray-700 hover:bg-gray-100"}`}
             >
               List
             </button>
@@ -175,39 +197,53 @@ export default function BoardsPage() {
 
         {/* Boards Display */}
         {boards.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <FaTasks className="text-gray-300 text-6xl mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No boards yet</h3>
-            <p className="text-gray-500">Create your first board to get started!</p>
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-16 text-center border border-gray-200">
+            <div className="p-6 bg-gradient-to-br from-gray-100 to-blue-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <FaTasks className="text-gray-400 text-5xl" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">No boards yet</h3>
+            <p className="text-gray-600 mb-6">Create your first board to start organizing your projects!</p>
+            <button
+              onClick={handleCreate}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all font-semibold"
+            >
+              Create First Board
+            </button>
           </div>
         ) : (
-          <div className={view === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
+          <div className={view === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
             {boards.map((board) => (
               <div 
                 key={board.id} 
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-gradient-to-br from-white to-gray-50/50 border-2 border-blue-100 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group hover:border-blue-300 hover:scale-105"
                 onClick={() => setSelectedBoard(board)}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{board.name}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{board.name}</h3>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteBoard(board.id);
                     }}
-                    className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded border border-red-300 hover:border-red-500"
+                    className="text-red-500 hover:text-white hover:bg-red-500 text-sm px-4 py-2 rounded-lg border border-red-300 hover:border-red-500 transition-all"
                   >
                     Delete
                   </button>
                 </div>
                 {board.description && (
-                  <p className="text-gray-600 text-sm">{board.description}</p>
+                  <p className="text-gray-600 text-sm mb-4">{board.description}</p>
                 )}
-                <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                  <span>Created: {new Date(board.created_at || Date.now()).toLocaleDateString()}</span>
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <span className="text-gray-500 flex items-center gap-2">
+                    <FaCalendar className="text-blue-500" />
+                    {new Date(board.created_at || Date.now()).toLocaleDateString()}
+                  </span>
+                  <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-xs font-semibold">
+                    Active
+                  </span>
                 </div>
-          </div>
-        ))}
+              </div>
+            ))}
           </div>
         )}
 

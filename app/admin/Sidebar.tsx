@@ -40,13 +40,13 @@ function SidebarLink({ icon, label, value, active, onClick }: SidebarLinkProps) 
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full transition
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200 group
         ${active
-          ? "bg-blue-700 font-bold shadow text-white"
-          : "hover:bg-blue-700 hover:text-white text-blue-200"}`}
+          ? "bg-gradient-to-r from-blue-500 to-indigo-500 font-semibold shadow-lg text-white scale-105"
+          : "hover:bg-white/10 hover:translate-x-1 text-blue-100 hover:text-white"}`}
     >
-      <span className="text-lg">{icon}</span>
-      <span>{label}</span>
+      <span className={`text-xl transition-transform ${active ? "" : "group-hover:scale-110"}`}>{icon}</span>
+      <span className="font-medium">{label}</span>
     </button>
   );
 }
@@ -65,8 +65,8 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
 
   // Responsive classes: left-0 when open, -left-64 when closed
   const sidebarClass =
-    "fixed md:static z-30 md:z-0 top-0 left-0 h-full md:h-screen bg-gradient-to-b from-blue-900 to-blue-800 text-white shadow-lg flex flex-col py-8 px-4 w-64 transition-all duration-300" +
-    (open ? " left-0" : " -left-64") +
+    "fixed md:static z-30 md:z-0 top-0 left-0 h-full md:h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-indigo-900 text-white shadow-2xl flex flex-col py-8 px-4 w-72 transition-all duration-300 border-r border-blue-800/50" +
+    (open ? " left-0" : " -left-72") +
     " md:left-0";
 
   return (
@@ -81,11 +81,16 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
         <FaTimes size={22} />
       </button>
 
-      <div className="text-2xl font-extrabold tracking-wide mb-10 flex items-center gap-2 mt-2 md:mt-0">
-        <FaColumns className="text-blue-300" />
-        <h2 className="text-2xl font-extrabold text-blue-100">
-          Welcome, {user?.username}!
-        </h2>
+      <div className="mb-8 mt-2 md:mt-0">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-3 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-xl">
+            <FaColumns className="text-white text-2xl" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white">Admin Panel</h2>
+            <p className="text-xs text-blue-300">Maindo Digital</p>
+          </div>
+        </div>
       </div>
 
       <nav className="flex flex-col gap-2 mt-3">
@@ -254,18 +259,24 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
       <div className="flex-grow" />
 
       {user && (
-        <div className="flex items-center gap-3 bg-blue-950 bg-opacity-80 rounded-xl px-3 py-3 mt-8 mb-2 shadow-lg">
-          <div className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center text-xl font-bold text-white border-2 border-blue-700 shadow">
+        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-sm border border-blue-400/30 rounded-xl px-4 py-3 mt-8 mb-2 shadow-lg hover:shadow-xl transition-all">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center text-xl font-bold text-white shadow-lg">
             {getInitials(user.username)}
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-white leading-tight">{user.username}</span>
-            <span className="text-xs text-blue-200 font-medium">{mainRole}</span>
+            <span className="text-xs text-blue-300 font-medium flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              {mainRole}
+            </span>
           </div>
         </div>
       )}
 
-      <div className="text-xs text-blue-200 mt-6 pl-2">v1.0.0</div>
+      <div className="text-xs text-blue-300 mt-6 pl-2 flex items-center justify-between">
+        <span>v1.0.0</span>
+        <span className="text-blue-400">Maindo</span>
+      </div>
     </aside>
   );
 }

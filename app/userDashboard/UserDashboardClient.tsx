@@ -178,77 +178,94 @@ export default function UserDashboardClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {profile.avatar ? (
-                <Image
-                  src={profile.avatar}
-                  alt={profile.name}
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
+                <div className="relative">
+                  <Image
+                    src={profile.avatar}
+                    alt={profile.name}
+                    width={80}
+                    height={80}
+                    className="rounded-full border-4 border-white shadow-xl"
+                  />
+                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+                </div>
               ) : (
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {profile.name.charAt(0).toUpperCase()}
+                <div className="relative">
+                  <div className="w-20 h-20 bg-gradient-to-br from-white to-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold shadow-xl border-4 border-white">
+                    {profile.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Welcome back, {profile.name}!</h1>
-                <p className="text-sm text-gray-600">{profile.email}</p>
+                <h1 className="text-3xl font-bold text-white drop-shadow-lg">Welcome back, {profile.name}!</h1>
+                <p className="text-sm text-blue-100 flex items-center gap-2 mt-1">
+                  <FaEnvelope className="text-xs" />
+                  {profile.email}
+                </p>
               </div>
             </div>
             <button
               onClick={() => setActiveTab("profile")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+              className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all flex items-center gap-2 border border-white/30 shadow-lg hover:shadow-xl"
             >
               <FaCog /> Settings
             </button>
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-blue-200/50 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Active Projects</p>
-                  <p className="text-3xl font-bold">{projects.length}</p>
+                  <p className="text-gray-600 text-sm font-medium mb-1">Active Projects</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{projects.length}</p>
                 </div>
-                <FaProjectDiagram className="text-4xl opacity-80" />
+                <div className="p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaProjectDiagram className="text-3xl text-blue-600" />
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-green-200/50 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm">Pending Tasks</p>
-                  <p className="text-3xl font-bold">{tasks.filter(t => t.status !== "Completed").length}</p>
+                  <p className="text-gray-600 text-sm font-medium mb-1">Pending Tasks</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{tasks.filter(t => t.status !== "Completed").length}</p>
                 </div>
-                <FaTasks className="text-4xl opacity-80" />
+                <div className="p-4 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaTasks className="text-3xl text-green-600" />
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-purple-200/50 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Appointments</p>
-                  <p className="text-3xl font-bold">{appointments.length}</p>
+                  <p className="text-gray-600 text-sm font-medium mb-1">Appointments</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{appointments.length}</p>
                 </div>
-                <FaCalendar className="text-4xl opacity-80" />
+                <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaCalendar className="text-3xl text-purple-600" />
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-orange-200/50 group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Proposals</p>
-                  <p className="text-3xl font-bold">{proposals.length}</p>
+                  <p className="text-gray-600 text-sm font-medium mb-1">Proposals</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{proposals.length}</p>
                 </div>
-                <FaFileAlt className="text-4xl opacity-80" />
+                <div className="p-4 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl group-hover:scale-110 transition-transform">
+                  <FaFileAlt className="text-3xl text-orange-600" />
+                </div>
               </div>
             </div>
           </div>
@@ -258,14 +275,14 @@ export default function UserDashboardClient() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+        <div className="mb-8 flex gap-3 overflow-x-auto pb-2">
           {[
-            { id: "overview", label: "Overview", icon: <FaChartLine /> },
-            { id: "projects", label: "My Projects", icon: <FaProjectDiagram /> },
-            { id: "tasks", label: "My Tasks", icon: <FaTasks /> },
-            { id: "appointments", label: "Appointments", icon: <FaCalendar /> },
-            { id: "proposals", label: "Proposals", icon: <FaFileAlt /> },
-            { id: "profile", label: "Profile", icon: <FaUser /> },
+            { id: "overview", label: "Overview", icon: <FaChartLine />, gradient: "from-blue-500 to-indigo-500" },
+            { id: "projects", label: "My Projects", icon: <FaProjectDiagram />, gradient: "from-purple-500 to-pink-500" },
+            { id: "tasks", label: "My Tasks", icon: <FaTasks />, gradient: "from-green-500 to-emerald-500" },
+            { id: "appointments", label: "Appointments", icon: <FaCalendar />, gradient: "from-orange-500 to-red-500" },
+            { id: "proposals", label: "Proposals", icon: <FaFileAlt />, gradient: "from-cyan-500 to-blue-500" },
+            { id: "profile", label: "Profile", icon: <FaUser />, gradient: "from-gray-500 to-slate-500" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -273,13 +290,13 @@ export default function UserDashboardClient() {
                 setActiveTab(tab.id);
                 trackEvent("Dashboard Tab Changed", { tab: tab.id });
               }}
-              className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 whitespace-nowrap ${
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg ${
                 activeTab === tab.id
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
+                  ? `bg-gradient-to-r ${tab.gradient} text-white scale-105 shadow-xl`
+                  : "bg-white text-gray-700 hover:bg-gray-50 hover:scale-105"
               }`}
             >
-              {tab.icon}
+              <span className="text-lg">{tab.icon}</span>
               {tab.label}
             </button>
           ))}
