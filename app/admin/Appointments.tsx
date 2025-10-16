@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaCalendar, FaCheck, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaCalendar, FaCheck, FaTimes, FaSearch } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import toast from "react-hot-toast";
+import AdminPagination from "@/components/AdminPagination";
 
 interface Appointment {
   id: number;
@@ -21,6 +22,10 @@ export default function Appointments() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [formData, setFormData] = useState({
     service: "",
     date: "",
@@ -139,6 +144,20 @@ export default function Appointments() {
     }
   };
 
+  // Filter and paginate appointments
+  const filteredAppointments = appointments.filter((appointment) => {
+    const matchesSearch =
+      appointment.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.notes?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || appointment.status.toLowerCase() === filterStatus.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalItems = filteredAppointments.length;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAppointments = filteredAppointments.slice(startIndex, endIndex);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -148,70 +167,153 @@ export default function Appointments() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Appointments Management</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Appointments</h1>
+          <p className="text-sm text-gray-600 mt-1">Manage client appointments and meetings</p>
+        </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 justify-center sm:justify-start shadow-lg hover:shadow-xl"
         >
           <FaPlus /> New Appointment
         </button>
       </div>
 
-      {/* Appointments Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {appointments.map((appointment) => (
-          <div key={appointment.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FaCalendar className="text-purple-600 text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">{appointment.service}</h3>
-                  <p className="text-sm text-gray-600">
-                    {new Date(appointment.date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
-                {appointment.status}
-              </span>
-            </div>
-
-            <div className="space-y-2 mb-4 text-sm text-gray-600">
-              <p><strong>Time:</strong> {appointment.time}</p>
-              {appointment.notes && (
-                <p><strong>Notes:</strong> {appointment.notes}</p>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(appointment)}
-                className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2"
-              >
-                <FaEdit /> Edit
-              </button>
-              <button
-                onClick={() => handleDelete(appointment.id, appointment.service)}
-                className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
-              >
-                <FaTrash />
-              </button>
-            </div>
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search appointments by service or notes..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
-        ))}
+          <select
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            <option value="all">All Status</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rescheduled">Rescheduled</option>
+          </select>
+        </div>
       </div>
 
-      {appointments.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+      {/* Appointments Grid */}
+      {filteredAppointments.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {paginatedAppointments.map((appointment) => (
+              <div key={appointment.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-lg transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
+                      <FaCalendar className="text-purple-600 text-xl" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-gray-900 truncate">{appointment.service}</h3>
+                      <p className="text-sm text-gray-600">
+                        {new Date(appointment.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)} whitespace-nowrap`}>
+                    {appointment.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-4 text-sm text-gray-600">
+                  <p><strong>Time:</strong> {appointment.time}</p>
+                  {appointment.notes && (
+                    <p className="line-clamp-2"><strong>Notes:</strong> {appointment.notes}</p>
+                  )}
+                </div>
+
+                <div className="flex gap-2 border-t border-gray-200 pt-4">
+                  <button
+                    onClick={() => handleEdit(appointment)}
+                    className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2 font-medium"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(appointment.id, appointment.service)}
+                    className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <AdminPagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+          {searchTerm || filterStatus !== "all" ? (
+            <>
+              <FaCalendar className="text-gray-300 text-6xl mx-auto mb-4" />
+              <p className="text-lg text-gray-500 mb-2">No appointments found</p>
+              <p className="text-sm text-gray-400 mb-4">Try adjusting your search or filter</p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterStatus("all");
+                }}
+                className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              >
+                Clear filters
+              </button>
+            </>
+          ) : (
+            <>
+              <FaCalendar className="text-gray-300 text-6xl mx-auto mb-4" />
+              <p className="text-lg text-gray-500 mb-4">No appointments yet</p>
+              <button
+                onClick={handleCreate}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
+              >
+                Schedule First Appointment
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {appointments.length === 0 && !loading && (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
           <FaCalendar className="text-gray-300 text-6xl mx-auto mb-4" />
           <p className="text-lg text-gray-500 mb-4">No appointments yet</p>
           <button
             onClick={handleCreate}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
           >
             Schedule First Appointment
           </button>
@@ -220,9 +322,9 @@ export default function Appointments() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto my-4 shadow-2xl">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
               {editingAppointment ? "Edit Appointment" : "Create New Appointment"}
             </h2>
 
@@ -239,7 +341,7 @@ export default function Appointments() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Date *</label>
                   <input
@@ -289,10 +391,10 @@ export default function Appointments() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-lg hover:shadow-xl"
                 >
                   {editingAppointment ? "Update Appointment" : "Create Appointment"}
                 </button>
