@@ -90,6 +90,9 @@ export default function ProposalClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    
+    let userData: any = { success: false };
+    
     try {
       // First, create user account and send credentials
       const userResponse = await fetch(`${baseAPI}/accounts/auto-create-user/`, {
@@ -99,7 +102,12 @@ export default function ProposalClient() {
         cache: "no-store",
       });
 
-      const userData = await userResponse.json();
+      if (userResponse.ok) {
+        userData = await userResponse.json();
+      } else {
+        console.warn("Auto-create user failed, continuing with proposal submission");
+        userData = { success: false };
+      }
 
       // Create a board for this service request
       try {
