@@ -37,7 +37,7 @@ export default function AdminPage() {
   const router = useRouter();
   const user = useSelector(selectUser);
 
-  const [tab, setTab] = useState("boards");
+  const [tab, setTab] = useState("analytics");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authed, setAuthed] = useState(false);

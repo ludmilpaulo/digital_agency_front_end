@@ -7,7 +7,7 @@ import { SocialIcon } from "react-social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import {
-  FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaTachometerAlt, FaSignOutAlt, FaWhatsapp
+  FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaTachometerAlt, FaSignOutAlt, FaWhatsapp, FaChartBar
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
@@ -193,15 +193,26 @@ const Header = () => {
                       </div>
                     </div>
                     <Link
-                      href="/admin"
+                      href="/userDashboard"
                       className="flex items-center gap-2 px-4 py-3 hover:bg-blue-100 text-gray-800"
                       onClick={() => {
                         setDropdown(false);
-                        trackCtaClicked("My Dashboard", "User Menu");
+                        trackCtaClicked("User Dashboard", "User Menu");
                       }}
                     >
                       <FaTachometerAlt className="text-blue-400" />
                       My Dashboard
+                    </Link>
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-blue-100 text-gray-800"
+                      onClick={() => {
+                        setDropdown(false);
+                        trackCtaClicked("Admin Dashboard", "User Menu");
+                      }}
+                    >
+                      <FaChartBar className="text-purple-600" />
+                      Admin Panel
                     </Link>
                     <button
                       className="flex items-center gap-2 px-4 py-3 w-full text-left hover:bg-red-100 text-gray-800"

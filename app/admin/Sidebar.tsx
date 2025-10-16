@@ -10,6 +10,7 @@ import {
   FaBullhorn,
   FaBriefcase,
   FaTimes,
+  FaChartBar,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/slices/authSlice";
@@ -81,6 +82,16 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
       </div>
 
       <nav className="flex flex-col gap-2 mt-3">
+        <SidebarLink
+          icon={<FaChartBar />}
+          label="Analytics"
+          value="analytics"
+          active={tab === "analytics"}
+          onClick={() => {
+            setTab("analytics");
+            onClose?.();
+          }}
+        />
         <SidebarLink
           icon={<FaColumns />}
           label="Boards"
