@@ -141,7 +141,7 @@ export default function ProposalClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          user_id: userData.user_id || null
+          user: userData.user_id || null
         }),
         cache: "no-store",
       });
@@ -202,8 +202,10 @@ export default function ProposalClient() {
         }
         toast.error(msg);
       }
-    } catch {
-      toast.error("Network error. Please try again.");
+    } catch (err: any) {
+      console.error("Proposal submission error:", err);
+      const errorMsg = err?.message || "Network error. Please check your connection and try again.";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
