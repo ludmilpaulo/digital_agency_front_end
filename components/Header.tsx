@@ -7,7 +7,7 @@ import { SocialIcon } from "react-social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import {
-  FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaTachometerAlt, FaSignOutAlt, FaWhatsapp, FaChartBar
+  FaTimes, FaBars, FaHome, FaServer, FaUserCircle, FaBook, FaTachometerAlt, FaSignOutAlt, FaWhatsapp, FaChartBar, FaCode
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
@@ -58,6 +58,42 @@ const Header = () => {
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
   const router = useRouter();
+
+  // Helper function to determine user role and appropriate dashboard
+  const getUserRole = () => {
+    if (!user) return null;
+    const groups = user.groups || [];
+    
+    // Check for admin/executive
+    if (groups.includes("Executive") || groups.includes("Staff") || user.is_staff || user.is_superuser) {
+      return {
+        role: "Admin",
+        dashboard: "/admin",
+        icon: <FaChartBar className="text-purple-600" />,
+        color: "purple"
+      };
+    }
+    
+    // Check for developer/freelancer
+    if (groups.includes("Freelancer") || groups.includes("Developer")) {
+      return {
+        role: "Developer",
+        dashboard: "/devDashBoard",
+        icon: <FaCode className="text-blue-600" />,
+        color: "blue"
+      };
+    }
+    
+    // Default to basic user
+    return {
+      role: "User",
+      dashboard: "/userDashboard",
+      icon: <FaTachometerAlt className="text-green-600" />,
+      color: "green"
+    };
+  };
+
+  const userRole = getUserRole();
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -190,32 +226,77 @@ const Header = () => {
                       <div>
                         <div className="font-semibold">{user.username || "User"}</div>
                         <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                        {userRole && (
+                          <div className={`text-xs font-medium text-${userRole.color}-600 mt-0.5`}>
+                            {userRole.role}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <Link
-                      href="/userDashboard"
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-blue-100 text-gray-800"
-                      onClick={() => {
-                        setDropdown(false);
-                        trackCtaClicked("User Dashboard", "User Menu");
-                      }}
-                    >
-                      <FaTachometerAlt className="text-blue-400" />
-                      My Dashboard
-                    </Link>
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-2 px-4 py-3 hover:bg-blue-100 text-gray-800"
-                      onClick={() => {
-                        setDropdown(false);
-                        trackCtaClicked("Admin Dashboard", "User Menu");
-                      }}
-                    >
-                      <FaChartBar className="text-purple-600" />
-                      Admin Panel
-                    </Link>
+                    
+                    {/* Primary Dashboard Link (Based on Role) */}
+                    {userRole && (
+                      <Link
+                        href={userRole.dashboard}
+                        className={`flex items-center gap-2 px-4 py-3 hover:bg-${userRole.color}-50 text-gray-800 font-medium`}
+                        onClick={() => {
+                          setDropdown(false);
+                          trackCtaClicked(`${userRole.role} Dashboard`, "User Menu");
+                        }}
+                      >
+                        {userRole.icon}
+                        {userRole.role === "Admin" ? "Admin Dashboard" :
+                         userRole.role === "Developer" ? "Developer Dashboard" :
+                         "My Dashboard"}
+                      </Link>
+                    )}
+
+                    {/* Show additional dashboards if user has multiple roles */}
+                    {userRole?.role === "Admin" && (
+                      <>
+                        <Link
+                          href="/devDashBoard"
+                          className="flex items-center gap-2 px-4 py-3 hover:bg-blue-50 text-gray-800"
+                          onClick={() => {
+                            setDropdown(false);
+                            trackCtaClicked("Developer Dashboard", "User Menu");
+                          }}
+                        >
+                          <FaCode className="text-blue-600" />
+                          Developer Dashboard
+                        </Link>
+                        <Link
+                          href="/userDashboard"
+                          className="flex items-center gap-2 px-4 py-3 hover:bg-green-50 text-gray-800"
+                          onClick={() => {
+                            setDropdown(false);
+                            trackCtaClicked("User Dashboard", "User Menu");
+                          }}
+                        >
+                          <FaTachometerAlt className="text-green-600" />
+                          User Dashboard
+                        </Link>
+                      </>
+                    )}
+
+                    {userRole?.role === "Developer" && (
+                      <>
+                        <Link
+                          href="/userDashboard"
+                          className="flex items-center gap-2 px-4 py-3 hover:bg-green-50 text-gray-800"
+                          onClick={() => {
+                            setDropdown(false);
+                            trackCtaClicked("User Dashboard", "User Menu");
+                          }}
+                        >
+                          <FaTachometerAlt className="text-green-600" />
+                          User Dashboard
+                        </Link>
+                      </>
+                    )}
+
                     <button
-                      className="flex items-center gap-2 px-4 py-3 w-full text-left hover:bg-red-100 text-gray-800"
+                      className="flex items-center gap-2 px-4 py-3 w-full text-left hover:bg-red-100 text-gray-800 border-t mt-2"
                       onClick={handleLogout}
                     >
                       <FaSignOutAlt className="text-red-500" />

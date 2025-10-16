@@ -56,9 +56,25 @@ const ROLE_ICONS: Record<string, JSX.Element> = {
 };
 
 function getRedirectPath(user: UserType): string {
-  if (user.is_superuser || user.groups.includes("admin")) return "/admin";
-  if (user.is_staff || user.groups.includes("staff")) return "/staff";
-  return "/";
+  const groups = user.groups || [];
+  
+  // Admin/Executive/Staff → Admin Dashboard
+  if (user.is_superuser || user.is_staff || groups.includes("Executive") || groups.includes("Staff") || groups.includes("admin")) {
+    return "/admin";
+  }
+  
+  // Developer/Freelancer → Developer Dashboard
+  if (groups.includes("Freelancer") || groups.includes("Developer")) {
+    return "/devDashBoard";
+  }
+  
+  // Basic/Normal User → User Dashboard
+  if (groups.includes("Basic")) {
+    return "/userDashboard";
+  }
+  
+  // Default → User Dashboard
+  return "/userDashboard";
 }
 
 function getRole(user: UserType | null): string {
