@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { initMixpanel, reset } from "@/lib/analytics/mixpanel";
 
-const LS_KEY = "maindo_analytics_consent";
+const LS_KEY = "analytics-consent";
 
 export default function AnalyticsConsent() {
   const [consent, setConsent] = useState<"granted" | "denied" | null>(null);
 
   useEffect(() => {
-    const saved = (localStorage.getItem(LS_KEY) as "granted" | "denied" | null) ?? null;
-    setConsent(saved);
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved === "accepted" || saved === "granted") {
+      setConsent("granted");
+    } else if (saved === "denied") {
+      setConsent("denied");
+    }
   }, []);
 
   useEffect(() => {
@@ -31,16 +35,16 @@ export default function AnalyticsConsent() {
             localStorage.setItem(LS_KEY, "denied");
             setConsent("denied");
           }}
-          className="px-3 py-2 rounded-xl border"
+          className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition"
         >
           No, thanks
         </button>
         <button
           onClick={() => {
-            localStorage.setItem(LS_KEY, "granted");
+            localStorage.setItem(LS_KEY, "accepted");
             setConsent("granted");
           }}
-          className="px-3 py-2 rounded-xl bg-slate-900 text-white"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           Allow
         </button>

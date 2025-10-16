@@ -54,8 +54,8 @@ export default function ServicesClient() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { data: services = [], isLoading } = useGetServicesQuery(undefined, {
-    skip: !mounted, // don’t fetch on the server
+  const { data: services = [], isLoading, error } = useGetServicesQuery(undefined, {
+    skip: !mounted, // don't fetch on the server
   });
 
   return (
@@ -89,10 +89,26 @@ export default function ServicesClient() {
         viewport={{ once: true }}
       >
         {(!mounted || isLoading) && (
-          <div className="col-span-full text-center text-blue-100">Loading…</div>
+          <div className="col-span-full text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-100 mx-auto mb-4"></div>
+            <p className="text-blue-100">Loading services…</p>
+          </div>
         )}
 
-        {mounted && !isLoading && services.map((service: Service, idx: number) => (
+        {mounted && error && (
+          <div className="col-span-full bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <p className="text-yellow-800 mb-2">⚠️ Unable to load services from server</p>
+            <p className="text-sm text-yellow-600">Please try refreshing the page or contact support.</p>
+          </div>
+        )}
+
+        {mounted && !isLoading && !error && services.length === 0 && (
+          <div className="col-span-full text-center text-blue-100">
+            <p>No services available at the moment.</p>
+          </div>
+        )}
+
+        {mounted && !isLoading && !error && services.map((service: Service, idx: number) => (
           <motion.div
             key={service.id ?? service.slug ?? service.title}
             className="bg-white/90 rounded-2xl shadow-xl p-7 flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group"
