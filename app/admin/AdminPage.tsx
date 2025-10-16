@@ -135,23 +135,23 @@ export default function AdminPage() {
       {/* Main Content */}
       <main className="flex-1 p-3 pt-20 md:pt-10 md:p-10 transition-all w-full max-w-full">
         {/* Welcome Header */}
-        <div className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-6 text-white">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-4 md:p-6 text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-              <p className="text-blue-100">Welcome back, {user?.username}! Here&apos;s your overview.</p>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-sm md:text-base text-blue-100">Welcome back, {user?.username}! Here&apos;s your overview.</p>
             </div>
-            <div className="hidden md:flex gap-3">
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold">{boards.length}</p>
+            <div className="flex gap-2 md:gap-3">
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
+                <p className="text-xl md:text-2xl font-bold">{boards.length}</p>
                 <p className="text-xs text-blue-100">Boards</p>
               </div>
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold">{users.length}</p>
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
+                <p className="text-xl md:text-2xl font-bold">{users.length}</p>
                 <p className="text-xs text-blue-100">Users</p>
               </div>
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold">{myTasks.length}</p>
+              <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[70px]">
+                <p className="text-xl md:text-2xl font-bold">{myTasks.length}</p>
                 <p className="text-xs text-blue-100">Tasks</p>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="mb-6 gap-2 overflow-x-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-blue-100">
+          <TabsList className="mb-6 gap-2 overflow-x-auto bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-blue-100 flex-wrap md:flex-nowrap justify-start">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>

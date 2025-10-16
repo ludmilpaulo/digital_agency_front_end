@@ -112,15 +112,17 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Analytics Dashboard</h1>
-        <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Analytics Dashboard</h1>
+        <div className="flex flex-wrap gap-2">
+          <button className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 text-sm md:text-base">
             <FaCalendar className="inline mr-2" />
-            Last 7 Days
+            <span className="hidden sm:inline">Last 7 Days</span>
+            <span className="sm:hidden">7 Days</span>
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Export Report
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm md:text-base">
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </button>
         </div>
       </div>
@@ -160,93 +162,101 @@ export default function Analytics() {
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Page Views Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Page Views & Users</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={pageViewsData}>
-              <defs>
-                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Area type="monotone" dataKey="views" stroke="#3B82F6" fillOpacity={1} fill="url(#colorViews)" />
-              <Area type="monotone" dataKey="users" stroke="#10B981" fillOpacity={1} fill="url(#colorUsers)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Page Views & Users</h2>
+          <div className="w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height={300} minWidth={300}>
+              <AreaChart data={pageViewsData}>
+                <defs>
+                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Area type="monotone" dataKey="views" stroke="#3B82F6" fillOpacity={1} fill="url(#colorViews)" />
+                <Area type="monotone" dataKey="users" stroke="#10B981" fillOpacity={1} fill="url(#colorUsers)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Traffic Sources */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Traffic Sources</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={trafficSourceData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry: any) => `${entry.name} ${(entry.percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {trafficSourceData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Traffic Sources</h2>
+          <div className="w-full overflow-x-auto flex justify-center">
+            <ResponsiveContainer width="100%" height={300} minWidth={250}>
+              <PieChart>
+                <Pie
+                  data={trafficSourceData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry: any) => `${entry.name} ${(entry.percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {trafficSourceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Activity by Hour */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">User Activity by Hour</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={userActivityData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="active" fill="#8B5CF6" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">User Activity by Hour</h2>
+          <div className="w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height={300} minWidth={300}>
+              <BarChart data={userActivityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="active" fill="#8B5CF6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Conversion Funnel */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Conversion Rate</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={conversionData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="leads" stroke="#F59E0B" strokeWidth={2} />
-              <Line type="monotone" dataKey="conversions" stroke="#10B981" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold mb-4 text-gray-800">Conversion Rate</h2>
+          <div className="w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height={300} minWidth={300}>
+              <LineChart data={conversionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="leads" stroke="#F59E0B" strokeWidth={2} />
+                <Line type="monotone" dataKey="conversions" stroke="#10B981" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* Additional Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Task Completion</h3>
             <FaTasks className="text-purple-600 text-xl" />
@@ -269,16 +279,16 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Avg. Session Time</h3>
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">Avg. Session Time</h3>
             <FaChartLine className="text-green-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-gray-800">{stats.avgSessionTime}</p>
-          <p className="text-sm text-green-600 mt-2">+23% from last month</p>
+          <p className="text-2xl md:text-3xl font-bold text-gray-800">{stats.avgSessionTime}</p>
+          <p className="text-xs md:text-sm text-green-600 mt-2">+23% from last month</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Bounce Rate</h3>
             <FaMousePointer className="text-orange-600 text-xl" />
