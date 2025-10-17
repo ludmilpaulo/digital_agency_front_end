@@ -7,24 +7,29 @@ let initialized = false;
 
 export const initMixpanel = () => {
   if (typeof window !== 'undefined' && !initialized) {
-    // Check for user consent
+    // Check for user consent (accepts both "accepted" and "granted")
     const consent = localStorage.getItem("analytics-consent");
-    if (consent !== "accepted") {
+    if (consent !== "accepted" && consent !== "granted") {
       console.log('⚠️ Mixpanel: User consent not given');
       return null;
     }
 
-    mixpanel.init(MIXPANEL_TOKEN, {
-      autocapture: true,
-      record_sessions_percent: 100,
-      debug: process.env.NODE_ENV === 'development',
-      track_pageview: true,
-      persistence: 'localStorage',
-    });
-  initialized = true;
-    console.log('✅ Mixpanel initialized successfully');
-  return mixpanel;
-}
+    try {
+      mixpanel.init(MIXPANEL_TOKEN, {
+        autocapture: true,
+        record_sessions_percent: 100,
+        debug: process.env.NODE_ENV === 'development',
+        track_pageview: true,
+        persistence: 'localStorage',
+      });
+      initialized = true;
+      console.log('✅ Mixpanel initialized successfully');
+      return mixpanel;
+    } catch (error) {
+      console.error('❌ Mixpanel initialization failed:', error);
+      return null;
+    }
+  }
   return initialized ? mixpanel : null;
 };
 
@@ -55,11 +60,15 @@ export const trackPageView = (pageName: string) => {
 
 // Track user events
 export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
-  if (typeof window !== 'undefined') {
-    mixpanel.track(eventName, {
-      ...properties,
-      timestamp: new Date().toISOString(),
-    });
+  if (typeof window !== 'undefined' && initialized) {
+    try {
+      mixpanel.track(eventName, {
+        ...properties,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Mixpanel track error:', error);
+    }
   }
 };
 

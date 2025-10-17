@@ -146,30 +146,38 @@ export default function UserDashboardClient() {
 
       // Fetch Projects
       try {
-        const projectsRes = await fetch(`${baseAPI}/projects/`, { headers });
+        const projectsRes = await fetch(`${baseAPI}/project/projects/`, { headers });
         if (projectsRes.ok) {
           const projectsData = await projectsRes.json();
           // Filter projects for this user if needed
           setProjects(Array.isArray(projectsData) ? projectsData : []);
+        } else {
+          console.warn("Failed to fetch projects:", projectsRes.status);
+          setProjects([]);
         }
       } catch (err) {
         console.error("Error fetching projects:", err);
+        setProjects([]);
       }
 
       // Fetch Tasks (user-specific)
       try {
-        const tasksRes = await fetch(`${baseAPI}/tasks/api/tasks/?user_id=${userId}`, { headers });
+        const tasksRes = await fetch(`${baseAPI}/task/tasks/?user_id=${userId}`, { headers });
         if (tasksRes.ok) {
           const tasksData = await tasksRes.json();
           setTasks(Array.isArray(tasksData) ? tasksData : []);
+        } else {
+          console.warn("Failed to fetch tasks:", tasksRes.status);
+          setTasks([]);
         }
       } catch (err) {
         console.error("Error fetching tasks:", err);
+        setTasks([]);
       }
 
       // Fetch Appointments
       try {
-        const appointmentsRes = await fetch(`${baseAPI}/appointments/`, { headers });
+        const appointmentsRes = await fetch(`${baseAPI}/appointment/appointments/`, { headers });
         if (appointmentsRes.ok) {
           const appointmentsData = await appointmentsRes.json();
           // Filter appointments for this user's email
@@ -177,9 +185,13 @@ export default function UserDashboardClient() {
             ? appointmentsData.filter((apt: any) => apt.email === user?.email)
             : [];
           setAppointments(userAppointments);
+        } else {
+          console.warn("Failed to fetch appointments:", appointmentsRes.status);
+          setAppointments([]);
         }
       } catch (err) {
         console.error("Error fetching appointments:", err);
+        setAppointments([]);
       }
 
       // Fetch Proposals
@@ -192,9 +204,13 @@ export default function UserDashboardClient() {
             ? proposalsData.filter((prop: any) => prop.email === user?.email)
             : [];
           setProposals(userProposals);
+        } else {
+          console.warn("Failed to fetch proposals:", proposalsRes.status);
+          setProposals([]); // Set empty array on error
         }
       } catch (err) {
         console.error("Error fetching proposals:", err);
+        setProposals([]); // Set empty array on error
       }
 
       // Fetch Invoices (mock for now, implement when backend ready)
