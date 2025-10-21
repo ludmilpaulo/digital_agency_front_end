@@ -15,9 +15,7 @@ import dynamic from "next/dynamic";
 /* MIXPANEL */
 import { trackCtaClicked } from "@/lib/analytics/mixpanel";
 
-// Dynamic imports to avoid SSR issues
-const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), { ssr: false });
-const CurrencySwitcher = dynamic(() => import("@/components/CurrencySwitcher"), { ssr: false });
+// Currency and language are now fully automatic
 
 export type SocialKey = "facebook" | "linkedin" | "twitter" | "instagram" | "whatsapp";
 export interface AboutUsData {
@@ -168,12 +166,6 @@ const Header = () => {
               <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
             </Link>
           )}
-          {/* Language & Currency Switchers */}
-          <div className="flex items-center gap-2 ml-3">
-            <LanguageSwitcher />
-            <CurrencySwitcher />
-          </div>
-          
           <Link
             href="/contact"
             onClick={() => trackCtaClicked("Get a Quote", "Nav")}

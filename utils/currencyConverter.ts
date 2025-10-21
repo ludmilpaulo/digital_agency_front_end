@@ -55,21 +55,26 @@ const COUNTRY_CURRENCY_MAP: Record<string, SupportedCurrency> = {
 };
 
 /**
- * Detect user's country and currency
+ * Detect user's country and currency (fully automatic)
  */
 export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
   if (typeof window === 'undefined') return 'ZAR';
 
-  // Check localStorage first
-  const stored = localStorage.getItem('preferred-currency');
-  if (stored && stored in CURRENCY_CONFIGS) {
-    return stored as SupportedCurrency;
+  // Check if we detected currency recently (within last 24 hours)
+  const lastDetection = localStorage.getItem('currency-detected-at');
+  const storedCurrency = localStorage.getItem('detected-currency');
+  
+  if (lastDetection && storedCurrency && storedCurrency in CURRENCY_CONFIGS) {
+    const hoursSinceDetection = (Date.now() - parseInt(lastDetection)) / (1000 * 60 * 60);
+    if (hoursSinceDetection < 24) {
+      return storedCurrency as SupportedCurrency;
+    }
   }
 
   try {
     // Use free IP geolocation API
     const response = await fetch('https://ipapi.co/json/', {
-      cache: 'force-cache',
+      cache: 'no-store',
     });
     
     if (response.ok) {
@@ -77,9 +82,10 @@ export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
       const countryCode = data.country_code || 'ZA';
       const currency = COUNTRY_CURRENCY_MAP[countryCode] || 'ZAR';
       
-      // Store for future use
+      // Store for future use (automatic, no user preference)
       localStorage.setItem('user-country', countryCode);
       localStorage.setItem('detected-currency', currency);
+      localStorage.setItem('currency-detected-at', Date.now().toString());
       
       return currency;
     }
@@ -139,21 +145,12 @@ export const parsePriceString = (priceStr: string): number => {
 };
 
 /**
- * Set user's preferred currency
- */
-export const setPreferredCurrency = (currency: SupportedCurrency): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('preferred-currency', currency);
-};
-
-/**
- * Get current currency
+ * Get current currency (automatic detection only)
  */
 export const getCurrentCurrency = (): SupportedCurrency => {
   if (typeof window === 'undefined') return 'ZAR';
   
-  const stored = localStorage.getItem('preferred-currency') || 
-                 localStorage.getItem('detected-currency');
+  const stored = localStorage.getItem('detected-currency');
   
   if (stored && stored in CURRENCY_CONFIGS) {
     return stored as SupportedCurrency;

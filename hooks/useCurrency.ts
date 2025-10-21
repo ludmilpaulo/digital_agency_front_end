@@ -1,6 +1,6 @@
 /**
- * Currency Hook
- * Usage: const { convertPrice, formatPrice, currency, setCurrency } = useCurrency();
+ * Currency Hook - Automatic currency detection based on user location
+ * Usage: const { convertPrice, formatPrice, currency } = useCurrency();
  */
 
 import { useState, useEffect } from 'react';
@@ -8,7 +8,6 @@ import {
   detectUserCurrency,
   convertCurrency,
   formatCurrency,
-  setPreferredCurrency,
   getCurrentCurrency,
   parsePriceString,
   initCurrency,
@@ -27,6 +26,7 @@ export const useCurrency = () => {
     const initializeCurrency = async () => {
       setIsLoading(true);
       await initCurrency();
+      // Automatically detect user's currency based on location
       const detectedCurrency = await detectUserCurrency();
       setCurrencyState(detectedCurrency);
       setIsLoading(false);
@@ -34,11 +34,6 @@ export const useCurrency = () => {
 
     initializeCurrency();
   }, []);
-
-  const changeCurrency = (newCurrency: SupportedCurrency) => {
-    setCurrencyState(newCurrency);
-    setPreferredCurrency(newCurrency);
-  };
 
   /**
    * Convert ZAR amount to current currency
@@ -80,7 +75,6 @@ export const useCurrency = () => {
 
   return {
     currency,
-    setCurrency: changeCurrency,
     convertPrice,
     formatPrice,
     convertAndFormatPrice,
@@ -89,7 +83,6 @@ export const useCurrency = () => {
     getCurrencyConfig,
     isLoading,
     isClient,
-    currencies: Object.values(CURRENCY_CONFIGS),
   };
 };
 
