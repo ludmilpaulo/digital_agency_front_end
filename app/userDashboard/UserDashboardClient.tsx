@@ -8,13 +8,14 @@ import {
   FaUser, FaProjectDiagram, FaTasks, FaCalendar, FaFileAlt, 
   FaEnvelope, FaCog, FaChartLine, FaCheckCircle, FaClock, 
   FaExclamationTriangle, FaEdit, FaEye, FaDownload, FaKey,
-  FaInfoCircle, FaTimes, FaSearch
+  FaInfoCircle, FaTimes, FaSearch, FaPlus
 } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import { trackEvent } from "@/lib/analytics/mixpanel";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import AdminPagination from "@/components/AdminPagination";
+import RequestProjectModal from "@/components/RequestProjectModal";
 
 interface Project {
   id: number;
@@ -82,6 +83,7 @@ export default function UserDashboardClient() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showRequestProjectModal, setShowRequestProjectModal] = useState(false);
   
   // Pagination states
   const [projectsPage, setProjectsPage] = useState(1);
@@ -619,6 +621,12 @@ export default function UserDashboardClient() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
+                <button
+                  onClick={() => setShowRequestProjectModal(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition flex items-center gap-2 justify-center sm:justify-start shadow-lg hover:shadow-xl"
+                >
+                  <FaPlus /> Request New Project
+                </button>
               </div>
               
               {/* Search Bar */}
@@ -715,7 +723,13 @@ export default function UserDashboardClient() {
                   <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
                     <FaProjectDiagram className="text-6xl text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">No Projects Yet</h3>
-                    <p className="text-gray-500">Your projects will appear here once they&apos;re assigned to you.</p>
+                    <p className="text-gray-500 mb-6">Have a project in mind? Request one and we'll get started!</p>
+                    <button
+                      onClick={() => setShowRequestProjectModal(true)}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl"
+                    >
+                      <FaPlus /> Request Your First Project
+                    </button>
                   </div>
                 )}
               </div>
@@ -1148,6 +1162,17 @@ export default function UserDashboardClient() {
           )}
         </div>
       </div>
+
+      {/* Request Project Modal */}
+      <RequestProjectModal
+        isOpen={showRequestProjectModal}
+        onClose={() => setShowRequestProjectModal(false)}
+        userId={user?.user_id || user?.id || 0}
+        onSuccess={() => {
+          fetchDashboardData();
+          setActiveTab("projects");
+        }}
+      />
     </div>
   );
 }
