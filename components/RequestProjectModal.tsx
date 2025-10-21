@@ -8,8 +8,10 @@ import { useRouter } from "next/navigation";
 
 interface Service {
   id: number;
-  name: string;
+  title: string;
   slug: string;
+  description?: string;
+  icon?: string;
 }
 
 interface RequestProjectModalProps {
@@ -47,14 +49,28 @@ export default function RequestProjectModal({
 
   const fetchServices = async () => {
     try {
+      console.log("Fetching services from:", `${baseAPI}/services/services/`);
       const res = await fetch(`${baseAPI}/services/services/`);
+      console.log("Services response status:", res.status);
+      
       if (res.ok) {
         const data = await res.json();
-        setServices(data || []);
+        console.log("Services data received:", data);
+        setServices(Array.isArray(data) ? data : []);
+        
+        if (!data || data.length === 0) {
+          console.warn("No services found in response");
+          toast.error("No services available");
+        }
+      } else {
+        console.error("Failed to fetch services, status:", res.status);
+        const errorText = await res.text();
+        console.error("Error response:", errorText);
+        toast.error(`Failed to load services (${res.status})`);
       }
     } catch (error) {
       console.error("Error fetching services:", error);
-      toast.error("Failed to load services");
+      toast.error("Network error loading services");
     }
   };
 
@@ -198,8 +214,8 @@ export default function RequestProjectModal({
             >
               <option value="">-- Select a Service --</option>
               {services.map((service) => (
-                <option key={service.id} value={service.name}>
-                  {service.name}
+                <option key={service.id} value={service.title}>
+                  {service.title}
                 </option>
               ))}
               <option value="Other">Other (Book Appointment)</option>
