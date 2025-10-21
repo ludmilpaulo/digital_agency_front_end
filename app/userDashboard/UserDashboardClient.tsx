@@ -144,13 +144,29 @@ export default function UserDashboardClient() {
         ...((user as any)?.access && { "Authorization": `Bearer ${(user as any).access}` })
       };
 
-      // Fetch Projects
+      // Fetch Projects (Boards) - Only boards where user is assigned or managing
       try {
-        const projectsRes = await fetch(`${baseAPI}/project/projects/`, { headers });
+        const projectsRes = await fetch(`${baseAPI}/task/boards/?user_id=${userId}`, { headers });
         if (projectsRes.ok) {
           const projectsData = await projectsRes.json();
-          // Filter projects for this user if needed
-          setProjects(Array.isArray(projectsData) ? projectsData : []);
+          // Transform Board data to match Project interface
+          const transformedProjects = Array.isArray(projectsData) 
+            ? projectsData.map((board: any) => ({
+                id: board.id,
+                title: board.name,
+                description: board.description || '',
+                status: board.status || 'Started',
+                progress: board.budget && board.budget_used 
+                  ? Math.round((board.budget_used / board.budget) * 100) 
+                  : 0,
+                deadline: board.deadline,
+                start_date: board.start_date,
+                budget: board.budget,
+                client: board.users?.map((u: any) => u.username).join(', ') || '',
+                created_at: board.created_at
+              }))
+            : [];
+          setProjects(transformedProjects);
         } else {
           console.warn("Failed to fetch projects:", projectsRes.status);
           setProjects([]);
@@ -160,12 +176,24 @@ export default function UserDashboardClient() {
         setProjects([]);
       }
 
-      // Fetch Tasks (user-specific)
+      // Fetch Tasks (Cards) - Only cards where user is assigned
       try {
-        const tasksRes = await fetch(`${baseAPI}/task/tasks/?user_id=${userId}`, { headers });
+        const tasksRes = await fetch(`${baseAPI}/task/cards/?user_id=${userId}`, { headers });
         if (tasksRes.ok) {
           const tasksData = await tasksRes.json();
-          setTasks(Array.isArray(tasksData) ? tasksData : []);
+          // Transform Card data to match Task interface
+          const transformedTasks = Array.isArray(tasksData)
+            ? tasksData.map((card: any) => ({
+                id: card.id,
+                title: card.title,
+                description: card.description || '',
+                status: card.status || 'Not Started',
+                priority: card.priority || 'Medium',
+                due_date: card.due_date,
+                board: card.list?.board?.id || card.list
+              }))
+            : [];
+          setTasks(transformedTasks);
         } else {
           console.warn("Failed to fetch tasks:", tasksRes.status);
           setTasks([]);
@@ -175,16 +203,25 @@ export default function UserDashboardClient() {
         setTasks([]);
       }
 
-      // Fetch Appointments
+      // Fetch Appointments - Only user's appointments
       try {
-        const appointmentsRes = await fetch(`${baseAPI}/appointment/appointments/`, { headers });
+        const appointmentsRes = await fetch(`${baseAPI}/appointment/appointments/?user_id=${userId}`, { headers });
         if (appointmentsRes.ok) {
           const appointmentsData = await appointmentsRes.json();
-          // Filter appointments for this user's email
-          const userAppointments = Array.isArray(appointmentsData) 
-            ? appointmentsData.filter((apt: any) => apt.email === user?.email)
+          // Transform appointment data to match interface
+          const transformedAppointments = Array.isArray(appointmentsData)
+            ? appointmentsData.map((apt: any) => ({
+                id: apt.id,
+                date: apt.date,
+                time: apt.time,
+                service: apt.reason || 'Consultation', // Map reason to service
+                status: 'scheduled', // Default status
+                notes: apt.reason,
+                client_name: apt.user?.username || '',
+                phone: apt.phone
+              }))
             : [];
-          setAppointments(userAppointments);
+          setAppointments(transformedAppointments);
         } else {
           console.warn("Failed to fetch appointments:", appointmentsRes.status);
           setAppointments([]);
@@ -194,36 +231,36 @@ export default function UserDashboardClient() {
         setAppointments([]);
       }
 
-      // Fetch Proposals
+      // Fetch Proposals - Only user's proposals
       try {
-        const proposalsRes = await fetch(`${baseAPI}/services/proposals/`, { headers });
+        const proposalsRes = await fetch(`${baseAPI}/services/proposals/?user_id=${userId}`, { headers });
         if (proposalsRes.ok) {
           const proposalsData = await proposalsRes.json();
-          // Filter proposals for this user's email
-          const userProposals = Array.isArray(proposalsData)
-            ? proposalsData.filter((prop: any) => prop.email === user?.email)
+          // Transform proposal data to match interface
+          const transformedProposals = Array.isArray(proposalsData)
+            ? proposalsData.map((prop: any) => ({
+                id: prop.id,
+                service: prop.service || 'General Inquiry',
+                status: 'pending', // Default status
+                created_at: prop.submitted_at || prop.created_at,
+                name: prop.name,
+                email: prop.email,
+                message: prop.message
+              }))
             : [];
-          setProposals(userProposals);
+          setProposals(transformedProposals);
         } else {
           console.warn("Failed to fetch proposals:", proposalsRes.status);
-          setProposals([]); // Set empty array on error
+          setProposals([]);
         }
       } catch (err) {
         console.error("Error fetching proposals:", err);
-        setProposals([]); // Set empty array on error
+        setProposals([]);
       }
 
-      // Fetch Invoices (mock for now, implement when backend ready)
-      setInvoices([
-        {
-          id: 1,
-          project_title: projects[0]?.title || "Website Development",
-          amount: 2999,
-          status: "Paid",
-          created_at: new Date().toISOString(),
-          due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
-        }
-      ]);
+      // TODO: Fetch Invoices from backend when API is ready
+      // For now, no invoices system is implemented in the backend
+      setInvoices([]);
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
