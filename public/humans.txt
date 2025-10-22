@@ -1,0 +1,21 @@
+/* TEAM */
+Developer: Maindo Digital Agency
+Site: https://www.maindodigital.com
+Twitter: @maindodigital
+Location: Cape Town, South Africa
+
+/* THANKS */
+Next.js Framework
+React Team
+Tailwind CSS
+
+/* SITE */
+Last update: 2025/10/22
+Language: English / Afrikaans
+Doctype: HTML5
+IDE: Visual Studio Code
+Standards: HTML5, CSS3, ES2020
+Components: React, Next.js 14, TypeScript
+Frameworks: Tailwind CSS, Framer Motion
+Software: Git, npm, Vercel
+

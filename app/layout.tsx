@@ -13,6 +13,7 @@ import FetchAboutUsClient from "./FetchAboutUsClient";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import StructuredData, { LocalBusinessSchema } from "@/components/SEO/StructuredData";
+import { WebsiteSchema, OffersSchema, RatingSchema } from "@/components/SEO/AdvancedSEO";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -106,21 +107,41 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
   
-      <html lang="en">
+      <html lang="en-ZA">
       <head>
-         <Script
+        {/* Preconnect and DNS Prefetch for Performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://maindoagency.pythonanywhere.com" />
+        
+        {/* Viewport and Mobile Optimization */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* Theme Color */}
+        <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1e40af" media="(prefers-color-scheme: dark)" />
+        
+        {/* Analytics Scripts */}
+        <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-HCWW2X2GZ4"
           strategy="afterInteractive"
         />
         
-          {/* Ahrefs Analytics Script */}
-          <Script
-            src="https://analytics.ahrefs.com/analytics.js"
-            data-key="ouQu5v62l4/FTsePpkTBVw"
-            strategy="afterInteractive"
-          />
-          <meta name="google-site-verification" content="yc2OIYFEZ0Tvyo9R7ouvUjXAd45cxQFWTVgWxGjx7xA" />
-        </head>
+        {/* Ahrefs Analytics Script */}
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="ouQu5v62l4/FTsePpkTBVw"
+          strategy="afterInteractive"
+        />
+        
+        {/* Google Site Verification */}
+        <meta name="google-site-verification" content="yc2OIYFEZ0Tvyo9R7ouvUjXAd45cxQFWTVgWxGjx7xA" />
+      </head>
         <body className={inter.className}>
           {/* Google Analytics */}
         <Script
@@ -148,6 +169,9 @@ export default function RootLayout({
         <StructuredData type="service" />
         <StructuredData type="faq" />
         <LocalBusinessSchema />
+        <WebsiteSchema />
+        <OffersSchema />
+        <RatingSchema />
 
          <StoreProvider>
           <FetchAboutUsClient />
