@@ -13,13 +13,14 @@ const UploadSection = dynamic(() => import("./documents/UploadSection"), { ssr: 
 const SignSection = dynamic(() => import("./documents/SignSection"), { ssr: false });
 const SendToSignSection = dynamic(() => import("./documents/SendToSignSection"), { ssr: false });
 const SignedSection = dynamic(() => import("./documents/SignedSection"), { ssr: false });
+const ProposalsManagement = dynamic(() => import("./documents/ProposalsManagement"), { ssr: false });
 
-const tabs = ["Upload", "Create", "Sign", "Send to Sign", "Signed"];
+const tabs = ["Proposals", "Upload", "Create", "Sign", "Send to Sign", "Signed"];
 
 const Documents: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("Upload");
+  const [activeTab, setActiveTab] = useState("Proposals");
 
   const fetchDocuments = async () => {
     setLoading(true);
@@ -64,6 +65,8 @@ const Documents: React.FC = () => {
 
       {/* Content */}
       <div className="space-y-6">
+        {activeTab === "Proposals" && <ProposalsManagement />}
+
         {activeTab === "Upload" && (
           <>
             <UploadSection onUpload={handleUpload} />
