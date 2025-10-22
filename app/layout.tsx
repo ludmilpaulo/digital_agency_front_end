@@ -14,6 +14,7 @@ import AnalyticsConsent from "@/components/AnalyticsConsent";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import StructuredData, { LocalBusinessSchema } from "@/components/SEO/StructuredData";
 import { WebsiteSchema, OffersSchema, RatingSchema } from "@/components/SEO/AdvancedSEO";
+import CacheCleaner from "@/components/CacheCleaner";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -174,6 +175,7 @@ export default function RootLayout({
         <RatingSchema />
 
          <StoreProvider>
+          <CacheCleaner />
           <FetchAboutUsClient />
           <Header />
           <AnalyticsConsent />
