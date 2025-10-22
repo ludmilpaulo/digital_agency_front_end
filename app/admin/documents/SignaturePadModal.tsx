@@ -81,10 +81,34 @@ const SignaturePadModal: React.FC<Props> = ({
   };
 
   const handleSave = () => {
-    if (mode === 'draw' && sigPadRef.current && !sigPadRef.current.isEmpty()) {
-      const dataUrl = sigPadRef.current.getTrimmedCanvas().toDataURL('image/png');
-      onSave(dataUrl);
-      onClose();
+    if (mode === 'draw') {
+      if (!sigPadRef.current) {
+        alert('Signature pad not initialized. Please try again.');
+        return;
+      }
+      
+      if (sigPadRef.current.isEmpty()) {
+        alert('Please draw your signature first.');
+        return;
+      }
+      
+      try {
+        const canvas = sigPadRef.current.getTrimmedCanvas();
+        if (!canvas) {
+          alert('Failed to get signature canvas. Please try again.');
+          return;
+        }
+        const dataUrl = canvas.toDataURL('image/png');
+        if (!dataUrl || dataUrl === 'data:,') {
+          alert('Failed to generate signature image. Please try again.');
+          return;
+        }
+        onSave(dataUrl);
+        onClose();
+      } catch (error) {
+        console.error('Error getting signature:', error);
+        alert('Error capturing signature. Please try drawing again.');
+      }
       return;
     }
 
