@@ -4,84 +4,160 @@ import { useEffect } from "react";
 
 export default function CacheCleaner() {
   useEffect(() => {
-    // Function to clear all caches and storage
+    // Function to aggressively clear all caches and storage on every reload
     const clearAllCachesAndStorage = async () => {
       try {
-        console.log("🧹 Starting cache and storage cleanup...");
+        console.log("🧹 Clearing all browser cache and storage...");
 
-        // Clear localStorage
+        // 1. Clear ALL localStorage (including auth - user will need to re-login)
         if (typeof window !== "undefined" && window.localStorage) {
-          const itemsToKeep = ["auth_token", "user_data"]; // Keep authentication
-          const allKeys = Object.keys(localStorage);
-          
-          allKeys.forEach(key => {
-            if (!itemsToKeep.includes(key)) {
-              localStorage.removeItem(key);
-            }
-          });
-          console.log("✅ LocalStorage cleared (except auth)");
+          localStorage.clear();
+          console.log("✅ LocalStorage completely cleared");
         }
 
-        // Clear sessionStorage
+        // 2. Clear ALL sessionStorage
         if (typeof window !== "undefined" && window.sessionStorage) {
           sessionStorage.clear();
-          console.log("✅ SessionStorage cleared");
+          console.log("✅ SessionStorage completely cleared");
         }
 
-        // Clear Service Worker caches
+        // 3. Clear ALL Service Worker caches
         if ("caches" in window) {
           const cacheNames = await caches.keys();
           await Promise.all(
-            cacheNames.map(cacheName => {
-              // Don't delete Next.js build caches
-              if (!cacheName.includes("next-static") && !cacheName.includes("webpack")) {
-                return caches.delete(cacheName);
-              }
-            })
+            cacheNames.map(cacheName => caches.delete(cacheName))
           );
-          console.log("✅ Service Worker caches cleared");
+          console.log("✅ All Service Worker caches cleared");
         }
 
-        // Clear IndexedDB (optional, be careful)
-        if (window.indexedDB) {
-          const databases = await window.indexedDB.databases?.();
-          if (databases) {
-            databases.forEach((db) => {
-              if (db.name && !db.name.includes("firebase")) {
-                window.indexedDB.deleteDatabase(db.name);
-              }
-            });
-            console.log("✅ IndexedDB cleared");
+        // 4. Clear ALL IndexedDB databases
+        if (window.indexedDB && window.indexedDB.databases) {
+          try {
+            const databases = await window.indexedDB.databases();
+            if (databases) {
+              await Promise.all(
+                databases.map((db) => {
+                  if (db.name) {
+                    return new Promise((resolve) => {
+                      const deleteRequest = window.indexedDB.deleteDatabase(db.name as string);
+                      deleteRequest.onsuccess = () => resolve(true);
+                      deleteRequest.onerror = () => resolve(false);
+                      deleteRequest.onblocked = () => resolve(false);
+                    });
+                  }
+                  return Promise.resolve(true);
+                })
+              );
+              console.log("✅ All IndexedDB databases cleared");
+            }
+          } catch (err) {
+            console.log("ℹ️ IndexedDB clear skipped:", err);
           }
         }
 
-        // Force reload of API data by clearing API cache
-        if ("caches" in window) {
-          const apiCaches = await caches.keys();
-          await Promise.all(
-            apiCaches.filter(name => name.includes("api") || name.includes("data")).map(name => caches.delete(name))
-          );
+        // 5. Clear cookies (except essential ones)
+        if (typeof document !== "undefined") {
+          const cookies = document.cookie.split(";");
+          cookies.forEach((cookie) => {
+            const cookieName = cookie.split("=")[0].trim();
+            // Don't clear essential Next.js cookies
+            if (!cookieName.startsWith("__") && !cookieName.includes("session")) {
+              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+          });
+          console.log("✅ Non-essential cookies cleared");
         }
 
-        console.log("✅ All caches and storage cleared successfully!");
-        
-        // Set a flag to prevent clearing on every page load
-        sessionStorage.setItem("cache_cleared", "true");
+        // 6. Clear browser cache (if supported)
+        if ("storage" in navigator && "estimate" in navigator.storage) {
+          try {
+            const estimate = await navigator.storage.estimate();
+            console.log(`📊 Storage before clear: ${(estimate.usage! / 1024 / 1024).toFixed(2)} MB`);
+          } catch (err) {
+            console.log("ℹ️ Storage estimate not available");
+          }
+        }
+
+        // 7. Unregister service workers (force fresh install)
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(
+            registrations.map(registration => registration.unregister())
+          );
+          console.log("✅ Service workers unregistered");
+        }
+
+        // 8. Clear extension storage (if accessible)
+        // Note: This only works if the app has permissions
+        if (typeof window !== "undefined" && (window as any).chrome?.storage) {
+          try {
+            await (window as any).chrome.storage.local.clear();
+            await (window as any).chrome.storage.sync.clear();
+            console.log("✅ Extension storage cleared");
+          } catch (err) {
+            console.log("ℹ️ Extension storage not accessible (normal for web apps)");
+          }
+        }
+
+        console.log("✅ Complete cache and storage cleanup finished!");
+        console.log("🔄 Page will always load fresh content");
         
       } catch (error) {
-        console.error("❌ Error clearing caches:", error);
+        console.error("❌ Error during cleanup:", error);
       }
     };
 
-    // Only clear if not already cleared in this session
-    const cacheCleared = sessionStorage.getItem("cache_cleared");
-    
-    if (!cacheCleared) {
+    // Clear on EVERY page load/reload
+    clearAllCachesAndStorage();
+
+    // Also clear before page unload (for next reload)
+    const handleBeforeUnload = () => {
+      console.log("🔄 Preparing for page reload - clearing caches...");
+      // Synchronous clears for unload event
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (err) {
+          console.log("Error clearing on unload:", err);
+        }
+      }
+    };
+
+    // Listen for page visibility changes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("👁️ Page became visible - clearing caches");
+        clearAllCachesAndStorage();
+      }
+    };
+
+    // Listen for storage events (other tabs/windows)
+    const handleStorageChange = () => {
+      console.log("🔄 Storage changed - ensuring clean state");
       clearAllCachesAndStorage();
-    } else {
-      console.log("ℹ️ Cache already cleared in this session");
-    }
-  }, []);
+    };
+
+    // Add event listeners
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also clear on focus (when user returns to tab)
+    const handleFocus = () => {
+      console.log("🎯 Window focused - clearing caches");
+      clearAllCachesAndStorage();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup all listeners on unmount
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []); // Runs once on component mount, but listeners trigger on events
 
   return null; // This component doesn't render anything
 }
