@@ -17,10 +17,10 @@ export default function StructuredData({ type = "organization", data }: Structur
           "name": "Maindo Digital Agency",
           "alternateName": "Maindo Digital",
           "url": "https://www.maindodigital.com",
-          "logo": "https://www.maindodigital.com/logo/maindo-logo.png",
+          "logo": "https://www.maindodigital.com/maindo_digital_agency_logo.png",
           "description": "Professional digital agency offering web development, mobile apps, SEO, and digital marketing services in South Africa.",
-          "email": "info@maindodigital.com",
-          "telephone": "+27-XX-XXX-XXXX",
+          "email": "support@maindodigital.com",
+          "telephone": "+27659031894",
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "Your Street Address",
@@ -46,8 +46,9 @@ export default function StructuredData({ type = "organization", data }: Structur
           ],
           "contactPoint": {
             "@type": "ContactPoint",
-            "telephone": "+27-XX-XXX-XXXX",
+            "telephone": "+27659031894",
             "contactType": "Customer Service",
+            "email": "support@maindodigital.com",
             "areaServed": "ZA",
             "availableLanguage": ["en", "af"]
           },
@@ -190,10 +191,11 @@ export function LocalBusinessSchema() {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     "name": "Maindo Digital Agency",
-    "image": "https://www.maindodigital.com/logo/maindo-logo.png",
+    "image": "https://www.maindodigital.com/maindo_digital_agency_logo.png",
     "@id": "https://www.maindodigital.com",
     "url": "https://www.maindodigital.com",
-    "telephone": "+27-XX-XXX-XXXX",
+    "telephone": "+27659031894",
+    "email": "support@maindodigital.com",
     "priceRange": "R$-R$$$",
     "address": {
       "@type": "PostalAddress",

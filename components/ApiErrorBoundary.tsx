@@ -72,7 +72,7 @@ export function ApiError({ message, onRetry }: { message?: string; onRetry?: () 
         </button>
       )}
       <p className="text-xs text-yellow-600 mt-4">
-        If this persists, please contact support: info@maindodigital.com
+        If this persists, please contact support: support@maindodigital.com
       </p>
     </div>
   );

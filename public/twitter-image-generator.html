@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Image Generator - Maindo Digital Agency</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .twitter-image {
+            width: 1200px;
+            height: 675px;
+            background: linear-gradient(135deg, #1e40af 0%, #6d28d9 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Background Pattern */
+        .twitter-image::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        /* Decorative Elements */
+        .decoration {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .dec-1 {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            top: -100px;
+            right: -80px;
+        }
+        
+        .dec-2 {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            bottom: -80px;
+            left: 50px;
+        }
+        
+        .dec-3 {
+            width: 150px;
+            height: 150px;
+            border-radius: 20px;
+            transform: rotate(45deg);
+            top: 100px;
+            left: -50px;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 70px;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .logo {
+            width: 180px;
+            height: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        .company-name {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 68px;
+            font-weight: bold;
+            line-height: 1.1;
+            margin-bottom: 25px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .highlight {
+            background: linear-gradient(90deg, #facc15, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .description {
+            font-size: 28px;
+            line-height: 1.5;
+            opacity: 0.95;
+            margin-bottom: 40px;
+            max-width: 900px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 40px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #facc15;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .services {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .service-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .contact-info {
+            display: flex;
+            gap: 30px;
+            font-size: 18px;
+        }
+        
+        .cta-badge {
+            background: #facc15;
+            color: #1e293b;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="twitter-image">
+        <div class="decoration dec-1"></div>
+        <div class="decoration dec-2"></div>
+        <div class="decoration dec-3"></div>
+        
+        <div class="content">
+            <div class="logo-section">
+                <img src="maindo_digital_agency_logo.png" alt="Maindo Digital Agency" class="logo">
+                <div class="company-name">Maindo Digital Agency</div>
+            </div>
+            
+            <div class="main-content">
+                <h1>
+                    <span class="highlight">Transform</span> Your Business<br>
+                    with Digital Excellence
+                </h1>
+                
+                <div class="description">
+                    🚀 Web Development | Mobile Apps | SEO | E-Commerce<br>
+                    ⭐ 4.9/5 Rating | 100+ Happy Clients | FREE Consultation
+                </div>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number">100+</span>
+                        <span class="stat-label">Projects</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">4.9/5</span>
+                        <span class="stat-label">Rating</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">250%</span>
+                        <span class="stat-label">Avg ROI</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Support</span>
+                    </div>
+                </div>
+                
+                <div class="services">
+                    <span class="service-badge">💻 Web Development</span>
+                    <span class="service-badge">📱 Mobile Apps</span>
+                    <span class="service-badge">🎯 SEO & Marketing</span>
+                    <span class="service-badge">🛒 E-Commerce</span>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <div class="contact-info">
+                    <span>📞 +27 65 903 1894</span>
+                    <span>✉️ support@maindodigital.com</span>
+                    <span>🌐 www.maindodigital.com</span>
+                </div>
+                <div class="cta-badge">
+                    Get Started Today →
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; text-align: center; color: #666;">
+        <p style="font-size: 14px;">To create twitter-image.jpg:</p>
+        <ol style="text-align: left; max-width: 600px; margin: 20px auto; line-height: 1.8;">
+            <li>Take a screenshot of the blue box above (1200x675px)</li>
+            <li>Or use browser dev tools: Right-click → Inspect → Take screenshot</li>
+            <li>Save as twitter-image.jpg in the /public/ folder</li>
+            <li>Delete this HTML file after creating the image</li>
+        </ol>
+    </div>
+</body>
+</html>
+

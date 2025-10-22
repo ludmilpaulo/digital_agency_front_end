@@ -58,7 +58,7 @@ export function ArticleSchema({ article }: { article: ArticleSchema }) {
       "name": article.publisher,
       "logo": {
         "@type": "ImageObject",
-        "url": "https://www.maindodigital.com/logo/maindo-logo.png"
+        "url": "https://www.maindodigital.com/maindo_digital_agency_logo.png"
       }
     },
     "datePublished": article.datePublished,

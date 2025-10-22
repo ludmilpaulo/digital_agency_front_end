@@ -17,7 +17,7 @@ const Toaster = dynamic(() => import("react-hot-toast").then(m => m.Toaster), { 
 const fallback = {
   logo: "/logo.png",
   title: "Maindo Digital Agency",
-  email: "info@maindodigital.com",
+  email: "support@maindodigital.com",
   address: "Sandton, Johannesburg, South Africa",
   whatsapp: "+27 84 2368752",
   linkedin: "https://linkedin.com/company/maindodigital",

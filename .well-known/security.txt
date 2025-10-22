@@ -1,4 +1,4 @@
-Contact: mailto:info@maindodigital.com
+Contact: mailto:support@maindodigital.com
 Expires: 2026-12-31T23:59:59.000Z
 Encryption: https://www.maindodigital.com/pgp-key.txt
 Preferred-Languages: en, af
