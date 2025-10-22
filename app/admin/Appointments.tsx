@@ -8,13 +8,20 @@ import AdminPagination from "@/components/AdminPagination";
 
 interface Appointment {
   id: number;
-  user: number;
-  service: string;
+  user?: any;
+  phone?: string;
+  email?: string;
+  reason?: string;
+  service?: string;
+  service_type?: string;
   date: string;
   time: string;
   status: string;
-  notes: string;
-  created_at: string;
+  notes?: string;
+  admin_notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  appointment_number?: string;
 }
 
 export default function Appointments() {
@@ -27,11 +34,14 @@ export default function Appointments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [formData, setFormData] = useState({
-    service: "",
+    reason: "",
+    service_type: "",
     date: "",
     time: "",
-    status: "Scheduled",
+    status: "pending",
     notes: "",
+    email: "",
+    phone: "",
   });
 
   useEffect(() => {
@@ -56,11 +66,14 @@ export default function Appointments() {
   const handleCreate = () => {
     setEditingAppointment(null);
     setFormData({
-      service: "",
+      reason: "",
+      service_type: "",
       date: "",
       time: "",
-      status: "Scheduled",
+      status: "pending",
       notes: "",
+      email: "",
+      phone: "",
     });
     setShowModal(true);
   };
@@ -68,17 +81,20 @@ export default function Appointments() {
   const handleEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
     setFormData({
-      service: appointment.service,
+      reason: appointment.reason || appointment.service || "",
+      service_type: appointment.service_type || "",
       date: appointment.date,
       time: appointment.time,
       status: appointment.status,
-      notes: appointment.notes,
+      notes: appointment.notes || "",
+      email: appointment.email || "",
+      phone: appointment.phone || "",
     });
     setShowModal(true);
   };
 
-  const handleDelete = async (id: number, service: string) => {
-    if (!confirm(`Are you sure you want to delete appointment for "${service}"?`)) return;
+  const handleDelete = async (id: number, reason: string) => {
+    if (!confirm(`Are you sure you want to delete appointment: "${reason}"?`)) return;
 
     try {
       const response = await fetch(`${baseAPI}/appointment/appointments/${id}/`, {
@@ -130,15 +146,20 @@ export default function Appointments() {
   };
 
   const getStatusColor = (status: string) => {
+    if (!status) return "bg-gray-100 text-gray-700";
+    
     switch (status.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
       case "scheduled":
+      case "confirmed":
         return "bg-blue-100 text-blue-700";
       case "completed":
         return "bg-green-100 text-green-700";
       case "cancelled":
         return "bg-red-100 text-red-700";
       case "rescheduled":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-orange-100 text-orange-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -146,10 +167,15 @@ export default function Appointments() {
 
   // Filter and paginate appointments
   const filteredAppointments = appointments.filter((appointment) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      appointment.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.notes?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || appointment.status.toLowerCase() === filterStatus.toLowerCase();
+      (appointment.reason?.toLowerCase() || '').includes(searchLower) ||
+      (appointment.service?.toLowerCase() || '').includes(searchLower) ||
+      (appointment.service_type?.toLowerCase() || '').includes(searchLower) ||
+      (appointment.notes?.toLowerCase() || '').includes(searchLower) ||
+      (appointment.email?.toLowerCase() || '').includes(searchLower) ||
+      (appointment.phone?.toLowerCase() || '').includes(searchLower);
+    const matchesStatus = filterStatus === "all" || (appointment.status?.toLowerCase() || '') === filterStatus.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -207,7 +233,7 @@ export default function Appointments() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           >
             <option value="all">All Status</option>
-            <option value="scheduled">Scheduled</option>
+            <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
@@ -228,21 +254,32 @@ export default function Appointments() {
                       <FaCalendar className="text-purple-600 text-xl" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 truncate">{appointment.service}</h3>
+                      <h3 className="font-bold text-gray-900 truncate">
+                        {appointment.reason || appointment.service || appointment.service_type || 'Appointment'}
+                      </h3>
                       <p className="text-sm text-gray-600">
                         {new Date(appointment.date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)} whitespace-nowrap`}>
-                    {appointment.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status || 'pending')} whitespace-nowrap`}>
+                    {appointment.status || 'pending'}
                   </span>
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm text-gray-600">
                   <p><strong>Time:</strong> {appointment.time}</p>
+                  {appointment.email && (
+                    <p className="truncate"><strong>Email:</strong> {appointment.email}</p>
+                  )}
+                  {appointment.phone && (
+                    <p><strong>Phone:</strong> {appointment.phone}</p>
+                  )}
                   {appointment.notes && (
                     <p className="line-clamp-2"><strong>Notes:</strong> {appointment.notes}</p>
+                  )}
+                  {appointment.appointment_number && (
+                    <p className="text-xs text-gray-500"><strong>ID:</strong> {appointment.appointment_number}</p>
                   )}
                 </div>
 
@@ -254,7 +291,7 @@ export default function Appointments() {
                     <FaEdit /> Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(appointment.id, appointment.service)}
+                    onClick={() => handleDelete(appointment.id, appointment.reason || appointment.service || 'this appointment')}
                     className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
                   >
                     <FaTrash />
@@ -329,15 +366,52 @@ export default function Appointments() {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="client@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Phone *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="+27 12 345 6789"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Service *</label>
+                <label className="block text-sm font-medium mb-1">Reason/Service *</label>
                 <input
                   type="text"
                   required
-                  value={formData.service}
-                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                  value={formData.reason}
+                  onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Project Review Meeting"
+                  placeholder="e.g., Website consultation, Project review"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Service Type</label>
+                <input
+                  type="text"
+                  value={formData.service_type}
+                  onChange={(e) => setFormData({ ...formData, service_type: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Web Development, SEO, Mobile App"
                 />
               </div>
 
@@ -372,11 +446,11 @@ export default function Appointments() {
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="Rescheduled">Rescheduled</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="rescheduled">Rescheduled</option>
                 </select>
               </div>
 
