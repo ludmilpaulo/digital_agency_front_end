@@ -1,9 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Shield, Clock, Award, HeadphonesIcon, Rocket, Target } from "lucide-react";
+import { useGetPartnersQuery } from "@/redux/services/aboutUsApi";
 
 export default function TrustSignals() {
+  const { data: partners = [], isLoading: partnersLoading } = useGetPartnersQuery();
+  
   const signals = [
     {
       icon: Shield,
@@ -106,10 +110,36 @@ export default function TrustSignals() {
           <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-8">
             Trusted by Leading Brands Across South Africa
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-50 hover:opacity-75 transition-opacity">
-            {/* Placeholder for client logos */}
-            <div className="text-gray-400 italic">Client logos will appear here</div>
-          </div>
+          {partnersLoading ? (
+            <div className="text-gray-400">Loading partners...</div>
+          ) : partners.length > 0 ? (
+            <div className="flex flex-wrap justify-center items-center gap-8">
+              {partners.map((partner: any) => (
+                <motion.a
+                  key={partner.id}
+                  href={partner.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block grayscale hover:grayscale-0 hover:scale-110 transition-all duration-300 bg-white rounded-xl px-6 py-4 shadow-md hover:shadow-xl"
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.05 * partners.indexOf(partner) }}
+                  title={partner.name}
+                >
+                  <Image
+                    src={partner.img}
+                    alt={partner.name}
+                    width={120}
+                    height={50}
+                    className="object-contain h-12"
+                  />
+                </motion.a>
+              ))}
+            </div>
+          ) : (
+            <div className="text-gray-400 italic">No partners available</div>
+          )}
         </motion.div>
       </div>
     </section>
