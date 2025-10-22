@@ -157,7 +157,7 @@ export default function RequestProjectModal({
   const handleBookAppointment = () => {
     onClose();
     router.push("/appointment");
-    toast.info("Redirecting to appointment booking...");
+    toast("Redirecting to appointment booking...", { icon: "ℹ️" });
   };
 
   if (!isOpen) return null;
@@ -180,7 +180,7 @@ export default function RequestProjectModal({
             </button>
           </div>
           <p className="text-blue-100 mt-2">
-            Tell us about your project and we'll get started!
+            Tell us about your project and we&apos;ll get started!
           </p>
         </div>
 
@@ -226,7 +226,7 @@ export default function RequestProjectModal({
           {showAppointmentRedirect && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-blue-800 font-medium mb-3">
-                💡 Can't find the service you need?
+                💡 Can&apos;t find the service you need?
               </p>
               <p className="text-sm text-blue-700 mb-3">
                 Book an appointment with our team to discuss your custom requirements.

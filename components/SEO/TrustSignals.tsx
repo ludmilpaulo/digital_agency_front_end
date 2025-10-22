@@ -66,7 +66,7 @@ export default function TrustSignals() {
             Why Choose <span className="text-blue-600">Maindo Digital?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We're not just another digital agency. We're your partner in growth, committed to delivering exceptional results.
+            We&apos;re not just another digital agency. We&apos;re your partner in growth, committed to delivering exceptional results.
           </p>
         </motion.div>
 

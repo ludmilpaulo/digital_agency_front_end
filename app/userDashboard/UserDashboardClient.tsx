@@ -54,6 +54,7 @@ interface Task {
   due_date?: string;
   description?: string;
   board?: number;
+  assignee?: string;
 }
 
 interface Appointment {
@@ -1015,7 +1016,7 @@ export default function UserDashboardClient() {
                   <div className="col-span-full bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
                     <FaProjectDiagram className="text-6xl text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">No Projects Yet</h3>
-                    <p className="text-gray-500 mb-6">Have a project in mind? Request one and we'll get started!</p>
+                    <p className="text-gray-500 mb-6">Have a project in mind? Request one and we&apos;ll get started!</p>
                     <button
                       onClick={() => setShowRequestProjectModal(true)}
                       className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl"

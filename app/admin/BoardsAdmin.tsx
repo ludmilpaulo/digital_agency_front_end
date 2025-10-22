@@ -138,6 +138,7 @@ const BoardsAdmin: React.FC = () => {
     setBoardFields({
       ...initialBoardFields,
       ...board,
+      budget: board.budget?.toString() || "",
       managers_ids: board.managers.map((m) => m.id),
       users_ids: board.users.map((u) => u.id),
     });
