@@ -88,16 +88,17 @@ export default function ProposalsManagement() {
     let filtered = [...proposals];
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(p => p.status === statusFilter);
+      filtered = filtered.filter(p => (p.status || 'pending') === statusFilter);
     }
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(searchLower) ||
-        p.company.toLowerCase().includes(searchLower) ||
-        p.email.toLowerCase().includes(searchLower) ||
-        p.service.toLowerCase().includes(searchLower)
+        (p.name || '').toLowerCase().includes(searchLower) ||
+        (p.company || '').toLowerCase().includes(searchLower) ||
+        (p.email || '').toLowerCase().includes(searchLower) ||
+        (p.service || '').toLowerCase().includes(searchLower) ||
+        (p.proposal_number || '').toLowerCase().includes(searchLower)
       );
     }
 
@@ -188,6 +189,7 @@ export default function ProposalsManagement() {
   };
 
   const getStatusBadge = (status: string) => {
+    if (!status) status = 'pending';
     const displayStatus = status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
@@ -384,15 +386,15 @@ export default function ProposalsManagement() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{proposal.name}</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{proposal.name || 'Unknown'}</h3>
                       {getStatusBadge(proposal.status)}
                     </div>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Proposal #:</strong> {proposal.proposal_number}</p>
+                      <p><strong>Proposal #:</strong> {proposal.proposal_number || 'N/A'}</p>
                       <p><strong>Company:</strong> {proposal.company || 'N/A'}</p>
-                      <p><strong>Service:</strong> {proposal.service}</p>
-                      <p><strong>Email:</strong> {proposal.email}</p>
-                      <p><strong>Phone:</strong> {proposal.phone}</p>
+                      <p><strong>Service:</strong> {proposal.service || 'N/A'}</p>
+                      <p><strong>Email:</strong> {proposal.email || 'N/A'}</p>
+                      <p><strong>Phone:</strong> {proposal.phone || 'N/A'}</p>
                       {proposal.time_frame && <p><strong>Timeline:</strong> {proposal.time_frame}</p>}
                       {proposal.estimated_budget && (
                         <p><strong>Budget:</strong> R{proposal.estimated_budget.toLocaleString()}</p>
@@ -402,7 +404,9 @@ export default function ProposalsManagement() {
 
                   <div className="text-right">
                     <p className="text-sm text-gray-500">Submitted</p>
-                    <p className="text-sm font-semibold">{new Date(proposal.submitted_at).toLocaleDateString()}</p>
+                    <p className="text-sm font-semibold">
+                      {proposal.submitted_at ? new Date(proposal.submitted_at).toLocaleDateString() : 'N/A'}
+                    </p>
                     
                     {proposal.board_name && (
                       <div className="mt-2">
@@ -414,10 +418,12 @@ export default function ProposalsManagement() {
                 </div>
 
                 {/* Message */}
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Requirements:</p>
-                  <p className="text-sm text-gray-600">{proposal.message}</p>
-                </div>
+                {proposal.message && (
+                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-1">Requirements:</p>
+                    <p className="text-sm text-gray-600">{proposal.message}</p>
+                  </div>
+                )}
 
                 {/* Signatures Status */}
                 {(proposal.admin_signature || proposal.client_signature) && (
