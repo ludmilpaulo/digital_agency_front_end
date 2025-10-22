@@ -27,7 +27,6 @@ export const boardsApi = createApi({
           managers_ids: number[];
           users_ids: number[];
           budget?: number;
-          budget_used?: number;
           deadline?: string;
           start_date?: string;
           end_date?: string;
@@ -37,6 +36,33 @@ export const boardsApi = createApi({
         query: (body) => ({
           url: `boards/`,
           method: "POST",
+          body,
+        }),
+        invalidatesTags: ["Boards"],
+      }),
+
+    editBoard: builder.mutation<
+        Board,
+        {
+          id: number;
+          name: string;
+          description: string;
+          development_link?: string;
+          repository_link?: string;
+          client_link?: string;
+          sample_link?: string;
+          managers_ids: number[];
+          users_ids: number[];
+          budget?: number;
+          deadline?: string;
+          start_date?: string;
+          end_date?: string;
+          status?: string;
+        }
+      >({
+        query: ({ id, ...body }) => ({
+          url: `boards/${id}/`,
+          method: "PUT",
           body,
         }),
         invalidatesTags: ["Boards"],
@@ -95,6 +121,7 @@ export const boardsApi = createApi({
 export const {
   useGetBoardsQuery,
   useAddBoardMutation,
+  useEditBoardMutation,
   useDeleteBoardMutation,
   useAddListMutation,
   useDeleteListMutation,

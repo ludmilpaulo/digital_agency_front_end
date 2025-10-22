@@ -25,8 +25,18 @@ export interface Board {
   id: number;
   name: string;
   description: string;
+  development_link?: string;
+  repository_link?: string;
+  client_link?: string;
+  sample_link?: string;
   users: User[];
   managers: User[];
+  budget?: number;
+  budget_used?: number;
+  budget_remaining?: number;
+  deadline?: string;
+  start_date?: string;
+  end_date?: string;
   status: string;
   lists: List[];
 }
@@ -41,7 +51,6 @@ export interface BoardFields {
   managers_ids: number[];
   users_ids: number[];
   budget: string;        // Always as string for form input, can parse to number before sending API
-  budget_used: string;
   deadline: string;
   start_date: string;
   end_date: string;

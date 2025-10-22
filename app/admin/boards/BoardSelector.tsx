@@ -8,6 +8,7 @@ interface BoardSelectorProps {
   setSelectedBoardId: (id: number) => void;
   handleDeleteBoard: (id: number) => void;
   handleEditBoard: (board: Board) => void;
+  handleUpdateBoardStatus?: (boardId: number, status: string) => void;
 }
 
 const BoardSelector: React.FC<BoardSelectorProps> = ({
@@ -16,6 +17,7 @@ const BoardSelector: React.FC<BoardSelectorProps> = ({
   setSelectedBoardId,
   handleDeleteBoard,
   handleEditBoard,
+  handleUpdateBoardStatus,
 }) => (
   <div className="flex flex-wrap gap-3 items-center mb-3">
     {boards.map((b) => (
@@ -40,6 +42,25 @@ const BoardSelector: React.FC<BoardSelectorProps> = ({
           {b.name.slice(0, 2)}
         </span>
         <span className="font-semibold text-base">{b.name}</span>
+        
+        {/* Status Dropdown */}
+        {handleUpdateBoardStatus && (
+          <select
+            className="ml-2 px-2 py-1 text-xs rounded border border-gray-300 bg-white"
+            value={b.status}
+            onChange={(e) => {
+              e.stopPropagation();
+              handleUpdateBoardStatus(b.id, e.target.value);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            tabIndex={-1}
+          >
+            <option value="Started">Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Concluded">Concluded</option>
+          </select>
+        )}
+        
         {/* Action Buttons */}
         <button
           className="ml-2 text-blue-400 hover:text-blue-700 p-1 rounded-full transition"

@@ -136,13 +136,6 @@ const BoardModal: React.FC<BoardModalProps> = ({
           />
           <input
             className="border px-3 py-2 rounded-xl w-full"
-            placeholder="Budget Used"
-            type="number"
-            value={boardFields.budget_used}
-            onChange={e => setBoardFields(f => ({ ...f, budget_used: e.target.value }))}
-          />
-          <input
-            className="border px-3 py-2 rounded-xl w-full"
             placeholder="Deadline (YYYY-MM-DD)"
             type="date"
             value={boardFields.deadline}

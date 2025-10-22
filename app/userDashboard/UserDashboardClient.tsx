@@ -8,7 +8,7 @@ import {
   FaUser, FaProjectDiagram, FaTasks, FaCalendar, FaFileAlt, 
   FaEnvelope, FaCog, FaChartLine, FaCheckCircle, FaClock, 
   FaExclamationTriangle, FaEdit, FaEye, FaDownload, FaKey,
-  FaInfoCircle, FaTimes, FaSearch, FaPlus
+  FaInfoCircle, FaTimes, FaSearch, FaPlus, FaDollarSign
 } from "react-icons/fa";
 import { baseAPI } from "@/useAPI/api";
 import { trackEvent } from "@/lib/analytics/mixpanel";
@@ -26,8 +26,24 @@ interface Project {
   deadline?: string;
   description: string;
   client?: string;
+  client_link?: string;
   budget?: number;
   created_at?: string;
+  service?: string;
+  priority?: string;
+  last_updated?: string;
+  milestones?: Array<{
+    id: number;
+    title: string;
+    status: 'pending' | 'in_progress' | 'completed';
+    due_date?: string;
+    completed_date?: string;
+  }>;
+  team_members?: Array<{
+    id: number;
+    name: string;
+    role: string;
+  }>;
 }
 
 interface Task {
@@ -63,11 +79,18 @@ interface Proposal {
 
 interface Invoice {
   id: number;
-  project_title: string;
+  invoice_number: string;
+  board_name: string;
+  project_title?: string; // For backward compatibility
   amount: number;
+  tax_amount: number;
+  total_amount: number;
   status: string;
-  created_at: string;
+  issue_date: string;
+  created_at?: string; // For backward compatibility
   due_date?: string;
+  paid_date?: string;
+  is_overdue: boolean;
 }
 
 export default function UserDashboardClient() {
@@ -108,6 +131,29 @@ export default function UserDashboardClient() {
   });
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Download Invoice PDF
+  const handleDownloadInvoice = async (invoiceId: number, invoiceNumber: string) => {
+    try {
+      const response = await fetch(`${baseAPI}/task/invoices/${invoiceId}/download_pdf/`);
+      if (!response.ok) {
+        throw new Error('Failed to download invoice');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice-${invoiceNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Failed to download invoice');
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -153,20 +199,44 @@ export default function UserDashboardClient() {
           const projectsData = await projectsRes.json();
           // Transform Board data to match Project interface
           const transformedProjects = Array.isArray(projectsData) 
-            ? projectsData.map((board: any) => ({
-                id: board.id,
-                title: board.name,
-                description: board.description || '',
-                status: board.status || 'Started',
-                progress: board.budget && board.budget_used 
-                  ? Math.round((board.budget_used / board.budget) * 100) 
-                  : 0,
-                deadline: board.deadline,
-                start_date: board.start_date,
-                budget: board.budget,
-                client: board.users?.map((u: any) => u.username).join(', ') || '',
-                created_at: board.created_at
-              }))
+            ? projectsData.map((board: any) => {
+                // Calculate progress based on status and card completion
+                let progress = 0;
+                
+                if (board.status === 'Concluded') {
+                  // Concluded projects are 100% complete
+                  progress = 100;
+                } else if (board.status === 'In Progress') {
+                  // Calculate based on completed cards
+                  const allCards = board.lists?.flatMap((list: any) => list.cards || []) || [];
+                  const totalCards = allCards.length;
+                  const completedCards = allCards.filter((card: any) => card.status === 'Completed').length;
+                  
+                  if (totalCards > 0) {
+                    progress = Math.round((completedCards / totalCards) * 100);
+                  } else {
+                    // If no cards yet, show 25% for in-progress
+                    progress = 25;
+                  }
+                } else if (board.status === 'Started') {
+                  // Started projects show 10% progress
+                  progress = 10;
+                }
+                
+                return {
+                  id: board.id,
+                  title: board.name,
+                  description: board.description || '',
+                  status: board.status || 'Started',
+                  progress: progress,
+                  deadline: board.deadline,
+                  start_date: board.start_date,
+                  budget: board.budget,
+                  client: board.users?.map((u: any) => u.username).join(', ') || '',
+                  client_link: board.client_link || '',
+                  created_at: board.created_at
+                };
+              })
             : [];
           setProjects(transformedProjects);
         } else {
@@ -260,9 +330,20 @@ export default function UserDashboardClient() {
         setProposals([]);
       }
 
-      // TODO: Fetch Invoices from backend when API is ready
-      // For now, no invoices system is implemented in the backend
-      setInvoices([]);
+      // Fetch Invoices - Only user's invoices
+      try {
+        const invoicesRes = await fetch(`${baseAPI}/task/invoices/?user_id=${userId}`, { headers });
+        if (invoicesRes.ok) {
+          const invoicesData = await invoicesRes.json();
+          setInvoices(Array.isArray(invoicesData) ? invoicesData : []);
+        } else {
+          console.warn("Failed to fetch invoices:", invoicesRes.status);
+          setInvoices([]);
+        }
+      } catch (err) {
+        console.error("Error fetching invoices:", err);
+        setInvoices([]);
+      }
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -628,6 +709,57 @@ export default function UserDashboardClient() {
                   <FaPlus /> Request New Project
                 </button>
               </div>
+
+              {/* Progress Overview Dashboard */}
+              {projects.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm font-medium">Total Projects</p>
+                        <p className="text-3xl font-bold">{projects.length}</p>
+                      </div>
+                      <FaProjectDiagram className="text-4xl text-blue-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm font-medium">Completed</p>
+                        <p className="text-3xl font-bold">
+                          {projects.filter(p => p.status === 'Completed' || p.progress === 100).length}
+                        </p>
+                      </div>
+                      <FaCheckCircle className="text-4xl text-green-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm font-medium">In Progress</p>
+                        <p className="text-3xl font-bold">
+                          {projects.filter(p => p.status === 'In Progress' || (p.progress && p.progress > 0 && p.progress < 100)).length}
+                        </p>
+                      </div>
+                      <FaTasks className="text-4xl text-purple-200" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm font-medium">Avg Progress</p>
+                        <p className="text-3xl font-bold">
+                          {Math.round(projects.reduce((acc, p) => acc + (p.progress || 0), 0) / projects.length)}%
+                        </p>
+                      </div>
+                      <FaChartLine className="text-4xl text-orange-200" />
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Search Bar */}
               {projects.length > 0 && (
@@ -661,38 +793,198 @@ export default function UserDashboardClient() {
                     return paginated.length > 0 ? (
                       <>
                         {paginated.map((project) => (
-                          <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100">
-                            <div className="flex justify-between items-start mb-4">
-                              <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                project.status === "Completed" ? "bg-green-100 text-green-700" :
-                                project.status === "In Progress" ? "bg-blue-100 text-blue-700" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
-                                {project.status}
-                              </span>
+                          <div key={project.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                            {/* Header with gradient background */}
+                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 border-b border-gray-100">
+                              <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-bold text-xl text-gray-900 group-hover:text-blue-600 transition-colors">{project.title}</h3>
+                                <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                                  project.status === "Completed" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
+                                  project.status === "In Progress" ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                                  project.status === "Started" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                                  "bg-gray-100 text-gray-700 border border-gray-200"
+                                }`}>
+                                  {project.status}
+                                </span>
+                              </div>
+                              <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{project.description}</p>
                             </div>
-                            <p className="text-gray-600 text-sm mb-4">{project.description}</p>
-                            {project.progress !== undefined && (
-                              <div className="mb-4">
-                                <div className="flex justify-between mb-2">
-                                  <span className="text-sm text-gray-600">Progress</span>
-                                  <span className="text-sm font-medium text-gray-900">{project.progress}%</span>
+                            
+                            {/* Content */}
+                            <div className="p-6">
+                              {/* Progress Section */}
+                              <div className="mb-6">
+                                <div className="flex justify-between items-center mb-3">
+                                  <span className="text-sm font-medium text-gray-700">Project Progress</span>
+                                  <span className="text-sm font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-md">
+                                    {project.progress || 0}%
+                                  </span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                   <div
-                                    className="bg-blue-600 h-2 rounded-full"
-                                    style={{ width: `${project.progress}%` }}
+                                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                                    style={{ width: `${project.progress || 0}%` }}
                                   ></div>
                                 </div>
+                                
+                                {/* Progress Status Indicators */}
+                                <div className="flex justify-between mt-2 text-xs text-gray-500">
+                                  <span className={project.progress === 0 ? "font-semibold text-gray-700" : ""}>Not Started</span>
+                                  <span className={project.progress && project.progress > 0 && project.progress < 50 ? "font-semibold text-blue-600" : ""}>In Progress</span>
+                                  <span className={project.progress && project.progress >= 50 && project.progress < 100 ? "font-semibold text-purple-600" : ""}>Almost Done</span>
+                                  <span className={project.progress === 100 ? "font-semibold text-green-600" : ""}>Completed</span>
+                                </div>
                               </div>
-                            )}
-                            {project.deadline && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <FaClock />
-                                <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
+                              
+                              {/* Project Details */}
+                              <div className="space-y-3 mb-6">
+                                {project.budget && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                      <FaDollarSign className="text-green-600 text-sm" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Budget</p>
+                                      <p className="text-sm font-semibold text-gray-900">{project.budget}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {project.service && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                      <FaProjectDiagram className="text-blue-600 text-sm" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Service</p>
+                                      <p className="text-sm font-semibold text-gray-900">{project.service}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {project.priority && (
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                      project.priority === 'High' || project.priority === 'Urgent' ? 'bg-red-100' :
+                                      project.priority === 'Medium' ? 'bg-yellow-100' : 'bg-green-100'
+                                    }`}>
+                                      <span className={`text-xs font-bold ${
+                                        project.priority === 'High' || project.priority === 'Urgent' ? 'text-red-600' :
+                                        project.priority === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                                      }`}>!</span>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Priority</p>
+                                      <p className={`text-sm font-semibold ${
+                                        project.priority === 'High' || project.priority === 'Urgent' ? 'text-red-600' :
+                                        project.priority === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                                      }`}>{project.priority}</p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                              
+                              {/* Progress Tracking Section */}
+                              {project.milestones && project.milestones.length > 0 && (
+                                <div className="mb-6">
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Project Milestones</h4>
+                                  <div className="space-y-2">
+                                    {project.milestones.slice(0, 3).map((milestone) => (
+                                      <div key={milestone.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                          milestone.status === 'completed' ? 'bg-green-500' :
+                                          milestone.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+                                        }`}></div>
+                                        <span className={`text-sm ${
+                                          milestone.status === 'completed' ? 'text-green-700 line-through' :
+                                          milestone.status === 'in_progress' ? 'text-blue-700 font-medium' : 'text-gray-600'
+                                        }`}>
+                                          {milestone.title}
+                                        </span>
+                                        {milestone.due_date && (
+                                          <span className="text-xs text-gray-500 ml-auto">
+                                            Due: {new Date(milestone.due_date).toLocaleDateString()}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                    {project.milestones.length > 3 && (
+                                      <p className="text-xs text-gray-500 text-center">
+                                        +{project.milestones.length - 3} more milestones
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Team Members Section */}
+                              {project.team_members && project.team_members.length > 0 && (
+                                <div className="mb-6">
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Team Members</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {project.team_members.slice(0, 3).map((member) => (
+                                      <div key={member.id} className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
+                                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                          <span className="text-white text-xs font-bold">
+                                            {member.name.charAt(0).toUpperCase()}
+                                          </span>
+                                        </div>
+                                        <span className="text-xs text-blue-700 font-medium">{member.name}</span>
+                                        <span className="text-xs text-blue-600">{member.role}</span>
+                                      </div>
+                                    ))}
+                                    {project.team_members.length > 3 && (
+                                      <div className="bg-gray-100 px-3 py-1 rounded-full">
+                                        <span className="text-xs text-gray-600">+{project.team_members.length - 3} more</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Footer */}
+                              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-4">
+                                  {project.deadline && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                      <FaClock className="text-gray-400" />
+                                      <span className="font-medium">Due: {new Date(project.deadline).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                  {project.last_updated && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                                      <FaCalendar className="text-gray-400" />
+                                      <span>Updated: {new Date(project.last_updated).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  ID: #{project.id}
+                                </div>
+                              </div>
+
+                              {/* Live Link Button for Concluded Projects */}
+                              {project.status === 'Concluded' && (
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                  {(project as any).client_link ? (
+                                    <a
+                                      href={(project as any).client_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+                                    >
+                                      <FaEye className="text-lg" />
+                                      View Live Site
+                                    </a>
+                                  ) : (
+                                    <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-500 rounded-lg">
+                                      <FaInfoCircle />
+                                      <span className="text-sm">Live link will be available soon</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ))}
                         <div className="col-span-full">
@@ -772,38 +1064,74 @@ export default function UserDashboardClient() {
                     
                     return paginated.length > 0 ? (
                       <>
-                        <div className="divide-y divide-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                           {paginated.map((task) => (
-                            <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
-                                  {task.description && (
-                                    <p className="text-gray-600 text-sm mb-3">{task.description}</p>
-                                  )}
-                                  <div className="flex flex-wrap gap-2">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                      task.status === "Completed" || task.status === "Done" ? "bg-green-100 text-green-700" :
-                                      task.status === "In Progress" ? "bg-blue-100 text-blue-700" :
-                                      "bg-gray-100 text-gray-700"
-                                    }`}>
-                                      {task.status}
-                                    </span>
-                                    {task.priority && (
-                                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                        task.priority === "High" ? "bg-red-100 text-red-700" :
-                                        task.priority === "Medium" ? "bg-yellow-100 text-yellow-700" :
-                                        "bg-gray-100 text-gray-700"
+                            <div key={task.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                              {/* Header */}
+                              <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 p-5 border-b border-gray-100">
+                                <div className="flex justify-between items-start mb-3">
+                                  <h3 className="font-bold text-lg text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">{task.title}</h3>
+                                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                                    task.status === "Completed" || task.status === "Done" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
+                                    task.status === "In Progress" ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                                    "bg-gray-100 text-gray-700 border border-gray-200"
+                                  }`}>
+                                    {task.status}
+                                  </span>
+                                </div>
+                                {task.description && (
+                                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{task.description}</p>
+                                )}
+                              </div>
+                              
+                              {/* Content */}
+                              <div className="p-5">
+                                {/* Task Details */}
+                                <div className="space-y-3 mb-4">
+                                  {task.priority && (
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                        task.priority === 'High' || task.priority === 'Urgent' ? 'bg-red-100' :
+                                        task.priority === 'Medium' ? 'bg-yellow-100' : 'bg-green-100'
                                       }`}>
-                                        {task.priority}
-                                      </span>
-                                    )}
-                                    {task.due_date && (
-                                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
-                                        <FaClock />
-                                        {new Date(task.due_date).toLocaleDateString()}
-                                      </span>
-                                    )}
+                                        <span className={`text-xs font-bold ${
+                                          task.priority === 'High' || task.priority === 'Urgent' ? 'text-red-600' :
+                                          task.priority === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                                        }`}>!</span>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-gray-500 font-medium">Priority</p>
+                                        <p className={`text-sm font-semibold ${
+                                          task.priority === 'High' || task.priority === 'Urgent' ? 'text-red-600' :
+                                          task.priority === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                                        }`}>{task.priority}</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {task.assignee && (
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <span className="text-purple-600 text-xs font-bold">👤</span>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-gray-500 font-medium">Assigned To</p>
+                                        <p className="text-sm font-semibold text-gray-900">{task.assignee}</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Footer */}
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                  {task.due_date && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                      <FaClock className="text-gray-400" />
+                                      <span className="font-medium">Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                  <div className="text-xs text-gray-400">
+                                    ID: #{task.id}
                                   </div>
                                 </div>
                               </div>
@@ -882,28 +1210,86 @@ export default function UserDashboardClient() {
                     return paginated.length > 0 ? (
                       <>
                         {paginated.map((apt) => (
-                          <div key={apt.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all">
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="flex items-center gap-3">
-                                <div className="p-3 bg-blue-100 rounded-xl">
-                                  <FaCalendar className="text-blue-600" />
+                          <div key={apt.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                            {/* Header with gradient background */}
+                            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 border-b border-gray-100">
+                              <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-bold text-xl text-gray-900 group-hover:text-emerald-600 transition-colors">{apt.service}</h3>
+                                <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                                  apt.status === "Confirmed" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
+                                  apt.status === "Pending" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                                  "bg-gray-100 text-gray-700 border border-gray-200"
+                                }`}>
+                                  {apt.status}
+                                </span>
+                              </div>
+                              {apt.notes && (
+                                <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{apt.notes}</p>
+                              )}
+                            </div>
+                            
+                            {/* Content */}
+                            <div className="p-6">
+                              {/* Appointment Details */}
+                              <div className="space-y-3 mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <FaCalendar className="text-blue-600 text-sm" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-gray-500 font-medium">Date</p>
+                                    <p className="text-sm font-semibold text-gray-900">{new Date(apt.date).toLocaleDateString()}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h3 className="font-bold text-gray-900">{apt.service}</h3>
-                                  <p className="text-sm text-gray-600">{new Date(apt.date).toLocaleDateString()}</p>
+                                
+                                {apt.time && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                      <FaClock className="text-purple-600 text-sm" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Time</p>
+                                      <p className="text-sm font-semibold text-gray-900">{apt.time}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {apt.client_name && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                      <span className="text-indigo-600 text-xs font-bold">👤</span>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Client</p>
+                                      <p className="text-sm font-semibold text-gray-900">{apt.client_name}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {apt.phone && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                      <span className="text-green-600 text-xs font-bold">📞</span>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-gray-500 font-medium">Phone</p>
+                                      <p className="text-sm font-semibold text-gray-900">{apt.phone}</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Footer */}
+                              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div className="text-xs text-gray-400">
+                                  ID: #{apt.id}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(apt.date).toLocaleDateString() === new Date().toLocaleDateString() ? 'Today' : 
+                                   new Date(apt.date) > new Date() ? 'Upcoming' : 'Past'}
                                 </div>
                               </div>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                apt.status === "Confirmed" ? "bg-green-100 text-green-700" :
-                                apt.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
-                                {apt.status}
-                              </span>
                             </div>
-                            {apt.notes && (
-                              <p className="text-gray-600 text-sm">{apt.notes}</p>
-                            )}
                           </div>
                         ))}
                         <div className="col-span-full">
@@ -1047,34 +1433,46 @@ export default function UserDashboardClient() {
                       <div key={invoice.id} className="p-6 hover:bg-gray-50 transition-colors">
                         <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">Invoice #{invoice.id}</h3>
-                            <p className="text-gray-600 text-sm mb-2">{invoice.project_title}</p>
+                            <h3 className="font-semibold text-gray-900 mb-1">Invoice #{invoice.invoice_number}</h3>
+                            <p className="text-gray-600 text-sm mb-2">{invoice.board_name || invoice.project_title}</p>
                             <div className="flex items-center gap-4">
                               <span className="text-sm text-gray-500">
-                                Date: {new Date(invoice.created_at).toLocaleDateString()}
+                                Issued: {new Date(invoice.issue_date || invoice.created_at || '').toLocaleDateString()}
                               </span>
                               {invoice.due_date && (
-                                <span className="text-sm text-gray-500">
+                                <span className={`text-sm font-medium ${invoice.is_overdue ? 'text-red-600' : 'text-gray-500'}`}>
                                   Due: {new Date(invoice.due_date).toLocaleDateString()}
+                                  {invoice.is_overdue && ' (Overdue)'}
+                                </span>
+                              )}
+                              {invoice.paid_date && (
+                                <span className="text-sm text-green-600 font-medium">
+                                  Paid: {new Date(invoice.paid_date).toLocaleDateString()}
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <p className="text-2xl font-bold text-gray-900">${invoice.amount.toLocaleString()}</p>
-                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                                invoice.status === "Paid" ? "bg-green-100 text-green-700" :
-                                invoice.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                                "bg-red-100 text-red-700"
+                              <p className="text-xs text-gray-500 mb-1">Amount: R{invoice.amount.toLocaleString()}</p>
+                              {invoice.tax_amount > 0 && (
+                                <p className="text-xs text-gray-500 mb-1">+ Tax: R{invoice.tax_amount.toLocaleString()}</p>
+                              )}
+                              <p className="text-2xl font-bold text-gray-900">R{invoice.total_amount.toLocaleString()}</p>
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium mt-2 ${
+                                invoice.status === "paid" ? "bg-green-100 text-green-700 border border-green-200" :
+                                invoice.status === "sent" ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                                invoice.status === "overdue" || invoice.is_overdue ? "bg-red-100 text-red-700 border border-red-200" :
+                                invoice.status === "draft" ? "bg-gray-100 text-gray-700 border border-gray-200" :
+                                "bg-yellow-100 text-yellow-700 border border-yellow-200"
                               }`}>
-                                {invoice.status}
+                                {invoice.status.toUpperCase()}
                               </span>
                             </div>
                             <button
-                              onClick={() => downloadInvoice(invoice.id)}
-                              className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
-                              title="Download Invoice"
+                              onClick={() => handleDownloadInvoice(invoice.id, invoice.invoice_number)}
+                              className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                              title="Download Invoice PDF"
                             >
                               <FaDownload />
                             </button>

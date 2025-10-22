@@ -7,12 +7,16 @@ import FeaturesSection from "@/components/FeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import BadgesRow from "@/components/BadgesRow";
 import ScrollToTop from "@/components/ScrollToTop";
+import TrustSignals from "@/components/SEO/TrustSignals";
+import CTASection from "@/components/SEO/CTASection";
 
 export default function HomeClient() {
   return (
     <main>
+      {/* Hero Section */}
       <MainBanner />
 
+      {/* Services Section */}
       <motion.section
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -22,6 +26,10 @@ export default function HomeClient() {
         <ServicesSection />
       </motion.section>
 
+      {/* Trust Signals - NEW */}
+      <TrustSignals />
+
+      {/* Features Section */}
       <motion.section
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -31,6 +39,7 @@ export default function HomeClient() {
         <FeaturesSection />
       </motion.section>
 
+      {/* Testimonials Section */}
       <motion.section
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -40,6 +49,10 @@ export default function HomeClient() {
         <TestimonialsSection />
       </motion.section>
 
+      {/* CTA Section - NEW */}
+      <CTASection />
+
+      {/* Badges Row */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}

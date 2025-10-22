@@ -5,6 +5,7 @@ import { selectUser } from "@/redux/slices/authSlice";
 import {
   useGetBoardsQuery,
   useAddBoardMutation,
+  useEditBoardMutation,
   useDeleteBoardMutation,
   useAddListMutation,
   useDeleteListMutation,
@@ -32,7 +33,6 @@ export const initialBoardFields: BoardFields = {
   managers_ids: [],
   users_ids: [],
   budget: "",
-  budget_used: "",
   deadline: "",
   start_date: "",
   end_date: "",
@@ -110,7 +110,7 @@ const BoardsAdmin: React.FC = () => {
 
   // Mutations
   const [addBoard] = useAddBoardMutation();
-  // const [editBoard] = useEditBoardMutation();
+  const [editBoard] = useEditBoardMutation();
   const [deleteBoard] = useDeleteBoardMutation();
   const [addList] = useAddListMutation();
   const [deleteList] = useDeleteListMutation();
@@ -153,7 +153,6 @@ const BoardsAdmin: React.FC = () => {
           managers_ids: Array.isArray(boardFields.managers_ids) ? boardFields.managers_ids : [],
           users_ids: Array.isArray(boardFields.users_ids) ? boardFields.users_ids : [],
           budget: boardFields.budget ? Number(boardFields.budget) : 0,
-          budget_used: boardFields.budget_used ? Number(boardFields.budget_used) : 0,
         }).unwrap();
         setShowBoardModal(false);
         setBoardFields({ ...initialBoardFields });
@@ -165,10 +164,28 @@ const BoardsAdmin: React.FC = () => {
         );
       }
     } else if (editingBoard) {
-      // Edit board logic here...
-      setShowBoardModal(false);
-      setEditingBoard(null);
-      setTimeout(refetch, 500);
+      try {
+        await editBoard({
+          id: editingBoard.id,
+          ...boardFields,
+          description: boardFields.description || "Board description",
+          managers_ids: Array.isArray(boardFields.managers_ids) ? boardFields.managers_ids : [],
+          users_ids: Array.isArray(boardFields.users_ids) ? boardFields.users_ids : [],
+          budget: boardFields.budget ? Number(boardFields.budget) : 0,
+          deadline: boardFields.deadline || undefined,
+          start_date: boardFields.start_date || undefined,
+          end_date: boardFields.end_date || undefined,
+        }).unwrap();
+        setShowBoardModal(false);
+        setEditingBoard(null);
+        setBoardFields({ ...initialBoardFields });
+        setTimeout(refetch, 500);
+      } catch (err: any) {
+        alert(
+          err?.data?.detail ||
+          "Failed to update board. Make sure all fields are filled and you selected at least one manager."
+        );
+      }
     }
   }
   async function handleDeleteBoard(boardId: number) {
@@ -180,6 +197,39 @@ const BoardsAdmin: React.FC = () => {
       setTimeout(refetch, 400);
     } catch (err) {
       alert("Failed to delete board");
+    }
+  }
+
+  // Quick status update function
+  async function handleUpdateBoardStatus(boardId: number, status: string) {
+    try {
+      const board = boards.find(b => b.id === boardId);
+      if (!board) return;
+      
+      const updateData = {
+        id: boardId,
+        name: board.name,
+        description: board.description,
+        development_link: board.development_link || "",
+        repository_link: board.repository_link || "",
+        client_link: board.client_link || "",
+        sample_link: board.sample_link || "",
+        managers_ids: board.managers.map(m => m.id),
+        users_ids: board.users.map(u => u.id),
+        budget: board.budget || 0,
+        deadline: board.deadline || undefined,
+        start_date: board.start_date || undefined,
+        end_date: board.end_date || undefined,
+        status: status,
+      };
+      
+      console.log("[handleUpdateBoardStatus] Sending data:", updateData);
+      
+      await editBoard(updateData).unwrap();
+      setTimeout(refetch, 300);
+    } catch (err: any) {
+      console.error("Failed to update board status:", err);
+      alert(`Failed to update board status: ${err?.data?.detail || err?.message || 'Unknown error'}`);
     }
   }
 
@@ -338,6 +388,7 @@ const BoardsAdmin: React.FC = () => {
             setSelectedBoardId={setSelectedBoardId}
             handleDeleteBoard={handleDeleteBoard}
             handleEditBoard={handleOpenEditBoard}
+            handleUpdateBoardStatus={handleUpdateBoardStatus}
           />
         )}
         {selectedBoard && (

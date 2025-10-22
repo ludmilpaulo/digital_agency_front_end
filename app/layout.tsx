@@ -12,29 +12,63 @@ import { fetchAboutUs } from "@/redux/slices/aboutUsSlice";
 import FetchAboutUsClient from "./FetchAboutUsClient";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import StructuredData, { LocalBusinessSchema } from "@/components/SEO/StructuredData";
 
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Maindo Digital Agency | Innovative Digital Solutions & Services",
-  description: "Maindo Digital Agency offers comprehensive digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions to elevate your business in the digital landscape.",
-  keywords: "digital agency, digital marketing, web development, UX/UI design, mobile app development, e-commerce solutions, branding, SEO, PPC, social media management, data analytics",
+  metadataBase: new URL('https://www.maindodigital.com'),
+  title: {
+    default: "Maindo Digital Agency | Web Development, Mobile Apps & Digital Marketing South Africa",
+    template: "%s | Maindo Digital Agency"
+  },
+  description: "Transform your business with South Africa's leading digital agency. Expert web development, mobile apps, SEO, e-commerce & digital marketing. Get a FREE consultation today! ⭐ 4.9/5 Rating",
+  keywords: [
+    "web development south africa",
+    "mobile app development cape town",
+    "digital marketing johannesburg",
+    "SEO services south africa",
+    "e-commerce development",
+    "UI UX design agency",
+    "custom software development",
+    "website design cape town",
+    "app development south africa",
+    "digital agency cape town",
+    "responsive web design",
+    "react development",
+    "next.js development",
+    "django development",
+    "full stack development",
+    "online marketing",
+    "social media marketing",
+    "branding agency",
+    "graphic design south africa"
+  ],
   authors: [
     { name: "Maindo Digital Agency", url: "https://www.maindodigital.com" },
   ],
+  creator: "Maindo Digital Agency",
+  publisher: "Maindo Digital Agency",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: "Maindo Digital Agency | Innovative Digital Solutions & Services",
-    description: "Partner with Maindo Digital Agency for expert digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions. Transform your business with our innovative digital strategies.",
+    title: "Maindo Digital Agency | Transform Your Business with Expert Digital Solutions",
+    description: "🚀 South Africa's Premier Digital Agency | Web Development | Mobile Apps | SEO | E-Commerce | Get a FREE Consultation | 100+ Happy Clients | ⭐ 4.9/5",
     url: "https://www.maindodigital.com",
+    siteName: "Maindo Digital Agency",
     type: "website",
-    locale: "en_US",
+    locale: "en_ZA",
     images: [
       {
-        url: "https://maindoagency.pythonanywhere.com/media/carousel_images/og-image.jpg",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Maindo Digital Agency",
+        alt: "Maindo Digital Agency - Professional Digital Solutions",
+        type: "image/jpeg",
       },
     ],
   },
@@ -42,15 +76,28 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@maindodigital",
     creator: "@maindodigital",
-    title: "Maindo Digital Agency | Innovative Digital Solutions & Services",
-    description: "Maindo Digital Agency offers comprehensive digital marketing, web development, UX/UI design, mobile app development, and e-commerce solutions to elevate your business in the digital landscape.",
-    images: [
-      {
-        url: "https://maindoagency.pythonanywhere.com/media/carousel_images/twitter-image.jpg",
-        alt: "Maindo Digital Agency",
-      },
-    ],
+    title: "Maindo Digital Agency | Expert Web Development & Digital Marketing",
+    description: "🚀 Transform Your Business | Web Dev | Mobile Apps | SEO | E-Commerce | FREE Consultation | ⭐ 4.9/5 | South Africa",
+    images: ["/twitter-image.jpg"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://www.maindodigital.com',
+  },
+  verification: {
+    google: 'yc2OIYFEZ0Tvyo9R7ouvUjXAd45cxQFWTVgWxGjx7xA',
+  },
+  category: 'technology',
 };
 
 
@@ -95,6 +142,13 @@ export default function RootLayout({
           data-key="ouQu5v62l4/FTsePpkTBVw"
           strategy="afterInteractive"
         />
+
+        {/* Structured Data for SEO */}
+        <StructuredData type="organization" />
+        <StructuredData type="service" />
+        <StructuredData type="faq" />
+        <LocalBusinessSchema />
+
          <StoreProvider>
           <FetchAboutUsClient />
           <Header />
