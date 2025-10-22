@@ -108,7 +108,8 @@ export default function ProposalsManagement() {
   const handleGeneratePDF = async (proposalId: number) => {
     try {
       const response = await fetch(`${baseAPI}/services/proposals/${proposalId}/generate_pdf/`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -128,6 +129,7 @@ export default function ProposalsManagement() {
       const response = await fetch(`${baseAPI}/services/proposals/${proposalId}/admin_sign/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ signature: signatureData })
       });
 
@@ -150,7 +152,8 @@ export default function ProposalsManagement() {
 
     try {
       const response = await fetch(`${baseAPI}/services/proposals/${proposalId}/send_to_client/`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
       });
 
       if (response.ok) {
