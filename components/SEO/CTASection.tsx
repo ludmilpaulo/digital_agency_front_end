@@ -120,19 +120,19 @@ export default function CTASection() {
             className="flex flex-col sm:flex-row gap-6 justify-center items-center text-blue-100"
           >
             <a
-              href="tel:+27XXXXXXXXX"
+              href="tel:+27659031894"
               className="flex items-center gap-2 hover:text-white transition-colors"
             >
               <Phone className="w-5 h-5" />
-              <span className="font-medium">+27 XX XXX XXXX</span>
+              <span className="font-medium">+27 65 903 1894</span>
             </a>
             <div className="hidden sm:block w-px h-6 bg-white/30"></div>
             <a
-              href="mailto:info@maindodigital.com"
+              href="mailto:support@maindodigital.com"
               className="flex items-center gap-2 hover:text-white transition-colors"
             >
               <Mail className="w-5 h-5" />
-              <span className="font-medium">info@maindodigital.com</span>
+              <span className="font-medium">support@maindodigital.com</span>
             </a>
           </motion.div>
 
