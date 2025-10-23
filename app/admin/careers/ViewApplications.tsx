@@ -8,6 +8,7 @@ import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
 import dayjs from 'dayjs';
 import { baseAPI } from '@/useAPI/api';
+import toast from 'react-hot-toast';
 
 export default function ViewApplications() {
   const [applications, setApplications] = useState<JobApplication[] | null>(null);
@@ -19,6 +20,16 @@ export default function ViewApplications() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const pageSize = 5;
+  
+  // Approval modal state
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
+  const [approvalData, setApprovalData] = useState({
+    position_title: '',
+    salary_offered: '',
+    start_date: '',
+    employment_type: 'Full-time'
+  });
 
   const statusOptions: JobApplication['status'][] = [
     'submitted', 'processing', 'review', 'approved', 'rejected',
@@ -73,6 +84,65 @@ export default function ViewApplications() {
       link.remove();
     } catch (error) {
       console.error('Error downloading resume:', error);
+    }
+  };
+
+  const openApprovalModal = (app: JobApplication) => {
+    setSelectedApplication(app);
+    setApprovalData({
+      position_title: app.career.title,
+      salary_offered: '',
+      start_date: '',
+      employment_type: 'Full-time'
+    });
+    setShowApprovalModal(true);
+  };
+
+  const handleApprove = async () => {
+    if (!selectedApplication) return;
+    
+    // Validation
+    if (!approvalData.salary_offered || !approvalData.start_date) {
+      toast.error('Please fill in salary and start date');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(
+        `${baseAPI}/careers/job-applications/${selectedApplication.id}/approve/`,
+        approvalData,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      toast.success('Application approved! Documents generated and email sent.');
+      setShowApprovalModal(false);
+      fetchApplications();
+    } catch (error: any) {
+      console.error('Error approving application:', error);
+      toast.error(error.response?.data?.detail || 'Failed to approve application');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadDocument = async (appId: number, docType: 'approval' | 'offer') => {
+    try {
+      const response = await axios.get(
+        `${baseAPI}/careers/job-applications/${appId}/download_${docType}/`,
+        { responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${docType}_letter.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(`${docType === 'approval' ? 'Approval' : 'Offer'} letter downloaded!`);
+    } catch (error) {
+      console.error(`Error downloading ${docType} letter:`, error);
+      toast.error('Document not available yet');
     }
   };
 
@@ -206,12 +276,42 @@ export default function ViewApplications() {
                       ))}
                     </select>
                   </div>
-                  <button
-                    onClick={() => downloadResume(app.resume, `${app.full_name}_resume.pdf`)}
-                    className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded shadow"
-                  >
-                    Download Resume
-                  </button>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => downloadResume(app.resume, `${app.full_name}_resume.pdf`)}
+                      className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-gray-800 hover:bg-gray-700 rounded shadow"
+                    >
+                      📄 Resume
+                    </button>
+                    
+                    {app.status !== 'approved' && (
+                      <button
+                        onClick={() => openApprovalModal(app)}
+                        className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-green-600 hover:bg-green-700 rounded shadow"
+                      >
+                        ✓ Approve
+                      </button>
+                    )}
+                    
+                    {app.status === 'approved' && (
+                      <>
+                        <button
+                          onClick={() => downloadDocument(app.id, 'approval')}
+                          className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded shadow"
+                        >
+                          📄 Approval Letter
+                        </button>
+                        <button
+                          onClick={() => downloadDocument(app.id, 'offer')}
+                          className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded shadow"
+                        >
+                          📄 Offer Letter
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -243,6 +343,102 @@ export default function ViewApplications() {
             Next
             <ArrowRightIcon className="w-4 h-4 ml-1" />
           </button>
+        </div>
+      )}
+
+      {/* Approval Modal */}
+      {showApprovalModal && selectedApplication && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Approve Application</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Applicant:</strong> {selectedApplication.full_name}
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  <strong>Position:</strong> {selectedApplication.career.title}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Position Title
+                </label>
+                <input
+                  type="text"
+                  value={approvalData.position_title}
+                  onChange={(e) => setApprovalData({...approvalData, position_title: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="e.g., Senior Developer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Salary (Monthly in Rands) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={approvalData.salary_offered}
+                  onChange={(e) => setApprovalData({...approvalData, salary_offered: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="e.g., 25000"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={approvalData.start_date}
+                  onChange={(e) => setApprovalData({...approvalData, start_date: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Employment Type
+                </label>
+                <select
+                  value={approvalData.employment_type}
+                  onChange={(e) => setApprovalData({...approvalData, employment_type: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApprove}
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {loading ? 'Approving...' : 'Approve & Send'}
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-3">
+              * This will generate professional PDFs (Approval Letter & Offer Letter) and email them to the applicant.
+            </p>
+          </div>
         </div>
       )}
     </div>
