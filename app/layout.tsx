@@ -142,6 +142,9 @@ export default function RootLayout({
         
         {/* Google Site Verification */}
         <meta name="google-site-verification" content="yc2OIYFEZ0Tvyo9R7ouvUjXAd45cxQFWTVgWxGjx7xA" />
+        
+        {/* Facebook Domain Verification */}
+        <meta name="facebook-domain-verification" content="ar7xr0n612aazr6ewlx09z34ed5dt1" />
       </head>
         <body className={inter.className}>
           {/* Google Analytics */}
