@@ -3,12 +3,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import dynamic from "next/dynamic";
 import type { Board } from "./types";
 import useApi from "./api";
 import { selectUser } from "@/redux/slices/authSlice";
 import { checkIsStaff } from "@/utils/checkIsStaff";
-// import BoardList from "./BoardList"; // TODO: Implement BoardList component
-import { FaPlus, FaChartBar, FaTasks, FaUsers, FaCalendar } from "react-icons/fa";
+import { FaPlus, FaChartBar, FaTasks, FaUsers, FaCalendar, FaFileSignature, FaUserCircle, FaProjectDiagram } from "react-icons/fa";
+
+// Dynamically import components to avoid SSR issues
+const BoardManager = dynamic(() => import("./BoardManager"), { ssr: false });
+const TaskManager = dynamic(() => import("./TaskManager"), { ssr: false });
+const DocumentSigner = dynamic(() => import("./DocumentSigner"), { ssr: false });
+const ProfileEditor = dynamic(() => import("./ProfileEditor"), { ssr: false });
 
 export default function BoardsPage() {
   const [boards, setBoards] = useState<Board[]>([]);
@@ -18,6 +24,7 @@ export default function BoardsPage() {
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [authed, setAuthed] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'boards' | 'tasks' | 'documents' | 'profile'>('dashboard');
   const router = useRouter();
   const user = useSelector(selectUser);
 
@@ -157,20 +164,65 @@ export default function BoardsPage() {
               </h1>
               <p className="mt-2 text-sm md:text-lg text-purple-100">Manage your projects and track progress</p>
             </div>
-            <div className="flex gap-2 md:gap-3">
-              <button
-                onClick={() => router.push("/admin")}
-                className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all border border-white/30 shadow-lg hover:shadow-xl flex items-center gap-2"
-              >
-                <FaChartBar />
-                <span className="hidden sm:inline">Admin Panel</span>
-                <span className="sm:hidden">Admin</span>
-              </button>
-            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
+          {/* Navigation Tabs */}
+          <div className="mt-6 md:mt-8 flex flex-wrap gap-2 md:gap-3">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl transition-all font-semibold ${
+                activeTab === 'dashboard'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <FaChartBar /> <span className="hidden sm:inline">Dashboard</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('boards')}
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl transition-all font-semibold ${
+                activeTab === 'boards'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <FaProjectDiagram /> <span className="hidden sm:inline">Boards</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl transition-all font-semibold ${
+                activeTab === 'tasks'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <FaTasks /> <span className="hidden sm:inline">Tasks</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl transition-all font-semibold ${
+                activeTab === 'documents'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <FaFileSignature /> <span className="hidden sm:inline">Documents</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl transition-all font-semibold ${
+                activeTab === 'profile'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <FaUserCircle /> <span className="hidden sm:inline">Profile</span>
+            </button>
+          </div>
+
+          {/* Stats - Only show on dashboard tab */}
+          {activeTab === 'dashboard' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg hover:shadow-xl transition-all group border border-blue-200/50">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div>
@@ -215,130 +267,94 @@ export default function BoardsPage() {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        {/* Add Board Section */}
-        <div className="bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-xl p-4 md:p-8 mb-6 md:mb-8 border border-blue-100">
-          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Create New Board</h2>
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-            <input
-              value={newBoard}
-              onChange={(e) => setNewBoard(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter board name..."
-              className="flex-1 border-2 border-blue-200 rounded-xl px-4 md:px-6 py-3 md:py-4 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
-            />
-            <button 
-              onClick={addBoard} 
-              disabled={!newBoard.trim()}
-              className="px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl font-semibold whitespace-nowrap"
-            >
-              <FaPlus /> <span className="hidden sm:inline">Add Board</span><span className="sm:hidden">Add</span>
-            </button>
-          </div>
-          {error && <p className="text-red-600 mt-3 text-sm font-medium">{error}</p>}
-        </div>
-
-        {/* View Toggle */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">Your Boards</h2>
-          <div className="flex gap-2 bg-white rounded-xl p-1 shadow-md">
-            <button
-              onClick={() => setView("grid")}
-              className={`px-6 py-2 rounded-lg transition-all font-medium ${view === "grid" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" : "text-gray-700 hover:bg-gray-100"}`}
-            >
-              Grid
-            </button>
-            <button
-              onClick={() => setView("list")}
-              className={`px-6 py-2 rounded-lg transition-all font-medium ${view === "list" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" : "text-gray-700 hover:bg-gray-100"}`}
-            >
-              List
-            </button>
-          </div>
-        </div>
-
-        {/* Loading State for Boards */}
-        {loading && boards.length === 0 ? (
-          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-16 text-center border border-gray-200">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading boards...</p>
-          </div>
-        ) : boards.length === 0 ? (
-          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-16 text-center border border-gray-200">
-            <div className="p-6 bg-gradient-to-br from-gray-100 to-blue-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <FaTasks className="text-gray-400 text-5xl" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">No boards yet</h3>
-            <p className="text-sm md:text-base text-gray-600 mb-6">Create your first board to start organizing your projects!</p>
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all font-semibold"
-            >
-              Create First Board
-            </button>
-          </div>
-        ) : (
-          <div className={view === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-            {boards.map((board) => (
-              <div 
-                key={board.id} 
-                className="bg-gradient-to-br from-white to-gray-50/50 border-2 border-blue-100 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group hover:border-blue-300 hover:scale-105"
-                onClick={() => setSelectedBoard(board)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{board.name}</h3>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBoard(board.id);
-                    }}
-                    className="text-red-500 hover:text-white hover:bg-red-500 text-sm px-4 py-2 rounded-lg border border-red-300 hover:border-red-500 transition-all"
-                  >
-                    Delete
-                  </button>
-                </div>
-                {board.description && (
-                  <p className="text-gray-600 text-sm mb-4">{board.description}</p>
-                )}
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-2">
-                    <FaCalendar className="text-blue-500" />
-                    {new Date(board.created_at || Date.now()).toLocaleDateString()}
-                  </span>
-                  <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-xs font-semibold">
-                    Active
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Selected Board Details */}
-        {selectedBoard && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">{selectedBoard.name}</h2>
+        {/* Dashboard Tab - Original simple board creator */}
+        {activeTab === 'dashboard' && (
+          <div>
+            {/* Add Board Section */}
+            <div className="bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-xl p-4 md:p-8 mb-6 md:mb-8 border border-blue-100">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Quick Create Board</h2>
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                <input
+                  value={newBoard}
+                  onChange={(e) => setNewBoard(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter board name..."
+                  className="flex-1 border-2 border-blue-200 rounded-xl px-4 md:px-6 py-3 md:py-4 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                />
                 <button 
-                  onClick={() => setSelectedBoard(null)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  onClick={addBoard} 
+                  disabled={!newBoard.trim()}
+                  className="px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl font-semibold whitespace-nowrap"
                 >
-                  ×
+                  <FaPlus /> <span className="hidden sm:inline">Add Board</span><span className="sm:hidden">Add</span>
                 </button>
               </div>
-              <p className="text-gray-600">{selectedBoard.description}</p>
-              <div className="mt-4">
-                <p className="text-sm text-gray-500">Board details coming soon...</p>
-              </div>
+              {error && <p className="text-red-600 mt-3 text-sm font-medium">{error}</p>}
+            </div>
+
+            {/* Boards Overview */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Your Boards</h3>
+              {loading && boards.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading boards...</p>
+                </div>
+              ) : boards.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaTasks className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600">No boards yet. Create one above!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {boards.map((board) => (
+                    <div 
+                      key={board.id} 
+                      className="bg-gradient-to-br from-white to-gray-50 border-2 border-blue-100 rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-300"
+                      onClick={() => setSelectedBoard(board)}
+                    >
+                      <h4 className="font-bold text-gray-900 group-hover:text-blue-600 mb-2">{board.name}</h4>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <FaCalendar />
+                          {new Date(board.created_at || Date.now()).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteBoard(board.id);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        {/* Boards Tab - Full board management */}
+        {activeTab === 'boards' && <BoardManager />}
+
+        {/* Tasks Tab - Full task management */}
+        {activeTab === 'tasks' && <TaskManager />}
+
+        {/* Documents Tab - Document signing */}
+        {activeTab === 'documents' && <DocumentSigner />}
+
+        {/* Profile Tab - Profile editor */}
+        {activeTab === 'profile' && <ProfileEditor />}
       </div>
     </div>
   );
