@@ -53,6 +53,7 @@ export default function CareersClient() {
       coverLetter: "Cover Letter",
       resume: "Upload Resume (PDF)",
       submit: "Submit Application",
+      submitting: "Submitting...",
       language: "Preferred Language",
       apply: "Apply Now",
       back: "Back to Opportunities",
@@ -64,6 +65,7 @@ export default function CareersClient() {
       coverLetter: "Carta de Apresentação",
       resume: "Anexar Currículo (PDF)",
       submit: "Enviar Candidatura",
+      submitting: "Enviando...",
       language: "Idioma Preferido",
       apply: "Candidatar-se",
       back: "Voltar às Oportunidades",
@@ -437,10 +439,10 @@ export default function CareersClient() {
                       </div>
                       <button
                         type="submit"
-                        className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow hover:from-blue-700 hover:to-blue-600 transition"
+                        className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow hover:from-blue-700 hover:to-blue-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
                         disabled={loading}
                       >
-                        {labels[language].submit}
+                        {loading ? labels[language].submitting : labels[language].submit}
                       </button>
                     </form>
                   </Dialog.Panel>
