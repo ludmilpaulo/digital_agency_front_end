@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import SignatureCanvas from 'react-signature-canvas';
 import { 
   FaFileAlt, FaPen, FaCheck, FaTimes, FaDownload, FaClock, 
-  FaUser, FaCheckCircle, FaTimesCircle, FaEye 
+  FaUser, FaCheckCircle, FaTimesCircle, FaEye, FaPlus, FaUpload
 } from 'react-icons/fa';
 import dayjs from 'dayjs';
 
@@ -52,6 +52,7 @@ interface StaffDocument {
 export default function DocumentSigner() {
   const user = useSelector(selectUser);
   const [documents, setDocuments] = useState<StaffDocument[]>([]);
+  const [allDocuments, setAllDocuments] = useState<StaffDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<StaffDocument | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
@@ -60,21 +61,57 @@ export default function DocumentSigner() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   
+  // Filters
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Upload new document
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadData, setUploadData] = useState({
+    title: '',
+    document_type: 'other',
+    description: '',
+    line_manager_id: ''
+  });
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [managers, setManagers] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
   const signaturePadRef = useRef<SignatureCanvas>(null);
 
   useEffect(() => {
     fetchDocuments();
+    fetchManagers();
   }, []);
+
+  const fetchManagers = async () => {
+    try {
+      const token = user?.token || localStorage.getItem('token');
+      const response = await axios.get(
+        `${baseAPI}/account/profile/line_managers/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setManagers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
+      
+      // Fetch all documents for this user
       const response = await axios.get(
-        `${baseAPI}/task/staff-documents/pending_my_signature/`,
+        `${baseAPI}/task/staff-documents/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setDocuments(response.data.all_pending || []);
+      
+      const docs = response.data || [];
+      setAllDocuments(docs);
+      setDocuments(docs);
     } catch (error) {
       console.error('Error fetching documents:', error);
       toast.error('Failed to load documents');
@@ -82,6 +119,32 @@ export default function DocumentSigner() {
       setLoading(false);
     }
   };
+
+  // Filter documents based on type, status, and search
+  useEffect(() => {
+    let filtered = [...allDocuments];
+
+    // Filter by type
+    if (filterType !== 'all') {
+      filtered = filtered.filter(doc => doc.document_type === filterType);
+    }
+
+    // Filter by status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(doc => doc.status === filterStatus);
+    }
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(doc => 
+        doc.title.toLowerCase().includes(search) ||
+        doc.description.toLowerCase().includes(search)
+      );
+    }
+
+    setDocuments(filtered);
+  }, [filterType, filterStatus, searchTerm, allDocuments]);
 
   const openSignModal = (doc: StaffDocument) => {
     setSelectedDoc(doc);
@@ -164,6 +227,61 @@ export default function DocumentSigner() {
     }
   };
 
+  const handleUploadDocument = async () => {
+    if (!uploadData.title.trim()) {
+      toast.error('Document title is required');
+      return;
+    }
+
+    if (!documentFile) {
+      toast.error('Please select a document file');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const token = user?.token || localStorage.getItem('token');
+      
+      const formData = new FormData();
+      formData.append('title', uploadData.title);
+      formData.append('document_type', uploadData.document_type);
+      formData.append('description', uploadData.description);
+      formData.append('original_document', documentFile);
+      formData.append('staff_user_id', String(user?.user_id || user?.id));
+      
+      if (uploadData.line_manager_id) {
+        formData.append('line_manager_id', uploadData.line_manager_id);
+      }
+
+      await axios.post(
+        `${baseAPI}/task/staff-documents/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      toast.success('Document uploaded successfully!');
+      setShowUploadModal(false);
+      setUploadData({
+        title: '',
+        document_type: 'other',
+        description: '',
+        line_manager_id: ''
+      });
+      setDocumentFile(null);
+      fetchDocuments();
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      toast.error(error.response?.data?.detail || 'Failed to upload document');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const downloadDocument = async (doc: StaffDocument) => {
     try {
       const token = user?.token || localStorage.getItem('token');
@@ -230,14 +348,153 @@ export default function DocumentSigner() {
         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Documents
         </h2>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">
+            {documents.length} of {allDocuments.length} documents
+          </span>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition shadow-lg font-semibold"
+          >
+            <FaPlus /> Upload Document
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Documents</h3>
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by title or description..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Document Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Document Type
+            </label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Types</option>
+              <option value="contract">Contract</option>
+              <option value="agreement">Agreement</option>
+              <option value="nda">NDA</option>
+              <option value="offer">Job Offer</option>
+              <option value="timesheet">Timesheet</option>
+              <option value="expense">Expense Report</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending_staff">Pending My Signature</option>
+              <option value="pending_manager">Pending Manager</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters Display */}
+        {(filterType !== 'all' || filterStatus !== 'all' || searchTerm) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {filterType !== 'all' && (
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1">
+                Type: {filterType}
+                <button
+                  onClick={() => setFilterType('all')}
+                  className="hover:text-blue-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {filterStatus !== 'all' && (
+              <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center gap-1">
+                Status: {filterStatus.replace('_', ' ')}
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className="hover:text-purple-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {searchTerm && (
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center gap-1">
+                Search: &quot;{searchTerm}&quot;
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="hover:text-green-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setFilterType('all');
+                setFilterStatus('all');
+                setSearchTerm('');
+              }}
+              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Documents Grid */}
       {documents.length === 0 ? (
         <div className="bg-white rounded-xl shadow-lg p-12 text-center">
           <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-700 mb-2">No Pending Documents</h3>
-          <p className="text-gray-500">You don&apos;t have any documents requiring your signature at the moment.</p>
+          <h3 className="text-xl font-bold text-gray-700 mb-2">
+            {allDocuments.length === 0 ? 'No Documents' : 'No Documents Match Filters'}
+          </h3>
+          <p className="text-gray-500">
+            {allDocuments.length === 0 
+              ? "You don't have any documents at the moment."
+              : 'Try adjusting your filters to see more documents.'
+            }
+          </p>
+          {(filterType !== 'all' || filterStatus !== 'all' || searchTerm) && (
+            <button
+              onClick={() => {
+                setFilterType('all');
+                setFilterStatus('all');
+                setSearchTerm('');
+              }}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
@@ -451,6 +708,143 @@ export default function DocumentSigner() {
                   <FaCheck /> {signing ? 'Signing...' : isManager(selectedDoc) ? 'Approve & Sign' : 'Sign Document'}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Document Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full my-8">
+            <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl">
+              <h3 className="text-2xl font-bold">Upload Document for Signing</h3>
+              <p className="text-sm text-blue-100 mt-1">Upload a document that requires signatures</p>
+            </div>
+
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-4">
+                {/* Document Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Document Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadData.title}
+                    onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Employment Contract - John Doe"
+                    required
+                  />
+                </div>
+
+                {/* Document Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Document Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={uploadData.document_type}
+                    onChange={(e) => setUploadData({ ...uploadData, document_type: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="contract">Contract</option>
+                    <option value="agreement">Agreement</option>
+                    <option value="nda">NDA (Non-Disclosure Agreement)</option>
+                    <option value="offer">Job Offer Letter</option>
+                    <option value="timesheet">Timesheet</option>
+                    <option value="expense">Expense Report</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={uploadData.description}
+                    onChange={(e) => setUploadData({ ...uploadData, description: e.target.value })}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Brief description of the document..."
+                  />
+                </div>
+
+                {/* Line Manager Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Assign Line Manager (will sign after you)
+                  </label>
+                  <select
+                    value={uploadData.line_manager_id}
+                    onChange={(e) => setUploadData({ ...uploadData, line_manager_id: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">No manager assigned</option>
+                    {managers.map((manager) => (
+                      <option key={manager.id} value={manager.id}>
+                        {manager.username} - {manager.email}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select a manager if this document requires manager approval after your signature
+                  </p>
+                </div>
+
+                {/* File Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Document File <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supported formats: PDF, DOC, DOCX
+                  </p>
+                  {documentFile && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded flex items-center gap-2 text-sm">
+                      <FaFileAlt className="text-blue-600" />
+                      <span className="text-blue-900 font-medium">{documentFile.name}</span>
+                      <span className="text-blue-600">({(documentFile.size / 1024).toFixed(2)} KB)</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="p-6 border-t bg-gray-50 rounded-b-xl flex gap-3">
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setUploadData({
+                    title: '',
+                    document_type: 'other',
+                    description: '',
+                    line_manager_id: ''
+                  });
+                  setDocumentFile(null);
+                }}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 transition text-gray-700 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadDocument}
+                disabled={uploading || !uploadData.title.trim() || !documentFile}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-semibold"
+              >
+                <FaUpload /> {uploading ? 'Uploading...' : 'Upload Document'}
+              </button>
             </div>
           </div>
         </div>
