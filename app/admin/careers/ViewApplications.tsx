@@ -27,7 +27,7 @@ export default function ViewApplications() {
   const [approvalData, setApprovalData] = useState({
     position_title: '',
     salary_offered: '',
-    commission_based: false,
+    salary_type: 'fixed', // 'fixed' or 'commission'
     start_date: '',
     employment_type: 'Full-time'
   });
@@ -93,7 +93,7 @@ export default function ViewApplications() {
     setApprovalData({
       position_title: app.career.title,
       salary_offered: '',
-      commission_based: false,
+      salary_type: 'fixed',
       start_date: '',
       employment_type: 'Full-time'
     });
@@ -104,16 +104,29 @@ export default function ViewApplications() {
     if (!selectedApplication) return;
     
     // Validation
-    if (!approvalData.salary_offered || !approvalData.start_date) {
-      toast.error('Please fill in salary and start date');
+    if (approvalData.salary_type === 'fixed' && !approvalData.salary_offered) {
+      toast.error('Please fill in salary amount for fixed salary');
+      return;
+    }
+    if (!approvalData.start_date) {
+      toast.error('Please fill in start date');
       return;
     }
 
     setLoading(true);
     try {
+      // Prepare data for backend
+      const dataToSend = {
+        position_title: approvalData.position_title,
+        salary_offered: approvalData.salary_type === 'commission' ? '0' : approvalData.salary_offered,
+        commission_based: approvalData.salary_type === 'commission',
+        start_date: approvalData.start_date,
+        employment_type: approvalData.employment_type
+      };
+
       await axios.post(
         `${baseAPI}/careers/job-applications/${selectedApplication.id}/approve/`,
-        approvalData,
+        dataToSend,
         { headers: { 'Content-Type': 'application/json' } }
       );
       
@@ -378,31 +391,64 @@ export default function ViewApplications() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Salary (Monthly in Rands) <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Compensation Type <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  value={approvalData.salary_offered}
-                  onChange={(e) => setApprovalData({...approvalData, salary_offered: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  placeholder="e.g., 25000"
-                  required
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="salary_type_fixed"
+                      name="salary_type"
+                      value="fixed"
+                      checked={approvalData.salary_type === 'fixed'}
+                      onChange={(e) => setApprovalData({...approvalData, salary_type: e.target.value, salary_offered: ''})}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="salary_type_fixed" className="ml-2 text-sm font-medium text-gray-700">
+                      Fixed Salary (Monthly in Rands)
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="salary_type_commission"
+                      name="salary_type"
+                      value="commission"
+                      checked={approvalData.salary_type === 'commission'}
+                      onChange={(e) => setApprovalData({...approvalData, salary_type: e.target.value, salary_offered: ''})}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="salary_type_commission" className="ml-2 text-sm font-medium text-gray-700">
+                      Commission-Based Salary
+                    </label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="commission_based"
-                  checked={approvalData.commission_based}
-                  onChange={(e) => setApprovalData({...approvalData, commission_based: e.target.checked})}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="commission_based" className="ml-2 text-sm font-medium text-gray-700">
-                  Commission-based salary
-                </label>
-              </div>
+              {approvalData.salary_type === 'fixed' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monthly Salary Amount (in Rands) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={approvalData.salary_offered}
+                    onChange={(e) => setApprovalData({...approvalData, salary_offered: e.target.value})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="e.g., 25000"
+                    required
+                  />
+                </div>
+              )}
+
+              {approvalData.salary_type === 'commission' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Commission-Based:</strong> The salary details will be discussed and agreed upon based on performance and sales.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
