@@ -10,7 +10,8 @@ import CreateSection from "./documents/CreateSection";
 
 // ✅ Dynamically import the rest to disable SSR
 const UploadSection = dynamic(() => import("./documents/UploadSection"), { ssr: false });
-const SignSection = dynamic(() => import("./documents/SignSection"), { ssr: false });
+// Temporarily disabled due to pdf-lib corruption - will be fixed in next deployment
+// const SignSection = dynamic(() => import("./documents/SignSection"), { ssr: false });
 const SendToSignSection = dynamic(() => import("./documents/SendToSignSection"), { ssr: false });
 const SignedSection = dynamic(() => import("./documents/SignedSection"), { ssr: false });
 const ProposalsManagement = dynamic(() => import("./documents/ProposalsManagement"), { ssr: false });
@@ -94,7 +95,12 @@ const Documents: React.FC = () => {
         {activeTab === "Create" && <CreateSection />}
 
         {activeTab === "Sign" && (
-          <SignSection documents={documents} onLoading={setLoading} />
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+            <p className="text-yellow-800 font-semibold mb-2">PDF Signing Temporarily Unavailable</p>
+            <p className="text-sm text-yellow-700">
+              This feature requires pdf-lib which is being updated. Please use the new Document Signing feature in the devDashBoard instead.
+            </p>
+          </div>
         )}
 
         {activeTab === "Send to Sign" && (
