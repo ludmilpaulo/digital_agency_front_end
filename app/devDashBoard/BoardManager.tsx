@@ -8,10 +8,11 @@ import { baseAPI } from '@/useAPI/api';
 import toast from 'react-hot-toast';
 import { 
   FaPlus, FaEdit, FaTrash, FaUsers, FaCalendar, FaMoneyBillWave,
-  FaTasks, FaLink, FaChartLine, FaUserTie
+  FaTasks, FaLink, FaChartLine, FaUserTie, FaEye
 } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import type { Board } from './types';
+import RequestPermissionButton from './RequestPermissionButton';
 
 interface User {
   id: number;
@@ -317,18 +318,34 @@ export default function BoardManager() {
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4 border-t">
-                <button
-                  onClick={() => openModal(board)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium"
-                >
-                  <FaEdit /> Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(board.id)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium"
-                >
-                  <FaTrash /> Delete
-                </button>
+                {board.can_edit !== false ? (
+                  <>
+                    <button
+                      onClick={() => openModal(board)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium"
+                    >
+                      <FaEdit /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(board.id)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium"
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-500 rounded-lg text-sm font-medium">
+                      <FaEye /> View Only
+                    </div>
+                    <RequestPermissionButton
+                      type="board"
+                      targetId={board.id}
+                      targetName={board.name}
+                      onRequestSent={fetchBoards}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

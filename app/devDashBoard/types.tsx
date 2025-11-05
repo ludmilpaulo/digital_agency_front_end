@@ -18,6 +18,8 @@ export interface Board {
     status?: 'Started' | 'In Progress' | 'Concluded';
     created_at?: string;
     updated_at?: string;
+    can_edit?: boolean; // Permission to edit this board
+    can_view?: boolean; // Permission to view this board
 }
 
 export interface User {
@@ -56,4 +58,6 @@ export interface Card {
     progress_percentage?: number;
     is_overdue?: boolean;
     assignee_names?: string;
+    can_edit?: boolean; // Permission to edit this task/card
+    can_view?: boolean; // Permission to view this task/card
 }

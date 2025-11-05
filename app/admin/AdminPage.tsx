@@ -19,6 +19,8 @@ const MembersAdmin = dynamic(() => import("./MembersAdmin"), { ssr: false });
 const SettingsAdmin = dynamic(() => import("./SettingsAdmin"), { ssr: false });
 const MyTasks = dynamic(() => import("./MyTasks"), { ssr: false });
 const Documents = dynamic(() => import("./Documents"), { ssr: false });
+const DocumentManagement = dynamic(() => import("./DocumentManagement"), { ssr: false });
+const PermissionRequests = dynamic(() => import("./PermissionRequests"), { ssr: false });
 const Campaign = dynamic(() => import("./Campaign"), { ssr: false });
 const Careers = dynamic(() => import("./Careers"), { ssr: false });
 const TaskTable = dynamic(() => import("./TaskTable"), { ssr: false });
@@ -272,6 +274,12 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="documents">
             <Documents />
+          </TabsContent>
+          <TabsContent value="staffdocs">
+            <DocumentManagement />
+          </TabsContent>
+          <TabsContent value="permissions">
+            <PermissionRequests />
           </TabsContent>
           <TabsContent value="campaign">
             <Campaign />

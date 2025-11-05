@@ -7,6 +7,8 @@ import {
   FaColumns,
   FaTasks,
   FaFileAlt,
+  FaFileSignature,
+  FaUserCheck,
   FaBullhorn,
   FaBriefcase,
   FaTimes,
@@ -221,6 +223,26 @@ export default function Sidebar({ tab, setTab, open, onClose }: SidebarProps) {
           active={tab === "documents"}
           onClick={() => {
             setTab("documents");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaFileSignature />}
+          label="Staff Documents"
+          value="staffdocs"
+          active={tab === "staffdocs"}
+          onClick={() => {
+            setTab("staffdocs");
+            onClose?.();
+          }}
+        />
+        <SidebarLink
+          icon={<FaUserCheck />}
+          label="Permission Requests"
+          value="permissions"
+          active={tab === "permissions"}
+          onClick={() => {
+            setTab("permissions");
             onClose?.();
           }}
         />
