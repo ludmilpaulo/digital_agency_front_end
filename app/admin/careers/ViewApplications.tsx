@@ -19,6 +19,7 @@ export default function ViewApplications() {
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const pageSize = 5;
   
   // Approval modal state
@@ -38,16 +39,35 @@ export default function ViewApplications() {
 
   const fetchApplications = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log('Fetching applications from:', `${baseAPI}/careers/job-applications/?page=${page}`);
       const res = await axios.get(`${baseAPI}/careers/job-applications/?page=${page}`);
-      setApplications(res.data.results);
-      setCount(res.data.count);
+      console.log('Applications response:', res.data);
+      
+      if (res.data.results) {
+        setApplications(res.data.results);
+        setCount(res.data.count || 0);
 
-      const titles = res.data.results.map((app: JobApplication) => app.career.title);
-      const uniqueCareers: string[] = Array.from(new Set(titles));
-      setCareers(uniqueCareers);
-    } catch (error) {
+        const titles = res.data.results.map((app: JobApplication) => app.career.title);
+        const uniqueCareers: string[] = Array.from(new Set(titles));
+        setCareers(uniqueCareers);
+      } else {
+        // Handle non-paginated response
+        const apps = Array.isArray(res.data) ? res.data : [];
+        setApplications(apps);
+        setCount(apps.length);
+        
+        const titles = apps.map((app: JobApplication) => app.career.title);
+        const uniqueCareers: string[] = Array.from(new Set(titles));
+        setCareers(uniqueCareers);
+      }
+    } catch (error: any) {
       console.error('Error fetching applications:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to load applications';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -254,10 +274,33 @@ export default function ViewApplications() {
         </div>
       </div>
 
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="text-red-600 text-lg font-semibold mb-2">⚠️ Error Loading Applications</div>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={fetchApplications}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Initial Loading State */}
+      {loading && applications === null && (
+        <div className="text-center py-20">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-600">Loading applications...</p>
+        </div>
+      )}
+
       {/* Applications List */}
-      <div className="grid gap-6">
-        {filteredApplications && filteredApplications.length > 0 ? (
-          filteredApplications.map((app) => (
+      {!loading && !error && applications !== null && (
+        <div className="grid gap-6">
+          {filteredApplications && filteredApplications.length > 0 ? (
+            filteredApplications.map((app) => (
             <div key={app.id} className="bg-white p-5 rounded-lg border shadow hover:shadow-md transition-all duration-200">
               <div className="flex justify-between gap-4 flex-col sm:flex-row">
                 <div>
@@ -330,14 +373,23 @@ export default function ViewApplications() {
                 </div>
               </div>
             </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500 mt-10">No applications found for the selected filters.</p>
-        )}
-      </div>
+            ))
+          ) : (
+            <div className="text-center py-10">
+              <div className="text-gray-400 text-6xl mb-4">📋</div>
+              <p className="text-gray-600 text-lg font-medium">No applications found</p>
+              <p className="text-gray-500 text-sm mt-2">
+                {searchTerm || selectedCareer !== 'all' || selectedStatus !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'No job applications have been submitted yet'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
-      {applications && totalPages > 1 && (
+      {!loading && !error && applications && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-10">
           <button
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
