@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
 import { selectUser } from "@/redux/slices/authSlice";
-import { checkIsStaff } from "@/utils/checkIsStaff";
+import { checkIsAdmin } from "@/utils/checkIsAdmin";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Sidebar from "./Sidebar";
@@ -69,13 +69,14 @@ export default function AdminPage() {
       router.replace("/LoginScreenUser");
       return;
     }
-    // Staff check
+    // Admin check - only superusers can access admin page
     (async () => {
-      const { isStaff, detail } = await checkIsStaff(user.user_id || user.id);
-      if (!isStaff) {
-        // keep a safe UX (avoid blocking alert in some environments)
-        console.warn(detail || "Access denied. Staff only.");
-        router.replace("/LoginScreenUser");
+      const { isAdmin, detail } = await checkIsAdmin(user.user_id || user.id);
+      if (!isAdmin) {
+        // Keep a safe UX
+        console.warn(detail || "Access denied. Admin only.");
+        alert("Access Denied: This page is only accessible to administrators.");
+        router.replace("/");
       } else {
         setAuthed(true);
         setLoading(false);

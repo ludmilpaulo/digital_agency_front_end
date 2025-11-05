@@ -2,8 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import type { Board } from "./types";
 import useApi from "./api";
+import { selectUser } from "@/redux/slices/authSlice";
+import { checkIsStaff } from "@/utils/checkIsStaff";
 // import BoardList from "./BoardList"; // TODO: Implement BoardList component
 import { FaPlus, FaChartBar, FaTasks, FaUsers, FaCalendar } from "react-icons/fa";
 
@@ -14,9 +17,30 @@ export default function BoardsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [authed, setAuthed] = useState(false);
   const router = useRouter();
+  const user = useSelector(selectUser);
 
   const api = useApi();
+
+  // Authentication check - staff only
+  useEffect(() => {
+    if (!user) {
+      router.replace("/LoginScreenUser");
+      return;
+    }
+    
+    (async () => {
+      const { isStaff, detail } = await checkIsStaff(user.user_id || user.id);
+      if (!isStaff) {
+        console.warn(detail || "Access denied. Staff only.");
+        alert("Access Denied: This dashboard is only accessible to staff members.");
+        router.replace("/");
+      } else {
+        setAuthed(true);
+      }
+    })();
+  }, [user, router]);
 
   const fetchBoards = useCallback(async () => {
     try {
@@ -33,8 +57,10 @@ export default function BoardsPage() {
   }, [api]);
 
   useEffect(() => {
-    fetchBoards();
-  }, [fetchBoards]);
+    if (authed) {
+      fetchBoards();
+    }
+  }, [authed, fetchBoards]);
 
   const addBoard = async () => {
     if (!newBoard.trim()) return;
@@ -65,12 +91,14 @@ export default function BoardsPage() {
     }
   };
 
-  if (loading) {
+  if (!authed || loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading Developer Dashboard...</p>
+          <p className="mt-4 text-gray-600">
+            {!authed ? "Verifying access..." : "Loading Developer Dashboard..."}
+          </p>
         </div>
       </div>
     );
