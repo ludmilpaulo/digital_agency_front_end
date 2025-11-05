@@ -20,9 +20,13 @@ const CardList: React.FC<CardListProps> = ({ cards, users, onCardUpdated }) => (
                 <CardAssignment card={card} users={users} onAssigned={onCardUpdated} />
                 <div>
                     Assigned:{" "}
-                    {card.assignees.map(u => (
-                        <span key={u.id} className="inline-block bg-blue-200 px-2 mx-1 rounded">{u.username}</span>
-                    ))}
+                    {card.assignees.map((u, index) => {
+                        const userId = typeof u === 'number' ? u : u.id;
+                        const username = typeof u === 'number' ? `User ${u}` : u.username;
+                        return (
+                            <span key={userId || index} className="inline-block bg-blue-200 px-2 mx-1 rounded">{username}</span>
+                        );
+                    })}
                 </div>
             </div>
         ))}

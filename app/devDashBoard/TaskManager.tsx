@@ -120,7 +120,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
       setEditingTask(task);
       setFormData({
         ...task,
-        assignees: task.assignees.map(a => a.id)
+        assignees: task.assignees.map(a => typeof a === 'number' ? a : a.id)
       });
       setImagePreview(task.image || null);
     } else {

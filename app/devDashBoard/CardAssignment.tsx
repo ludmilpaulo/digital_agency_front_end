@@ -11,7 +11,9 @@ interface CardAssignmentProps {
 
 const CardAssignment: React.FC<CardAssignmentProps> = ({ card, users, onAssigned }) => {
     const API = useApi();
-    const [selectedUserIds, setSelectedUserIds] = useState<number[]>(card.assignees.map(u => u.id));
+    const [selectedUserIds, setSelectedUserIds] = useState<number[]>(
+        card.assignees.map(u => typeof u === 'number' ? u : u.id)
+    );
     const [loading, setLoading] = useState(false);
 
     const handleAssign = async () => {

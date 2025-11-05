@@ -237,7 +237,7 @@ export default function DocumentSigner() {
         <div className="bg-white rounded-xl shadow-lg p-12 text-center">
           <FaFileAlt className="text-6xl text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-700 mb-2">No Pending Documents</h3>
-          <p className="text-gray-500">You don't have any documents requiring your signature at the moment.</p>
+          <p className="text-gray-500">You don&apos;t have any documents requiring your signature at the moment.</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
