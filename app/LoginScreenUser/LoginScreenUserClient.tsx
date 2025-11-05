@@ -66,8 +66,18 @@ const ROLE_ICONS: Record<string, JSX.Element> = {
 function getRedirectPath(user: UserType): string {
   const groups = user.groups || [];
   
-  // Admin/Executive/Staff → Admin Dashboard
-  if (user.is_superuser || user.is_staff || groups.includes("Executive") || groups.includes("Staff") || groups.includes("admin")) {
+  // Superuser (Admin) → Admin Dashboard
+  if (user.is_superuser) {
+    return "/admin";
+  }
+  
+  // Staff (non-admin) → Developer Dashboard
+  if (user.is_staff) {
+    return "/devDashBoard";
+  }
+  
+  // Executive → Admin Dashboard
+  if (groups.includes("Executive") || groups.includes("admin")) {
     return "/admin";
   }
   
