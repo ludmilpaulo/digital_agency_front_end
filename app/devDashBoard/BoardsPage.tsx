@@ -26,35 +26,63 @@ export default function BoardsPage() {
   // Authentication check - staff only
   useEffect(() => {
     if (!user) {
+      console.log("No user found, redirecting to login");
       router.replace("/LoginScreenUser");
       return;
     }
     
+    let isMounted = true;
+    
     (async () => {
-      const { isStaff, detail } = await checkIsStaff(user.user_id || user.id);
-      if (!isStaff) {
-        console.warn(detail || "Access denied. Staff only.");
-        alert("Access Denied: This dashboard is only accessible to staff members.");
-        router.replace("/");
-      } else {
-        setAuthed(true);
+      try {
+        console.log("Checking staff status for user:", user.user_id || user.id);
+        const { isStaff, detail } = await checkIsStaff(user.user_id || user.id);
+        
+        if (!isMounted) return;
+        
+        if (!isStaff) {
+          console.warn(detail || "Access denied. Staff only.");
+          alert("Access Denied: This dashboard is only accessible to staff members.");
+          router.replace("/");
+        } else {
+          console.log("Staff access granted");
+          setAuthed(true);
+        }
+      } catch (error) {
+        console.error("Error checking staff status:", error);
+        if (isMounted) {
+          alert("Error verifying access. Please try again.");
+          router.replace("/");
+        }
       }
     })();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user, router]);
 
   const fetchBoards = useCallback(async () => {
+    if (!authed) {
+      console.log("Not authenticated yet, skipping board fetch");
+      return;
+    }
+    
     try {
+      console.log("Fetching boards...");
       setLoading(true);
       const { data } = await api.get("/boards/");
+      console.log("Boards fetched successfully:", data);
       setBoards(data);
       setError("");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load boards");
+    } catch (err: any) {
+      console.error("Error fetching boards:", err);
+      console.error("Error response:", err.response?.data);
+      setError(err.response?.data?.detail || "Failed to load boards");
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, authed]);
 
   useEffect(() => {
     if (authed) {
@@ -91,14 +119,23 @@ export default function BoardsPage() {
     }
   };
 
-  if (!authed || loading) {
+  if (!user) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {!authed ? "Verifying access..." : "Loading Developer Dashboard..."}
-          </p>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authed) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying access...</p>
         </div>
       </div>
     );
@@ -225,8 +262,13 @@ export default function BoardsPage() {
           </div>
         </div>
 
-        {/* Boards Display */}
-        {boards.length === 0 ? (
+        {/* Loading State for Boards */}
+        {loading && boards.length === 0 ? (
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-16 text-center border border-gray-200">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading boards...</p>
+          </div>
+        ) : boards.length === 0 ? (
           <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-16 text-center border border-gray-200">
             <div className="p-6 bg-gradient-to-br from-gray-100 to-blue-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <FaTasks className="text-gray-400 text-5xl" />
