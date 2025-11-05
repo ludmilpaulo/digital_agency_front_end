@@ -31,6 +31,11 @@ export default function MembersAdmin() {
   const [userPage, setUserPage] = useState(1);
   const [groupPage, setGroupPage] = useState(1);
 
+  // Reset page to 1 when search changes
+  React.useEffect(() => {
+    setUserPage(1);
+  }, [search]);
+
   const allGroups: Group[] = useMemo(() => {
     if (!allGroupsData) return [];
     return [
@@ -209,15 +214,34 @@ export default function MembersAdmin() {
             />
           )}
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <input
-              type="search"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search users by username/email"
-              className="border px-2 py-1 rounded flex-1"
-            />
+            <div className="flex-1">
+              <div className="relative">
+                <input
+                  type="search"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search users by username/email"
+                  className="border px-3 py-2 pr-10 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    title="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              {search && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{search}"
+                  {filteredUsers.length > 0 && ` (showing page ${userPage} of ${totalUserPages})`}
+                </div>
+              )}
+            </div>
             <button
-              className="bg-green-700 text-white px-4 py-1 rounded"
+              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition font-semibold"
               onClick={() => setShowBulkModal(true)}
             >
               Bulk Assign
@@ -265,11 +289,30 @@ export default function MembersAdmin() {
                 ))
               )}
           </div>
-          <div className="mt-10 mb-2 font-bold text-blue-700 text-xl">All Users</div>
+          <div className="mt-10 mb-2 flex items-center justify-between">
+            <h3 className="font-bold text-blue-700 text-xl">
+              {search ? 'Filtered Users' : 'All Users'}
+              <span className="text-sm font-normal text-gray-600 ml-2">
+                ({filteredUsers.length} total)
+              </span>
+            </h3>
+          </div>
           <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
             <div className="w-full min-w-[320px]">
               {pagedUsers.length === 0 ? (
-                <div className="text-gray-400">No users found.</div>
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-lg">
+                    {search ? `No users found matching "${search}"` : 'No users found.'}
+                  </div>
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      className="mt-3 text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                </div>
               ) : (
                 pagedUsers.map(u => (
                   <div key={u.id} className="flex items-center border-b py-1 gap-2">
