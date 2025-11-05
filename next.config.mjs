@@ -46,6 +46,19 @@ const nextConfig = {
   reactStrictMode: true,
   // SEO optimizations
   generateEtags: true,
+  // Webpack configuration for pdf-lib
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+
+    return config;
+  },
   // Security headers
   async headers() {
     return [

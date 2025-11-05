@@ -16,7 +16,6 @@ import PDFViewer from './PDFViewer';
 import DraggableElement from './DraggableElement';
 import SignaturePadModal from './SignaturePadModal';
 
-import { PDFDocument } from 'pdf-lib';
 import { baseAPI } from '@/useAPI/api';
 
 interface Props {
@@ -88,6 +87,9 @@ const SignSection: React.FC<Props> = ({ documents, onLoading }) => {
     onLoading(true);
 
     try {
+      // Dynamic import to avoid webpack issues
+      const { PDFDocument } = await import('pdf-lib');
+      
       const pdfBytes = await fetch(selectedDoc.file_url).then((res) => res.arrayBuffer());
       const pdfDoc = await PDFDocument.load(pdfBytes);
 
