@@ -16,9 +16,14 @@ export const tasksApi = createApi({
   }),
   tagTypes: ['Task', 'TaskComment'],
   endpoints: (builder) => ({
-    getTasks: builder.query<Task[], { user_id?: number } | void>({
-      query: (params) =>
-        params?.user_id ? `tasks/?user_id=${params.user_id}` : 'tasks/',
+    getTasks: builder.query<Task[], { user_id?: number; all_tasks?: boolean } | void>({
+      query: (params) => {
+        if (!params) return 'tasks/';
+        const queryParams = new URLSearchParams();
+        if (params.user_id) queryParams.append('user_id', params.user_id.toString());
+        if (params.all_tasks) queryParams.append('all_tasks', 'true');
+        return `tasks/?${queryParams.toString()}`;
+      },
       providesTags: ['Task'],
     }),
     getTask: builder.query<Task, number>({

@@ -69,12 +69,20 @@ export default function MyTasks({ tasks: tasksProp }: MyTasksProps) {
   const [assignee, setAssignee] = useState<number | "all" | "">("all");
   const [search, setSearch] = useState("");
   const [showOnlyMine, setShowOnlyMine] = useState(true);
+  const [showAllTasks, setShowAllTasks] = useState(false);
+
+  // Check if user is admin
+  const isAdmin = user?.is_superuser || user?.is_staff || false;
 
   // If parent passed tasks, skip fetching
   const shouldSkipFetch = !!tasksProp || !user;
 
   const { data: tasksQuery = [], isLoading } = useGetTasksQuery(
-    showOnlyMine && user ? { user_id: user.user_id || user.id } : undefined,
+    showAllTasks && isAdmin 
+      ? { all_tasks: true }  // Admin viewing all tasks
+      : showOnlyMine && user 
+        ? { user_id: user.user_id || user.id }  // User viewing their tasks
+        : undefined,
     { skip: shouldSkipFetch }
   );
 
@@ -313,6 +321,22 @@ export default function MyTasks({ tasks: tasksProp }: MyTasksProps) {
           >
             {showOnlyMine ? "Show All Tasks" : "Show Only My Tasks"}
           </button>
+          
+          {/* Admin: Show ALL System Tasks Toggle */}
+          {isAdmin && (
+            <button
+              className={clsx(
+                "px-4 py-2 rounded border font-semibold transition-all",
+                showAllTasks
+                  ? "bg-purple-600 text-white border-purple-600 shadow-lg"
+                  : "bg-white text-purple-700 border-purple-400 hover:border-purple-600"
+              )}
+              onClick={() => setShowAllTasks((v) => !v)}
+              title="Admin: Toggle to see all tasks in the system"
+            >
+              {showAllTasks ? "👑 All System Tasks" : "👑 Admin View"}
+            </button>
+          )}
         </div>
       </div>
 
