@@ -73,13 +73,13 @@ export default function AdminPage() {
       router.replace("/LoginScreenUser");
       return;
     }
-    // Admin check - only superusers can access admin page
+    // Admin check - allow both superusers (admin) and staff members
     (async () => {
       const { isAdmin, detail } = await checkIsAdmin(user.user_id || user.id);
       if (!isAdmin) {
         // Keep a safe UX
-        console.warn(detail || "Access denied. Admin only.");
-        toast.error("Access Denied: This page is only accessible to administrators.", { 
+        console.warn(detail || "Access denied. Admin or Staff only.");
+        toast.error("Access Denied: This page is only accessible to administrators and staff members.", { 
           duration: 5000 
         });
         setTimeout(() => {
