@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { selectUser } from '@/redux/slices/authSlice';
 import axios from 'axios';
 import { baseAPI } from '@/useAPI/api';
 import toast from 'react-hot-toast';
@@ -12,6 +10,7 @@ import {
   FaUser, FaCheckCircle, FaTimesCircle, FaEye, FaPlus, FaUpload
 } from 'react-icons/fa';
 import dayjs from 'dayjs';
+import { useDevAuth } from './useDevAuth';
 
 interface StaffDocument {
   id: number;
@@ -50,7 +49,7 @@ interface StaffDocument {
 }
 
 export default function DocumentSigner() {
-  const user = useSelector(selectUser);
+  const { user, token, isReady } = useDevAuth();
   const [documents, setDocuments] = useState<StaffDocument[]>([]);
   const [allDocuments, setAllDocuments] = useState<StaffDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,34 +79,17 @@ export default function DocumentSigner() {
   const [uploading, setUploading] = useState(false);
 
   const signaturePadRef = useRef<SignatureCanvas>(null);
-  
-  // Debug: Log user object on load
-  useEffect(() => {
-    console.log('DocumentSigner - User object loaded:', {
-      exists: !!user,
-      hasToken: !!user?.token,
-      userId: user?.user_id || user?.id,
-      username: user?.username,
-      tokenPreview: user?.token ? user.token.substring(0, 20) + '...' : 'NO TOKEN'
-    });
-    
-    // Try to get token from localStorage if not in user object
-    const lsToken = localStorage.getItem('token');
-    if (!user?.token && lsToken) {
-      console.log('Token found in localStorage:', lsToken.substring(0, 20) + '...');
-    }
-  }, [user]);
 
   useEffect(() => {
-    if (user) {
+    if (isReady && token) {
       fetchDocuments();
       fetchManagers();
     }
-  }, [user]);
+  }, [isReady, token]);
 
   // Fetch managers when modal opens (in case they weren't loaded initially)
   useEffect(() => {
-    if (showUploadModal && managers.length === 0 && user) {
+    if (showUploadModal && managers.length === 0 && isReady && token) {
       console.log('Modal opened, fetching managers...');
       fetchManagers();
     }
@@ -117,19 +99,9 @@ export default function DocumentSigner() {
     try {
       setLoadingManagers(true);
       
-      // Wait for user to be available
-      if (!user) {
-        console.warn('User not loaded yet, will retry when user is available');
-        setLoadingManagers(false);
-        return;
-      }
-      
-      const token = user?.token || localStorage.getItem('token');
-      
+      // Use token from hook
       if (!token) {
         console.error('No token available for fetching managers');
-        console.error('User object:', user);
-        toast.error('Authentication required. Please refresh the page.');
         setLoadingManagers(false);
         return;
       }
@@ -180,17 +152,8 @@ export default function DocumentSigner() {
     try {
       setLoading(true);
       
-      if (!user) {
-        console.warn('User not loaded yet for fetching documents');
-        setLoading(false);
-        return;
-      }
-      
-      const token = user?.token || localStorage.getItem('token');
-      
       if (!token) {
-        console.error('No token available for fetching documents');
-        toast.error('Authentication required. Please log in again.');
+        console.warn('Token not available yet for fetching documents');
         setLoading(false);
         return;
       }
@@ -261,7 +224,12 @@ export default function DocumentSigner() {
 
     try {
       setSigning(true);
-      const token = user?.token || localStorage.getItem('token');
+      
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      
       const signatureData = signaturePadRef.current?.toDataURL();
       
       // Determine which endpoint to use
@@ -297,7 +265,11 @@ export default function DocumentSigner() {
 
     try {
       setSigning(true);
-      const token = user?.token || localStorage.getItem('token');
+      
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
       
       await axios.post(
         `${baseAPI}/task/staff-documents/${selectedDoc.id}/sign_by_manager/`,
@@ -333,7 +305,6 @@ export default function DocumentSigner() {
 
     try {
       setUploading(true);
-      const token = user?.token || localStorage.getItem('token');
       
       if (!token) {
         toast.error('Authentication required. Please log in again.');
@@ -408,7 +379,11 @@ export default function DocumentSigner() {
 
   const downloadDocument = async (doc: StaffDocument) => {
     try {
-      const token = user?.token || localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      
       const response = await axios.get(
         `${baseAPI}/task/staff-documents/${doc.id}/download/`,
         {
