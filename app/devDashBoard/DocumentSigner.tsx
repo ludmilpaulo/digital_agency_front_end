@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import { useDevAuth } from './useDevAuth';
+import PDFSignatureModal from './PDFSignatureModal';
 
 interface StaffDocument {
   id: number;
@@ -55,6 +56,7 @@ export default function DocumentSigner() {
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<StaffDocument | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
+  const [showPDFSignModal, setShowPDFSignModal] = useState(false);
   const [signing, setSigning] = useState(false);
   const [comments, setComments] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -204,10 +206,56 @@ export default function DocumentSigner() {
 
   const openSignModal = (doc: StaffDocument) => {
     setSelectedDoc(doc);
-    setShowSignModal(true);
     setComments('');
     setRejectionReason('');
     setIsRejecting(false);
+    
+    // Check if this is a manager review (might want to reject)
+    const isManagerReview = isManager(doc) && doc.needs_manager_signature;
+    
+    if (isManagerReview) {
+      // Manager review - show simple modal with approve/reject options
+      setShowSignModal(true);
+    } else {
+      // Staff signing - show PDF signature placement modal
+      setShowPDFSignModal(true);
+    }
+  };
+
+  const handlePDFSign = async (signedPdfBlob: Blob, signatureDataUrl: string) => {
+    if (!selectedDoc) return;
+
+    try {
+      setSigning(true);
+
+      const formData = new FormData();
+      formData.append('signed_pdf', signedPdfBlob, `${selectedDoc.title}_signed.pdf`);
+      formData.append('signature', signatureDataUrl);
+      formData.append('comments', comments);
+
+      await axios.post(
+        `${baseAPI}/task/staff-documents/${selectedDoc.id}/sign_by_staff/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      toast.success('Document signed successfully!');
+      setShowPDFSignModal(false);
+      setSelectedDoc(null);
+      setComments('');
+      await fetchDocuments();
+    } catch (error: any) {
+      console.error('Error signing document:', error);
+      toast.error(error.response?.data?.detail || 'Failed to sign document');
+      throw error; // Let PDFSignatureModal handle it
+    } finally {
+      setSigning(false);
+    }
   };
 
   const clearSignature = () => {
@@ -970,6 +1018,22 @@ export default function DocumentSigner() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PDF Signature Placement Modal */}
+      {showPDFSignModal && selectedDoc && (
+        <PDFSignatureModal
+          documentUrl={selectedDoc.original_document}
+          documentTitle={selectedDoc.title}
+          onSign={handlePDFSign}
+          onCancel={() => {
+            setShowPDFSignModal(false);
+            setSelectedDoc(null);
+            setComments('');
+          }}
+          comments={comments}
+          onCommentsChange={setComments}
+        />
       )}
     </div>
   );
