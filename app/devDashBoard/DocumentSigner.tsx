@@ -130,8 +130,8 @@ export default function DocumentSigner() {
       setManagers(managersData);
       
       if (managersData.length === 0) {
-        console.warn('⚠️ No managers available - make sure users have is_staff or is_superuser set');
-        toast.error('No managers available. Please contact admin to set up managers.', { duration: 5000 });
+        console.warn('⚠️ No managers available - make sure users are superusers or in Executive group');
+        toast.error('No managers available. Managers must be superusers or members of the Executive group.', { duration: 5000 });
       } else {
         console.log('✅ Managers loaded successfully:', managersData.map(m => m.username || m.email));
       }
@@ -885,7 +885,7 @@ export default function DocumentSigner() {
                       </select>
                       {managers.length === 0 && (
                         <p className="text-xs text-red-500 mt-1">
-                          ⚠️ No managers found. Please contact admin to set up managers (users with staff or admin status).
+                          ⚠️ No managers found. Managers must be superusers or members of the Executive group.
                         </p>
                       )}
                       {managers.length > 0 && (
