@@ -76,8 +76,9 @@ export default function DocumentSigner() {
   });
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [managers, setManagers] = useState<any[]>([]);
+  const [loadingManagers, setLoadingManagers] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   const signaturePadRef = useRef<SignatureCanvas>(null);
 
   useEffect(() => {
@@ -85,8 +86,17 @@ export default function DocumentSigner() {
     fetchManagers();
   }, []);
 
+  // Fetch managers when modal opens (in case they weren't loaded initially)
+  useEffect(() => {
+    if (showUploadModal && managers.length === 0) {
+      console.log('Modal opened, fetching managers...');
+      fetchManagers();
+    }
+  }, [showUploadModal]);
+
   const fetchManagers = async () => {
     try {
+      setLoadingManagers(true);
       const token = user?.token || localStorage.getItem('token');
       
       if (!token) {
@@ -95,26 +105,44 @@ export default function DocumentSigner() {
         return;
       }
       
+      console.log('Fetching managers from:', `${baseAPI}/account/profile/line_managers/`);
+      
       const response = await axios.get(
         `${baseAPI}/account/profile/line_managers/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Handle both array response and object with managers array
-      const managersData = Array.isArray(response.data) 
-        ? response.data 
-        : response.data.managers || [];
+      console.log('Raw managers response:', response.data);
       
-      console.log('Managers fetched:', managersData);
+      // Handle both array response and object with managers array
+      let managersData: any[] = [];
+      
+      if (Array.isArray(response.data)) {
+        managersData = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Handle object response with managers array
+        managersData = response.data.managers || response.data.data || [];
+      }
+      
+      console.log('Processed managers data:', managersData);
+      console.log(`Found ${managersData.length} managers`);
+      
       setManagers(managersData);
       
       if (managersData.length === 0) {
-        console.warn('No managers available - make sure users have is_staff or is_superuser set');
+        console.warn('⚠️ No managers available - make sure users have is_staff or is_superuser set');
+        toast.error('No managers available. Please contact admin to set up managers.', { duration: 5000 });
+      } else {
+        console.log('✅ Managers loaded successfully:', managersData.map(m => m.username || m.email));
       }
     } catch (error: any) {
-      console.error('Error fetching managers:', error);
+      console.error('❌ Error fetching managers:', error);
       console.error('Error response:', error.response?.data);
-      toast.error('Failed to load managers list');
+      console.error('Error status:', error.response?.status);
+      toast.error(`Failed to load managers: ${error.response?.data?.detail || error.message}`, { duration: 5000 });
+      setManagers([]);
+    } finally {
+      setLoadingManagers(false);
     }
   };
 
@@ -829,21 +857,44 @@ export default function DocumentSigner() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Assign Line Manager (will sign after you)
                   </label>
-                  <select
-                    value={uploadData.line_manager_id}
-                    onChange={(e) => setUploadData({ ...uploadData, line_manager_id: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">No manager assigned</option>
-                    {managers.map((manager) => (
-                      <option key={manager.id} value={manager.id}>
-                        {manager.username} - {manager.email}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Select a manager if this document requires manager approval after your signature
-                  </p>
+                  {loadingManagers ? (
+                    <div className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm">
+                      Loading managers...
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        value={uploadData.line_manager_id}
+                        onChange={(e) => {
+                          console.log('Manager selected:', e.target.value);
+                          setUploadData({ ...uploadData, line_manager_id: e.target.value });
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={managers.length === 0}
+                      >
+                        <option value="">No manager assigned</option>
+                        {managers.length > 0 ? (
+                          managers.map((manager) => (
+                            <option key={manager.id} value={String(manager.id)}>
+                              {manager.username || manager.email} {manager.email && manager.username ? `(${manager.email})` : ''}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>No managers available</option>
+                        )}
+                      </select>
+                      {managers.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          ⚠️ No managers found. Please contact admin to set up managers (users with staff or admin status).
+                        </p>
+                      )}
+                      {managers.length > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Select a manager if this document requires manager approval after your signature
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* File Upload */}
