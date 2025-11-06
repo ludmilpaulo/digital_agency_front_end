@@ -56,7 +56,7 @@ export default function BoardManager() {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/task/boards/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       setBoards(response.data);
     } catch (error) {
@@ -71,7 +71,7 @@ export default function BoardManager() {
     try {
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/task/users/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       setUsers(response.data);
     } catch (error) {
@@ -83,7 +83,7 @@ export default function BoardManager() {
     try {
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/account/profile/line_managers/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       setManagers(response.data);
     } catch (error) {
@@ -142,7 +142,7 @@ export default function BoardManager() {
         await axios.put(
           `${baseAPI}/task/boards/${editingBoard.id}/`,
           payload,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Token ${token}` } }
         );
         toast.success('Board updated successfully!');
       } else {
@@ -150,7 +150,7 @@ export default function BoardManager() {
         await axios.post(
           `${baseAPI}/task/boards/`,
           payload,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Token ${token}` } }
         );
         toast.success('Board created successfully!');
       }
@@ -171,7 +171,7 @@ export default function BoardManager() {
     try {
       const token = user?.token || localStorage.getItem('token');
       await axios.delete(`${baseAPI}/task/boards/${boardId}/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       toast.success('Board deleted successfully!');
       fetchBoards();

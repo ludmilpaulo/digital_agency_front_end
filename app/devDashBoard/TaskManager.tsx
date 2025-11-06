@@ -64,7 +64,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/task/cards/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       
       let filteredTasks = response.data;
@@ -89,7 +89,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
     try {
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/task/lists/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       
       let filteredLists = response.data;
@@ -107,7 +107,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
     try {
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/task/users/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       setUsers(response.data);
     } catch (error) {
@@ -203,7 +203,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
           submitData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Token ${token}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -216,7 +216,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
           submitData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Token ${token}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -240,7 +240,7 @@ export default function TaskManager({ boardId }: TaskManagerProps) {
     try {
       const token = user?.token || localStorage.getItem('token');
       await axios.delete(`${baseAPI}/task/cards/${taskId}/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       toast.success('Task deleted successfully!');
       fetchTasks();

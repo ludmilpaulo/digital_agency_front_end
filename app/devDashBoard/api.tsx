@@ -17,7 +17,7 @@ const useApi = () => {
   API.interceptors.request.use(
     config => {
       if (user && user.token) {
-        config.headers['Authorization'] = `Bearer ${user.token}`;
+        config.headers['Authorization'] = `Token ${user.token}`;
       }
       return config;
     },

@@ -111,7 +111,7 @@ export default function DocumentSigner() {
       
       const response = await axios.get(
         `${baseAPI}/account/profile/line_managers/`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       );
       
       console.log('Raw managers response:', response.data);
@@ -161,7 +161,7 @@ export default function DocumentSigner() {
       // Fetch all documents for this user
       const response = await axios.get(
         `${baseAPI}/task/staff-documents/`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       );
       
       const docs = response.data || [];
@@ -243,7 +243,7 @@ export default function DocumentSigner() {
           comments: comments,
           approved: !isRejecting
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       );
 
       toast.success('Document signed successfully!');
@@ -278,7 +278,7 @@ export default function DocumentSigner() {
           rejection_reason: rejectionReason,
           comments: comments
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       );
 
       toast.success('Document rejected');
@@ -341,7 +341,7 @@ export default function DocumentSigner() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         }
@@ -387,7 +387,7 @@ export default function DocumentSigner() {
       const response = await axios.get(
         `${baseAPI}/task/staff-documents/${doc.id}/download/`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Token ${token}` },
           responseType: 'blob'
         }
       );

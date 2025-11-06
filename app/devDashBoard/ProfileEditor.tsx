@@ -59,7 +59,7 @@ export default function ProfileEditor() {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
       const response = await axios.get(`${baseAPI}/account/profile/me/`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
       setProfileData(response.data);
     } catch (error) {
@@ -95,7 +95,7 @@ export default function ProfileEditor() {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         }
@@ -128,7 +128,7 @@ export default function ProfileEditor() {
         `${baseAPI}/account/profile/update_me/`,
         profileData.profile,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Token ${token}` }
         }
       );
 
@@ -164,7 +164,7 @@ export default function ProfileEditor() {
           new_password: passwordData.new_password
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Token ${token}` }
         }
       );
 

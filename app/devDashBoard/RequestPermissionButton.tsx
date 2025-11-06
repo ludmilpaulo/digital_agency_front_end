@@ -54,7 +54,7 @@ export default function RequestPermissionButton({
 
       await axios.post(`${baseAPI}/task/permission-requests/`, payload, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Token ${token}`
         }
       });
 
