@@ -5,6 +5,7 @@ import { RootState } from '@/redux/store';
 import { Document } from '@/services/documentService';
 import { sendInvite } from '@/services/inviteService';
 import { fetchUsers } from '@/services/userService';
+import toast from 'react-hot-toast';
 
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { User } from '@/types/groups';
@@ -38,13 +39,17 @@ const SendToSignSection: React.FC<Props> = ({ documents, onLoading }) => {
   const userId = auth_user?.user_id;
   
   const handleSubmit = async () => {
-    if (!selectedDocId) return alert('Please select a document.');
+    if (!selectedDocId) {
+      toast.error('Please select a document.');
+      return;
+    }
     if (selectedUsers.length === 0 && emails.length === 0) {
-      return alert('Select at least one user or email.');
+      toast.error('Select at least one user or email.');
+      return;
     }
   
     if (!userId) {
-      alert('You must be logged in to send invites.');
+      toast.error('You must be logged in to send invites.');
       return;
     }
   
@@ -52,15 +57,46 @@ const SendToSignSection: React.FC<Props> = ({ documents, onLoading }) => {
   
     try {
       onLoading(true);
+      let successCount = 0;
+      let failCount = 0;
+      const errors: string[] = [];
+      
       for (const email of recipients) {
-        await sendInvite({ email, documentId: selectedDocId, user_id: userId }); // ✅ added user_id
+        try {
+          const response = await sendInvite({ email, documentId: selectedDocId, user_id: userId });
+          // Check if email was actually sent
+          if (response.data?.email_sent === false) {
+            failCount++;
+            const errorMsg = response.data?.error || response.data?.detail || 'Email failed to send';
+            errors.push(`${email}: ${errorMsg}`);
+            console.warn(`Invite created for ${email} but email failed:`, errorMsg);
+          } else {
+            successCount++;
+          }
+        } catch (error: any) {
+          failCount++;
+          const errorMsg = error?.response?.data?.detail || error?.message || 'Unknown error';
+          errors.push(`${email}: ${errorMsg}`);
+          console.error(`Failed to send invite to ${email}:`, error);
+        }
       }
-      alert('Invites sent!');
-      setSelectedUsers([]);
-      setEmails([]);
-      setSelectedDocId(null);
-    } catch {
-      alert('Failed to send invites.');
+      
+      if (successCount > 0 && failCount === 0) {
+        toast.success(`Successfully sent ${successCount} invite${successCount > 1 ? 's' : ''}!`);
+        setSelectedUsers([]);
+        setEmails([]);
+        setSelectedDocId(null);
+      } else if (successCount > 0 && failCount > 0) {
+        toast.error(`Sent ${successCount} invite${successCount > 1 ? 's' : ''}, but ${failCount} failed. Check console for details.`, { duration: 5000 });
+        console.error('Email sending errors:', errors);
+      } else {
+        toast.error(`Failed to send all invites. Check console for details.`, { duration: 5000 });
+        console.error('Email sending errors:', errors);
+      }
+    } catch (error: any) {
+      console.error('Error sending invites:', error);
+      const errorMsg = error?.response?.data?.detail || error?.message || 'Failed to send invites.';
+      toast.error(errorMsg, { duration: 5000 });
     } finally {
       onLoading(false);
     }
