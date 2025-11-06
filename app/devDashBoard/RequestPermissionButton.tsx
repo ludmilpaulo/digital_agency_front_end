@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectUser } from '@/redux/slices/authSlice';
 import axios from 'axios';
 import { baseAPI } from '@/useAPI/api';
 import toast from 'react-hot-toast';
@@ -19,6 +21,7 @@ export default function RequestPermissionButton({
   targetName,
   onRequestSent 
 }: RequestPermissionButtonProps) {
+  const user = useSelector(selectUser);
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -31,6 +34,12 @@ export default function RequestPermissionButton({
 
     try {
       setSubmitting(true);
+      const token = user?.token || localStorage.getItem('token');
+      
+      if (!token) {
+        toast.error('You must be logged in to request access');
+        return;
+      }
       
       const payload: any = {
         request_type: type,
@@ -43,7 +52,11 @@ export default function RequestPermissionButton({
         payload.card = targetId;
       }
 
-      await axios.post(`${baseAPI}/task/permission-requests/`, payload);
+      await axios.post(`${baseAPI}/task/permission-requests/`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
       toast.success('Permission request sent to manager!');
       setShowModal(false);
@@ -51,7 +64,8 @@ export default function RequestPermissionButton({
       onRequestSent?.();
     } catch (error: any) {
       console.error('Error requesting permission:', error);
-      toast.error(error.response?.data?.detail || 'Failed to send request');
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to send request';
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
