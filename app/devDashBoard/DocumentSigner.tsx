@@ -88,13 +88,33 @@ export default function DocumentSigner() {
   const fetchManagers = async () => {
     try {
       const token = user?.token || localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token available for fetching managers');
+        toast.error('Please log in to view managers');
+        return;
+      }
+      
       const response = await axios.get(
         `${baseAPI}/account/profile/line_managers/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setManagers(response.data || []);
-    } catch (error) {
+      
+      // Handle both array response and object with managers array
+      const managersData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.managers || [];
+      
+      console.log('Managers fetched:', managersData);
+      setManagers(managersData);
+      
+      if (managersData.length === 0) {
+        console.warn('No managers available - make sure users have is_staff or is_superuser set');
+      }
+    } catch (error: any) {
       console.error('Error fetching managers:', error);
+      console.error('Error response:', error.response?.data);
+      toast.error('Failed to load managers list');
     }
   };
 
@@ -242,18 +262,37 @@ export default function DocumentSigner() {
       setUploading(true);
       const token = user?.token || localStorage.getItem('token');
       
+      if (!token) {
+        toast.error('Authentication required. Please log in again.');
+        return;
+      }
+      
+      console.log('Uploading document:', {
+        title: uploadData.title,
+        type: uploadData.document_type,
+        hasManager: !!uploadData.line_manager_id,
+        managerId: uploadData.line_manager_id,
+        userId: user?.user_id || user?.id
+      });
+      
       const formData = new FormData();
       formData.append('title', uploadData.title);
       formData.append('document_type', uploadData.document_type);
       formData.append('description', uploadData.description);
       formData.append('original_document', documentFile);
-      formData.append('staff_user_id', String(user?.user_id || user?.id));
       
+      // Set staff_user_id (current user)
+      const userId = String(user?.user_id || user?.id);
+      formData.append('staff_user_id', userId);
+      console.log('Setting staff_user_id:', userId);
+      
+      // Set line_manager_id if selected
       if (uploadData.line_manager_id) {
         formData.append('line_manager_id', uploadData.line_manager_id);
+        console.log('Setting line_manager_id:', uploadData.line_manager_id);
       }
 
-      await axios.post(
+      const response = await axios.post(
         `${baseAPI}/task/staff-documents/`,
         formData,
         {
@@ -264,7 +303,9 @@ export default function DocumentSigner() {
         }
       );
 
+      console.log('Document uploaded successfully:', response.data);
       toast.success('Document uploaded successfully!');
+      
       setShowUploadModal(false);
       setUploadData({
         title: '',
@@ -273,10 +314,20 @@ export default function DocumentSigner() {
         line_manager_id: ''
       });
       setDocumentFile(null);
-      fetchDocuments();
+      
+      // Refresh documents list
+      await fetchDocuments();
     } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error(error.response?.data?.detail || 'Failed to upload document');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.detail 
+        || error.response?.data?.error 
+        || error.message 
+        || 'Failed to upload document';
+      
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setUploading(false);
     }
