@@ -80,15 +80,34 @@ export default function DocumentSigner() {
   const [uploading, setUploading] = useState(false);
 
   const signaturePadRef = useRef<SignatureCanvas>(null);
+  
+  // Debug: Log user object on load
+  useEffect(() => {
+    console.log('DocumentSigner - User object loaded:', {
+      exists: !!user,
+      hasToken: !!user?.token,
+      userId: user?.user_id || user?.id,
+      username: user?.username,
+      tokenPreview: user?.token ? user.token.substring(0, 20) + '...' : 'NO TOKEN'
+    });
+    
+    // Try to get token from localStorage if not in user object
+    const lsToken = localStorage.getItem('token');
+    if (!user?.token && lsToken) {
+      console.log('Token found in localStorage:', lsToken.substring(0, 20) + '...');
+    }
+  }, [user]);
 
   useEffect(() => {
-    fetchDocuments();
-    fetchManagers();
-  }, []);
+    if (user) {
+      fetchDocuments();
+      fetchManagers();
+    }
+  }, [user]);
 
   // Fetch managers when modal opens (in case they weren't loaded initially)
   useEffect(() => {
-    if (showUploadModal && managers.length === 0) {
+    if (showUploadModal && managers.length === 0 && user) {
       console.log('Modal opened, fetching managers...');
       fetchManagers();
     }
@@ -97,15 +116,26 @@ export default function DocumentSigner() {
   const fetchManagers = async () => {
     try {
       setLoadingManagers(true);
+      
+      // Wait for user to be available
+      if (!user) {
+        console.warn('User not loaded yet, will retry when user is available');
+        setLoadingManagers(false);
+        return;
+      }
+      
       const token = user?.token || localStorage.getItem('token');
       
       if (!token) {
         console.error('No token available for fetching managers');
-        toast.error('Please log in to view managers');
+        console.error('User object:', user);
+        toast.error('Authentication required. Please refresh the page.');
+        setLoadingManagers(false);
         return;
       }
       
       console.log('Fetching managers from:', `${baseAPI}/account/profile/line_managers/`);
+      console.log('Using token:', token.substring(0, 20) + '...');
       
       const response = await axios.get(
         `${baseAPI}/account/profile/line_managers/`,
@@ -149,7 +179,21 @@ export default function DocumentSigner() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      
+      if (!user) {
+        console.warn('User not loaded yet for fetching documents');
+        setLoading(false);
+        return;
+      }
+      
       const token = user?.token || localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token available for fetching documents');
+        toast.error('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
       
       // Fetch all documents for this user
       const response = await axios.get(
@@ -160,9 +204,10 @@ export default function DocumentSigner() {
       const docs = response.data || [];
       setAllDocuments(docs);
       setDocuments(docs);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching documents:', error);
-      toast.error('Failed to load documents');
+      console.error('Error response:', error.response?.data);
+      toast.error(error.response?.data?.detail || 'Failed to load documents');
     } finally {
       setLoading(false);
     }
