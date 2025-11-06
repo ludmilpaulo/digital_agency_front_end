@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import toast from "react-hot-toast";
 
 import { selectUser } from "@/redux/slices/authSlice";
 import { checkIsAdmin } from "@/utils/checkIsAdmin";
@@ -68,6 +69,7 @@ export default function AdminPage() {
   useEffect(() => {
     // Guard unauthenticated
     if (!user) {
+      toast.error("Please sign in to access the admin panel", { duration: 4000 });
       router.replace("/LoginScreenUser");
       return;
     }
@@ -77,8 +79,18 @@ export default function AdminPage() {
       if (!isAdmin) {
         // Keep a safe UX
         console.warn(detail || "Access denied. Admin only.");
-        alert("Access Denied: This page is only accessible to administrators.");
-        router.replace("/");
+        toast.error("Access Denied: This page is only accessible to administrators.", { 
+          duration: 5000 
+        });
+        setTimeout(() => {
+          toast("Redirecting to homepage...", { 
+            icon: "🏠",
+            duration: 3000 
+          });
+        }, 1000);
+        setTimeout(() => {
+          router.replace("/");
+        }, 2000);
       } else {
         setAuthed(true);
         setLoading(false);

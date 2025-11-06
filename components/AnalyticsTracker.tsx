@@ -23,10 +23,16 @@ export default function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const prev = useRef<string>("");
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
+    // Prevent double initialization
+    if (hasInitialized.current) return;
+    
     const m = initMixpanel();
     if (!m) return;
+    
+    hasInitialized.current = true;
 
     if (searchParams) captureUtmOnce(searchParams);
     const full = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
@@ -36,6 +42,9 @@ export default function AnalyticsTracker() {
   }, []);
 
   useEffect(() => {
+    // Only track if already initialized
+    if (!hasInitialized.current) return;
+    
     const full = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
     if (prev.current && prev.current !== full) {
       track("Page View", { path: pathname });

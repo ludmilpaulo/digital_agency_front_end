@@ -204,13 +204,61 @@ export default function LoginScreenUserClient() {
           router.push(redirectPath);
         }, 500);
       } else {
-        const errorMsg = 
-          (resJson as ErrorResponse).detail ||
-          (resJson as ErrorResponse).error ||
-          "Invalid credentials, please try again.";
-        console.error("Login error:", errorMsg);
-        setError(errorMsg);
-        toast.error(errorMsg);
+        // Handle detailed error messages from backend
+        const errorResponse = resJson as any;
+        const errorMsg = errorResponse.error || errorResponse.detail || "Invalid credentials, please try again.";
+        const suggestion = errorResponse.suggestion || "";
+        const field = errorResponse.field || "credentials";
+        
+        console.error("Login error:", { 
+          message: errorMsg, 
+          field, 
+          suggestion,
+          status: res.status 
+        });
+        
+        // Display specific error message based on status
+        if (res.status === 404) {
+          // User doesn't exist
+          setError(errorMsg);
+          toast.error(errorMsg, { duration: 5000 });
+          if (suggestion) {
+            setTimeout(() => {
+              toast(suggestion, { 
+                duration: 4000,
+                icon: '💡',
+                style: {
+                  background: '#3b82f6',
+                  color: '#fff',
+                }
+              });
+            }, 1000);
+          }
+        } else if (res.status === 401) {
+          // Wrong password
+          setError(errorMsg);
+          toast.error(errorMsg, { duration: 4000 });
+          if (suggestion) {
+            setTimeout(() => {
+              toast(suggestion, { 
+                duration: 4000,
+                icon: '💡',
+                style: {
+                  background: '#3b82f6',
+                  color: '#fff',
+                }
+              });
+            }, 1000);
+          }
+        } else if (res.status === 403) {
+          // Account deactivated
+          setError(errorMsg);
+          toast.error(errorMsg, { duration: 6000 });
+        } else {
+          // Generic error
+          setError(errorMsg);
+          toast.error(errorMsg);
+        }
       }
     } catch (err: any) {
       console.error("Login exception:", err);

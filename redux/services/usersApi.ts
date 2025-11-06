@@ -5,6 +5,14 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 // Match this to your Django User serializer!
 export interface UserProfile {
   role: string;
+  first_name?: string;
+  last_name?: string;
+  job_title?: string;
+  department?: string;
+  phone?: string;
+  bio?: string;
+  avatar?: string;
+  full_name?: string;
 }
 
 export interface User {
@@ -18,6 +26,8 @@ export interface User {
   is_staff?: boolean;
   is_active?: boolean;
   profile?: UserProfile;
+  job_title?: string;
+  department?: string;
 }
 
 export const usersApi = createApi({

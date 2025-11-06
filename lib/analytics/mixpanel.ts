@@ -15,18 +15,43 @@ export const initMixpanel = () => {
     }
 
     try {
+      // Clear any stale Mixpanel locks before initialization
+      const lockPattern = /^__mprec_mixpanel_.*_\d+\|[\d.]+$/;
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('__mprec_mixpanel_') || key.startsWith('__mplock_')) {
+          try {
+            localStorage.removeItem(key);
+          } catch (e) {
+            console.warn('Could not remove stale lock:', key);
+          }
+        }
+      });
+
       mixpanel.init(MIXPANEL_TOKEN, {
         autocapture: true,
-        record_sessions_percent: 100,
         debug: process.env.NODE_ENV === 'development',
         track_pageview: true,
         persistence: 'localStorage',
-      });
+        // Batch events to reduce lock frequency
+        batch_requests: true,
+        batch_size: 50,
+        batch_flush_interval_ms: 5000,
+      } as any); // Use 'as any' to allow additional config options
       initialized = true;
       console.log('✅ Mixpanel initialized successfully');
       return mixpanel;
     } catch (error) {
       console.error('❌ Mixpanel initialization failed:', error);
+      // Clear all mixpanel data on error and retry once
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('mixpanel')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (e) {
+        console.warn('Could not clear Mixpanel data');
+      }
       return null;
     }
   }
@@ -36,7 +61,14 @@ export const initMixpanel = () => {
 // Track generic event (used by AnalyticsTracker)
 export const track = (eventName: string, properties?: Record<string, any>) => {
   if (typeof window !== 'undefined' && initialized) {
-    mixpanel.track(eventName, properties);
+    try {
+      mixpanel.track(eventName, properties);
+    } catch (error) {
+      // Silently fail on mutex errors to prevent console spam
+      if (!String(error).includes('mutex')) {
+        console.warn('Mixpanel track error:', error);
+      }
+    }
   }
 };
 
@@ -74,10 +106,16 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
 
 // Identify user
 export const identifyUser = (userId: string | number, userProperties?: Record<string, any>) => {
-  if (typeof window !== 'undefined') {
-    mixpanel.identify(userId.toString());
-    if (userProperties) {
-      mixpanel.people.set(userProperties);
+  if (typeof window !== 'undefined' && initialized) {
+    try {
+      mixpanel.identify(userId.toString());
+      if (userProperties) {
+        mixpanel.people.set(userProperties);
+      }
+    } catch (error) {
+      if (!String(error).includes('mutex')) {
+        console.warn('Mixpanel identify error:', error);
+      }
     }
   }
 };

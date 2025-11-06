@@ -3,6 +3,8 @@ import { baseAPI } from "@/useAPI/api";
 
 export async function checkIsAdmin(userId: number): Promise<{ isAdmin: boolean; detail?: string }> {
   try {
+    console.log("Checking admin status for user:", userId);
+    
     const res = await fetch(`${baseAPI}/account/check-admin/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -10,14 +12,23 @@ export async function checkIsAdmin(userId: number): Promise<{ isAdmin: boolean; 
     });
 
     const data = await res.json();
+    console.log("Admin check response:", { status: res.status, data });
 
     if (!res.ok) {
-      return { isAdmin: false, detail: data.detail || "Network error" };
+      const errorDetail = data.detail || "Unable to verify admin status";
+      console.warn("Admin check failed:", errorDetail);
+      return { isAdmin: false, detail: errorDetail };
     }
 
-    return { isAdmin: !!data.is_admin };
+    const isAdmin = !!data.is_admin;
+    console.log("User admin status:", isAdmin);
+    return { isAdmin };
   } catch (error) {
-    return { isAdmin: false, detail: "Network error" };
+    console.error("Admin check error:", error);
+    return { 
+      isAdmin: false, 
+      detail: "Network error: Unable to verify admin status" 
+    };
   }
 }
 

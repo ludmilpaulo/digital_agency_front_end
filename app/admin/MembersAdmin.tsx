@@ -9,6 +9,10 @@ import GroupsList from "./members/GroupsList";
 import GroupPanel from "./members/GroupPanel";
 import UsersWithoutGroup from "./members/UsersWithoutGroup";
 import BulkAssignModal from "./members/BulkAssignModal";
+import CreateUserModal from "./members/CreateUserModal";
+import EditUserModal from "./members/EditUserModal";
+import toast from "react-hot-toast";
+import { baseAPI } from "@/useAPI/api";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
@@ -16,7 +20,7 @@ const USERS_PER_PAGE = 10;
 const GROUPS_PER_PAGE = 8;
 
 export default function MembersAdmin() {
-  const { data: users = [], isLoading: usersLoading } = useGetUsersQuery();
+  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useGetUsersQuery();
   const { data: allGroupsData, isLoading: groupsLoading } = useGetAllGroupsQuery();
   const {
     assignUsersToGroup,
@@ -28,6 +32,9 @@ export default function MembersAdmin() {
   const [search, setSearch] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userPage, setUserPage] = useState(1);
   const [groupPage, setGroupPage] = useState(1);
 
@@ -74,6 +81,34 @@ export default function MembersAdmin() {
   const usersNotInAnyGroup = users.filter(
     u => !allGroups.some(g => g.users?.includes(u.id))
   );
+
+  // User CRUD operations
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setShowEditUserModal(true);
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Are you sure you want to delete user "${user.username}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseAPI}/account/groups-users/${user.id}/`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete user");
+      }
+
+      toast.success(`User "${user.username}" has been deleted`, { duration: 4000 });
+      refetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user", { duration: 4000 });
+    }
+  };
 
   // Add group
   const [addingType, setAddingType] = useState<GroupType>("project");
@@ -201,6 +236,33 @@ export default function MembersAdmin() {
         </div>
         {/* Main content - Group members + Users */}
         <div className="flex-1 min-w-0">
+          {showCreateUserModal && (
+            <CreateUserModal
+              onClose={() => setShowCreateUserModal(false)}
+              onSuccess={() => {
+                refetchUsers();
+                setShowCreateUserModal(false);
+              }}
+              groups={allGroups}
+              assignUsersToGroup={assignUsersToGroup}
+            />
+          )}
+          {showEditUserModal && editingUser && (
+            <EditUserModal
+              user={editingUser}
+              onClose={() => {
+                setShowEditUserModal(false);
+                setEditingUser(null);
+              }}
+              onSuccess={() => {
+                refetchUsers();
+                setShowEditUserModal(false);
+                setEditingUser(null);
+              }}
+              groups={allGroups}
+              assignUsersToGroup={assignUsersToGroup}
+            />
+          )}
           {showBulkModal && (
             <BulkAssignModal
               users={users}
@@ -235,15 +297,27 @@ export default function MembersAdmin() {
               </div>
               {search && (
                 <div className="text-sm text-gray-600 mt-1">
-                  Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{search}"
+                  Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching &quot;{search}&quot;
                   {filteredUsers.length > 0 && ` (showing page ${userPage} of ${totalUserPages})`}
                 </div>
               )}
             </div>
             <button
-              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition font-semibold"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold flex items-center gap-2 shadow-md"
+              onClick={() => setShowCreateUserModal(true)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              Create New User
+            </button>
+            <button
+              className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition font-semibold flex items-center gap-2 shadow-md"
               onClick={() => setShowBulkModal(true)}
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
               Bulk Assign
             </button>
           </div>
@@ -271,6 +345,8 @@ export default function MembersAdmin() {
                   selected
                   onEditGroup={beginEditGroup}
                   onDeleteGroup={g => deleteGroupWithType(g)}
+                  onEditUser={handleEditUser}
+                  onDeleteUser={handleDeleteUser}
                   onSelect={() => setSelectedGroupId(selectedGroup.id)}
                 />
               ) : (
@@ -284,6 +360,8 @@ export default function MembersAdmin() {
                     selected={false}
                     onEditGroup={beginEditGroup}
                     onDeleteGroup={group => deleteGroupWithType(group)}
+                    onEditUser={handleEditUser}
+                    onDeleteUser={handleDeleteUser}
                     onSelect={() => setSelectedGroupId(g.id)}
                   />
                 ))

@@ -24,6 +24,7 @@ const SignaturePadModal: React.FC<Props> = ({
   const [selectedFont, setSelectedFont] = useState(fonts[0]);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     fonts.forEach((font) => {
@@ -36,6 +37,10 @@ const SignaturePadModal: React.FC<Props> = ({
         document.head.appendChild(link);
       }
     });
+    
+    // Mark as ready after a short delay to ensure canvas is initialized
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
   }, [fonts]);
 
   const clearDraw = () => sigPadRef.current?.clear();
@@ -93,21 +98,32 @@ const SignaturePadModal: React.FC<Props> = ({
       }
       
       try {
-        const canvas = sigPadRef.current.getTrimmedCanvas();
-        if (!canvas) {
-          alert('Failed to get signature canvas. Please try again.');
+        // Try to get trimmed canvas first
+        let dataUrl: string | undefined;
+        
+        try {
+          const trimmedCanvas = sigPadRef.current.getTrimmedCanvas();
+          if (trimmedCanvas) {
+            dataUrl = trimmedCanvas.toDataURL('image/png');
+          }
+        } catch (trimError) {
+          console.warn('getTrimmedCanvas failed, using regular canvas:', trimError);
+          // Fallback to regular canvas if trimmed fails
+          dataUrl = sigPadRef.current.toDataURL('image/png');
+        }
+        
+        // Validate the data URL
+        if (!dataUrl || dataUrl === 'data:,' || dataUrl === 'data:image/png;base64,') {
+          alert('Failed to generate signature image. Please try drawing again.');
           return;
         }
-        const dataUrl = canvas.toDataURL('image/png');
-        if (!dataUrl || dataUrl === 'data:,') {
-          alert('Failed to generate signature image. Please try again.');
-          return;
-        }
+        
+        console.log('Signature captured successfully');
         onSave(dataUrl);
         onClose();
       } catch (error) {
-        console.error('Error getting signature:', error);
-        alert('Error capturing signature. Please try drawing again.');
+        console.error('Error capturing signature:', error);
+        alert('Error capturing signature. Please try drawing again or use a different mode (Type/Upload).');
       }
       return;
     }
@@ -119,6 +135,9 @@ const SignaturePadModal: React.FC<Props> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
+      // Ensure transparent background
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
       ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -163,17 +182,29 @@ const SignaturePadModal: React.FC<Props> = ({
         {/* Draw mode */}
         {mode === 'draw' && (
           <div>
-            <SignaturePad
-              ref={sigPadRef}
-              canvasProps={{
-                width: canvasWidth,
-                height: canvasHeight,
-                className: 'bg-gray-100 rounded',
+            <div 
+              className="border-2 border-gray-300 rounded overflow-hidden"
+              style={{
+                background: 'repeating-conic-gradient(#f0f0f0 0% 25%, transparent 0% 50%) 50% / 20px 20px'
               }}
-            />
-            <button onClick={clearDraw} className="mt-2 text-sm text-blue-600">
-              Clear
+            >
+              <SignaturePad
+                ref={sigPadRef}
+                canvasProps={{
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  className: '',
+                  style: { touchAction: 'none' }
+                }}
+                penColor="black"
+              />
+            </div>
+            <button onClick={clearDraw} className="mt-2 text-sm text-blue-600 hover:underline">
+              Clear Signature
             </button>
+            <p className="text-xs text-gray-500 mt-1">
+              Draw your signature in the box above (transparent background)
+            </p>
           </div>
         )}
 
@@ -184,6 +215,7 @@ const SignaturePadModal: React.FC<Props> = ({
               value={typedText}
               onChange={(e) => setTypedText(e.target.value)}
               className="w-full border p-2 rounded"
+              placeholder="Enter your name"
             />
             <select
               value={selectedFont}
@@ -197,22 +229,39 @@ const SignaturePadModal: React.FC<Props> = ({
               ))}
             </select>
             <div
-              className="border p-4 text-center text-2xl"
-              style={{ fontFamily: selectedFont }}
+              className="border p-4 text-center text-2xl rounded"
+              style={{
+                fontFamily: selectedFont,
+                background: 'repeating-conic-gradient(#f0f0f0 0% 25%, transparent 0% 50%) 50% / 20px 20px'
+              }}
             >
               {typedText}
             </div>
+            <p className="text-xs text-gray-500">Preview (will have transparent background)</p>
           </div>
         )}
 
         {/* Upload mode */}
         {mode === 'upload' && (
           <div className="space-y-2">
-            <input type="file" accept="image/*" onChange={handleUpload} />
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleUpload}
+              className="w-full border p-2 rounded"
+            />
             <canvas ref={canvasRef} className="hidden" />
             {uploadedImage && (
-              <div className="relative w-full h-32 border rounded overflow-hidden">
-                <NextImage src={uploadedImage} alt="Preview" fill className="object-contain" />
+              <div>
+                <div 
+                  className="relative w-full h-32 border-2 border-gray-300 rounded overflow-hidden"
+                  style={{
+                    background: 'repeating-conic-gradient(#f0f0f0 0% 25%, transparent 0% 50%) 50% / 20px 20px'
+                  }}
+                >
+                  <NextImage src={uploadedImage} alt="Preview" fill className="object-contain" />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Preview (white background removed)</p>
               </div>
             )}
           </div>
@@ -226,12 +275,19 @@ const SignaturePadModal: React.FC<Props> = ({
           <button
             onClick={handleSave}
             disabled={
+              !isReady ||
               (mode === 'draw' && sigPadRef.current?.isEmpty()) ||
               (mode === 'upload' && !uploadedImage)
             }
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className={`px-4 py-2 rounded transition ${
+              !isReady ||
+              (mode === 'draw' && sigPadRef.current?.isEmpty()) ||
+              (mode === 'upload' && !uploadedImage)
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
-            Save
+            Save Signature
           </button>
         </div>
       </div>

@@ -12,6 +12,8 @@ interface Props {
   onDropUser: (userId: number, group: Group) => void | Promise<void>;
   onEditGroup: (group: Group) => void;
   onDeleteGroup: (group: Group) => void;
+  onEditUser?: (user: User) => void;
+  onDeleteUser?: (user: User) => void;
   selected: boolean;
   onSelect: () => void;
 }
@@ -23,6 +25,8 @@ const GroupPanel: React.FC<Props> = ({
   onDropUser,
   onEditGroup,
   onDeleteGroup,
+  onEditUser,
+  onDeleteUser,
   selected,
   onSelect,
 }) => {
@@ -96,6 +100,9 @@ const GroupPanel: React.FC<Props> = ({
             groups={[group]}
             draggable={false}
             onRemove={() => onRemoveUser(user.id, group)}
+            onEdit={onEditUser}
+            onDelete={onDeleteUser}
+            showActions={true}
           />
         ))}
       </div>

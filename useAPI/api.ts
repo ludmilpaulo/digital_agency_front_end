@@ -1,7 +1,8 @@
 "use client";
 import axios from "axios";
-export const baseAPI = "https://maindoagency.pythonanywhere.com"
-//export const baseAPI = "http://127.0.0.1:8000"
+// Use environment variable if set, otherwise default to localhost for development
+export const baseAPI = process.env.NEXT_PUBLIC_BASE_API || "http://127.0.0.1:8000"
+// Production: "https://maindoagency.pythonanywhere.com"
 
 const api = axios.create({
   baseURL: baseAPI,
